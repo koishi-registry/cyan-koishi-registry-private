@@ -1,0 +1,26 @@
+{
+  "imports": {
+    "@cordisjs/plugin-http": "npm:@cordisjs/plugin-http@^0.6.3",
+    "@cordisjs/plugin-logger": "npm:@cordisjs/plugin-logger@^0.1.1",
+    "cordis": "npm:cordis@^3.18.1",
+    "cosmokit": "npm:cosmokit@^1.6.3",
+    "lodash.trim": "npm:lodash.trim@^4.5.1",
+    "reggol": "npm:reggol@^1.7.1"
+  },
+  "unstable": [
+    "sloppy-imports"
+  ],
+  "tasks": {
+    "start": "deno run --allow-all main.ts"
+  },
+  "workspace": ["./hono-mod"],
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "hono/jsx",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "deno.ns"
+    ]
+  }
+}
