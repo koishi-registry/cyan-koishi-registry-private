@@ -13,10 +13,11 @@ including without limitation the rights to use, copy, and/or modify of the Softw
 to be used in @koishijs GitHub organizations.
 
 The project is All rights reserved.
-You are free to deploy the software on your server,
+You are allowed to deploy the software only after approve in project issues (https://github.com/CyanChanges/koishi-registry),
 use `Context.prototype.plugin` to plug your own plugin to make modification,
 without modify the original codebase.
-Any monkeypatch to manipulate original plugin behaviour is not allowed (including modify prototype of classes of this project, or any ES6 builtin object).
+Any monkeypatch to manipulate original plugin behaviour is not allowed
+(including modify prototype of classes of this project, or any ES6 builtin object aka "prototype pollution").
 The license includes additional restrictions:
 
 ilharp(Individual with GitHub https://github.com/ilharp, refers as "ilharp")
@@ -32,3 +33,7 @@ You are FORBIDDEN to use JavaScript in this project (e.g. compile TypeScript sou
 
 The above MUST BE included in the license of any forks of this project.
 
+The license may change at any time, you should enable Watch of the project changes
+to make sure you are receiving the updates.
+We assume you are received the license updates of the latest the commit on the main branch.
+Any license apply as soon as you received the update.

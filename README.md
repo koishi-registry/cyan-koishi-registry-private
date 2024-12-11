@@ -1,28 +1,75 @@
 # Koishi registry fetch app
 
+For end-user, use our
+**Partner registry**
+https://kp.itzdrli.cc/
+
+> [!IMPORTANT]  
+> If you find an unexpected behaviour different with Koishi's [Official registry](https://registry.koishi.chat/),
+> please open an issue.
+
 ## Install
 Deno is required.
 ```shell
 deno install
 ```
 
-## Run
+## Usage
+```shell
+$ cp .env.example .env
+```
 ```shell
 $ deno task start
-Listening on http://0.0.0.0:8000/
+Listening on http://0.0.0.0:8080/
 ```
 
-Check http://127.0.0.1:8000/plugins,
+It takes time to synchronize for the first time.
+
+You can configure configurations in main.ts.
+
+Check http://127.0.0.1:8080/api/plugins,
 should return currently found plugins.
 (It's empty list for a while because no plugins found now, please sit and relax)
 
+Check http://127.0.0.1:8080/index.json
+should return a Koishi Registry like JSON of all found plugins.
+(The `objects` may be an empty list, because no plugins found now, please sit and relax)
+
+### API Endpoint
+#### /api/status
+```typescript
+let returns: {
+  "synchronized": boolean, // If synchronized with npm
+  "updateAt": string, // UTC Date String
+  features: Record<Feature, boolean> // Field Features
+}
+```
+#### /api/plugins
+```typescript
+let returns: string[] // a list of package name of koishi plugins
+```
+
+## Todo
+- [x] Refactor `NpmWatcher` to provide a more reliable change information.
+- [x] Refactor `KoishiRegistry` cache structure to provide Quick Patch functionality.
+- [ ] Support `show_deprecated`, `show_incompatible`, `recover_unpublished` params.
+- [ ] Support all fields of official registry
+  - [x] verified - defaults to same behaviour with `@koishijs/registry`. controlled by `analyzer/is-verified`
+  - [x] insecure - a default cloud analyzer is configured, official insecure list and algorithm is private (for @koishijs orgs member, contact me on social for official implementation)
+                   could control by bail event `analyze/is-insecure`
+  - [ ] score    - npm search api is unreliable
+  - [x] rating   - a custom rating algorithm is implemented, official rating algorithm is private (for @koishijs orgs member, contact me on social for official implementation)
+  - [x] portable - detect `koishi.browser` from package meta
+  - [ ] downloads - support custom implementation(implements `Analyzer`), original one removed due to the hard rate limiting of npm downloads api
+
 ## License
 
-The project is All rights reserved.
-You are free to deploy the software on your server,
+The project is All rights reserved.  
+You are allowed to deploy the software only after approve in project issues (https://github.com/CyanChanges/koishi-registry),
 use `Context.prototype.plugin` to plug your own plugin to make modification,
 without modify the original codebase.
-Any monkeypatch to manipulate original plugin behaviour is not allowed (including modify prototype of classes of this project, or any ES6 builtin object).
+Any monkeypatch to manipulate original plugin behaviour is not allowed
+(including modify prototype of classes of this project, or any ES6 builtin object aka "prototype pollution").
 The license includes additional restrictions:
 
 ilharp(Individual with GitHub https://github.com/ilharp, refers as "ilharp")
@@ -34,7 +81,11 @@ You are **FORBIDDEN** to do anything that would make Deno users unable to use th
 
 You are **FORBIDDEN** to port this app to Node.js or use code from this project in a project that uses Node.js.
 
-You are FORBIDDEN to use JavaScript in this project (e.g. compile TypeScript source code to JavaScript), you should always use TypeScript in this project.
+You are **FORBIDDEN** to use JavaScript in this project (e.g. compile TypeScript source code to JavaScript), you should always use TypeScript in this project.
 
 The above **MUST BE** included in the license of any forks of this project.
 
+The license may change at any time, you should enable Watch of the project changes
+to make sure you are receiving the updates.
+We assume you are received the license updates of the latest the commit on the main branch.
+Any license apply as soon as you received the update.
