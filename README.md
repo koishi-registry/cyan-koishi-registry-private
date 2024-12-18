@@ -81,7 +81,7 @@ You are **FORBIDDEN** to do anything that would make Deno users unable to use th
 
 You are **FORBIDDEN** to port this app to Node.js or use code from this project in a project that uses Node.js.
 
-You are FORBIDDEN to use JavaScript in this project (e.g. compile TypeScript source code to JavaScript), you should always use TypeScript in this project.
+You are **FORBIDDEN** to use JavaScript in this project (e.g. compile TypeScript source code to JavaScript), you should always use TypeScript in this project.
 
 The above **MUST BE** included in the license of any forks of this project.
 
