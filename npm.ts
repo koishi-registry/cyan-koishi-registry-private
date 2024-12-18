@@ -1,9 +1,9 @@
+import { parse, parseRange, satisfies } from '@std/semver'
 import { Context, Service } from "./context.ts";
 import trim from 'lodash.trim'
 import trimEnd from 'lodash.trimend'
 import Schema from "schemastery";
-import Random from 'inaba'
-import type { Awaitable } from "cosmokit";
+import type { Awaitable, Dict } from "cosmokit";
 
 declare module 'cordis' {
     export interface Events {
@@ -50,7 +50,7 @@ export class NpmWatcher extends Service {
     fetchTask?: Promise<void>
 
     _seq = 8000000 // 2022-01(Koishi v4)
-    plugins: Set<string> = new Set()
+    plugins: Map<string, number> = new Map()
     synchronized = false
 
     get seq(): number {
@@ -68,7 +68,7 @@ export class NpmWatcher extends Service {
     }
 
     public async flushPlugins() { // flush plugins to the store
-        await this.ctx.storage.set("npm.plugins", [...this.plugins])
+        await this.ctx.storage.set("npm.plugins", Object.fromEntries(this.plugins.entries()))
     }
 
     // handles a stream, decode json string to a ChangeRecord, and process record, also trigger events
@@ -105,7 +105,7 @@ export class NpmWatcher extends Service {
 
             if (filtered.length > 0) {
                 this.ctx.logger.debug(`fetched ${filtered.length} plugins from ${this.options.endpoint}`)
-                filtered.forEach(record => this.plugins.add(record.id))
+                filtered.forEach(record => this.plugins.set(record.id, record.seq))
                 await this.flushPlugins()
                 this.ctx.parallel(this, 'npm/fetched-plugins', filtered).then()
                 // console.log('-- data: ', filtered)
@@ -253,15 +253,25 @@ export class NpmWatcher extends Service {
     override async start() {
         this.synchronized = false
 
+        await this.ctx.info.checkTask
+        if (!satisfies(this.ctx.info.previous ?? parse("0.0.1"), parseRange("^0.2"))) {
+            this.ctx.storage.remove('npm.seq')
+            this.ctx.storage.remove('npm.plugins')
+        }
         if (await this.ctx.storage.has('npm.seq')) { // restore seq if we can
             this.seq = await this.ctx.storage.get('npm.seq') as unknown as number;
             this.ctx.logger.debug("\trestored seq %C", this.seq)
         }
         if (await this.ctx.storage.has('npm.plugins')) { // restore plugins if we can
-            this.plugins = new Set(await this.ctx.storage.get('npm.plugins') as string[]);
+            this.plugins = new Map(Object.entries((await this.ctx.storage.get<Dict<number>>('npm.plugins'))!));
             this.ctx.logger.info("\trestored %C plugins", this.plugins.size)
         }
 
+
+        this._startFetchTask()
+    }
+
+    private _startFetchTask() {
         this.fetchTask = this.fetch().catch(e => { // catches error, log the error, finally cancel our scope (dispose the plugin)
             this.ctx.logger.error(e)
             this.ctx.scope.cancel(e)

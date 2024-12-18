@@ -8,3 +8,8 @@
 *.orig
 *.pyc
 *.swp
+
+### Koishi Registry
+cache/
+
+

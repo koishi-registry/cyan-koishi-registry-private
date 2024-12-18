@@ -2,11 +2,13 @@ import { compare, format, parse, SemVer } from '@std/semver'
 import * as cordis from "cordis";
 import { Server } from "./server.ts";
 import Storage from "./storage";
+import CacheService from "./cache.ts";
 import Logger from 'reggol'
 import Schema from 'schemastery'
 import SchemaService from "@cordisjs/schema";
 import HttpService from '@cordisjs/plugin-http'
 import * as LoggerService from "@cordisjs/plugin-logger";
+import { join, fromFileUrl, dirname } from '@std/path'
 import meta from './deno.json' with { type: 'json' }
 
 export interface Events<in C extends Context = Context> extends cordis.Events<C> {
@@ -29,6 +31,7 @@ export class Context extends cordis.Context {
         this.plugin(HttpService)
         this.plugin(Server, config.server)
         this.plugin(Storage)
+        this.plugin(CacheService)
         this.provide('info', new AppInfo(this), true)
     }
 }
@@ -46,6 +49,7 @@ export class AppInfo {
     checkTask: Promise<Updated>
     previous: SemVer | null = null
     version: SemVer = parse(meta.version)
+    cacheDir = join(dirname(fromFileUrl(Deno.mainModule)), 'cache')
 
     constructor(protected ctx: Context) {
         this.checkTask = this.check()

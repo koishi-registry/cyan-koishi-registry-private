@@ -1,5 +1,13 @@
-import { Registry as RegistryResult, User as RegistryUser, type IconSvg } from '@koishijs/registry'
-import { RemotePackage } from "@koishijs/registry";
+import type {
+    Manifest as KoishiManifest,
+    Registry as RegistryResult,
+    RemotePackage,
+    Score,
+    SearchObject,
+    SearchPackage,
+    SearchResult,
+    User as RegistryUser
+} from '@koishijs/registry'
 import type { Dict } from "cosmokit";
 
 export namespace NpmRegistry {
@@ -10,8 +18,8 @@ export namespace NpmRegistry {
         username?: string
     }
 
-    export interface VersionMeta extends RemotePackage {
-        _npmUser: User // I don't know what is this
+    export interface Version extends RemotePackage {
+        // _npmUser: User // I don't know what is this, but does exist somehow
     }
 
     export interface OkResult extends RegistryResult {
@@ -20,7 +28,7 @@ export namespace NpmRegistry {
         'dist-tags': Dict<string, string>,
         maintainers: (string | User)[],
         keywords: string[],
-        versions: Dict<VersionMeta>,
+        versions: Dict<Version>,
         bugs?: { url?: string },
         homepage?: string,
         repository?: { type?: string, url?: string },
@@ -44,85 +52,56 @@ export namespace NpmRegistry {
 
 export namespace KoishiMarket {
     export interface Result {
-        time: string,
-        version?: number,
-        objects: Object[]
+        total: number;
+        time: string;
+        objects: Object[];
+        version?: number;
+        forceTime?: number;
     }
 
     export interface Object {
-        downloads: { lastMonth: number }
-        dependents: number
-        updated: string
-        package: Package
-        // score: Score
-        score?: Score
-        flags: Flags
-        shortname: string
-        verified: boolean
-        manifest: Manifest
-        insecure: boolean
-        category: string
-        createdAt: string
-        updatedAt: string
-        // rating: number
-        rating?: number
-        portable: boolean
-        // installSize: number
-        installSize?: number
-        publishSize: number
+        versions?: RemotePackage[],
+        manifest: Manifest,
+        package: Package,
+        shortname: string;
+        score: Score;
+        rating: number;
+        verified: boolean;
+        workspace?: boolean;
+        category?: string;
+        portable?: boolean;
+        insecure?: boolean;
+        ignored?: boolean;
+        license: string;
+        createdAt: string;
+        updatedAt: string;
+        publishSize?: number;
+        installSize?: number;
+        dependents?: number;
+        downloads?: {
+            lastMonth: number;
+        };
+        updated?: string, // probably backwards compatibility
+        flags?: { insecure: number } // probably backwards compatibility
     }
+
+    export interface Package extends SearchPackage {
+        license: string
+    }
+
+    export interface Manifest extends KoishiManifest {}
 
     export interface User extends RegistryUser {}
+}
 
-    export interface Package {
-        name: string
-        keywords: string[]
-        version: string
-        description: string
-        publisher: User
-        maintainers: User[]
-        license: string
-        date: string
-        links: Links
-        contributors: User[]
-    }
-
-    export interface Links {
-        homepage?: string
-        repository?: string
-        npm: string
-        bugs?: string
-    }
-
-    export interface Score {
-        final: number
-    }
-
-    export interface Flags {
-        insecure: number
-    }
-
-    export interface Manifest {
-        icon?: IconSvg
-        hidden?: boolean
-        preview?: boolean
-        insecure?: boolean
-        browser?: boolean
-        category?: string
-        public?: string[]
-        exports?: Dict<string>
-        description: string | Dict<string>
-        service: Service
-        locales: string[]
-    }
-
-    export interface Description {
-        [lang: string]: string
-    }
-
-    export interface Service {
-        required: string[]
-        optional: string[]
-        implements: string[]
+export interface NuxtPackage {
+    version: string
+    license: string
+    publishedAt: string
+    createdAt: string
+    updatedAt: string
+    downloads: {
+        lastMonth: number
     }
 }
+
