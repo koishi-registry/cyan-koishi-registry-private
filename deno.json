@@ -16,6 +16,7 @@
     "cordis": "npm:cordis@^3.18.1",
     "cosmokit": "npm:cosmokit@^1.6.3",
     "inaba": "npm:inaba@^1.1.1",
+    "lodash.merge": "npm:lodash.merge@^4.6.2",
     "lodash.trim": "npm:lodash.trim@^4.5.1",
     "lodash.trimend": "npm:lodash.trimend@^4.5.1",
     "reggol": "npm:reggol@^1.7.1",

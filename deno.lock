@@ -23,6 +23,7 @@
     "npm:file-type@^19.6.0": "19.6.0",
     "npm:inaba@*": "1.1.1",
     "npm:inaba@^1.1.1": "1.1.1",
+    "npm:lodash.merge@^4.6.2": "4.6.2",
     "npm:lodash.trim@^4.5.1": "4.5.1",
     "npm:lodash.trimend@^4.5.1": "4.5.1",
     "npm:mime-db@^1.53.0": "1.53.0",
@@ -230,6 +231,9 @@
     "kleur@4.1.5": {
       "integrity": "sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ=="
     },
+    "lodash.merge@4.6.2": {
+      "integrity": "sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ=="
+    },
     "lodash.trim@4.5.1": {
       "integrity": "sha512-nJAlRl/K+eiOehWKDzoBVrSMhK0K3A3YQsUNXHQa5yIrKBAhsZgSu3KoAFoFT+mEgiyBHddZ0pRk1ITpIp90Wg=="
     },
@@ -326,6 +330,7 @@
       "npm:cordis@^3.18.1",
       "npm:cosmokit@^1.6.3",
       "npm:inaba@^1.1.1",
+      "npm:lodash.merge@^4.6.2",
       "npm:lodash.trim@^4.5.1",
       "npm:lodash.trimend@^4.5.1",
       "npm:reggol@^1.7.1",

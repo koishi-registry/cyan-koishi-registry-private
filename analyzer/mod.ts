@@ -3,6 +3,7 @@ import { Awaitable, Dict, Time } from "cosmokit";
 import { KoishiMarket, NpmRegistry } from "../koishi_registry/types.ts";
 import Schema from 'schemastery'
 import { Score as RegistryScore } from "@koishijs/registry";
+import merge from 'lodash.merge'
 
 declare module 'cordis' {
     export interface Events {
@@ -46,9 +47,17 @@ export interface Scores {
     scopes: Dict<number, keyof RegistryScore.Detail>
 }
 
+export interface KMCheck {
+    insecure: boolean | { value: boolean; reason?: string };
+    hidden: boolean;
+    overrides: object;
+}
+
 // analyze step
 // downloadsOf -> installSizeOf -> evaluators
 export abstract class Analyzer extends Service {
+    static inject = ['http']
+
     declare caller: Context;
     static [Service.tracker] = {
         associate: 'koishi.analyzer',
@@ -178,7 +187,25 @@ export class SimpleAnalyzer extends Analyzer {
         return this.options.download?.fetch?.(context) ?? Promise.resolve({ lastMonth: 0 })
     }
 
-    analyzePackage(context: AnalyzerContext): Promise<AnalyzeResult> {
+    async analyzePackage(context: AnalyzerContext): Promise<AnalyzeResult> {
+        if (!this.options.analyzer?.analyze) {
+            try {
+                const check = await this.ctx.http.get<KMCheck>(`https://km-api.cyans.me/api/check/${context.name}`)
+                context.object.ignored = check.hidden
+                context.object.insecure = typeof check.insecure === 'object' ? check.insecure.value : !!check.insecure
+                if (check.overrides)
+                    Object.assign(context.object, merge(context.object, check.overrides))
+                return {
+                    installSize: context.meta.dist.unpackedSize,
+                    publishSize: context.meta.dist.unpackedSize,
+                }
+            } catch {
+                return {
+                    installSize: context.meta.dist.unpackedSize,
+                    publishSize: context.meta.dist.unpackedSize,
+                }
+            }
+        }
         return this.options.analyzer?.analyze?.(context) ?? Promise.resolve({
             installSize: context.meta.dist.unpackedSize,
             publishSize: context.meta.dist.unpackedSize,
