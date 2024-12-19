@@ -50,17 +50,17 @@ let returns: string[] // a list of package name of koishi plugins
 ```
 
 ## Todo
-- [ ] Refactor `NpmWatcher` to provide a more reliable change information.
-- [ ] Refactor `KoishiRegistry` cache structure to provide Quick Patch functionality.
+- [x] Refactor `NpmWatcher` to provide a more reliable change information.
+- [x] Refactor `KoishiRegistry` cache structure to provide Quick Patch functionality.
 - [ ] Support `show_deprecated`, `show_incompatible`, `recover_unpublished` params.
 - [ ] Support all fields of official registry
-  - [x] verified - defaults to same behaviour with `@koishijs/registry`, 
-  - [x] insecure - official insecure detect algorithm and manually marked list is unreachable
-                   manually controlled by `koishi/is-insecure`
+  - [x] verified - defaults to same behaviour with `@koishijs/registry`. controlled by `analyzer/is-verified`
+  - [x] insecure - a default cloud analyzer is configured, official insecure list and algorithm is private (for @koishijs orgs member, contact me on social for official implementation)
+                   could control by bail event `analyze/is-insecure`
   - [ ] score    - npm search api is unreliable
-  - [ ] rating   - rating algorithm is private (official plugins weights much, so simply marked all official plugin 5 star)
+  - [x] rating   - a custom rating algorithm is implemented, official rating algorithm is private (for @koishijs orgs member, contact me on social for official implementation)
   - [x] portable - detect `koishi.browser` from package meta
-  - [ ] downloads - removed due to the hard rate limiting of npm downloads api
+  - [ ] downloads - support custom implementation(implements `Analyzer`), original one removed due to the hard rate limiting of npm downloads api
 
 ## License
 
