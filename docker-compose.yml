@@ -1,9 +1,9 @@
 services:
   web:
     build: .
-    container_name: koishi-registry-lovemilk-edition
+    container_name: koishi-registry
     ports:
-      - "58000:8000"
+      - "8000:8000"
     volumes:
       - ./cache:/app/cache
     restart: unless-stopped
