@@ -1,11 +1,15 @@
 # Koishi registry fetch app
 
+> [!IMPORTANT]  
+> All rights reserved. Copyright 2024 koishi-registry authors  .
+> More details in [#License](https://github.com/CyanChanges/koishi-registry-private/blob/main/LICENSE)
+
 For end-user, use our
 **Partner registry**
 https://kp.itzdrli.cc/
 
 > [!IMPORTANT]  
-> If you find an unexpected behaviour different with Koishi's [Official registry](https://registry.koishi.chat/),
+> If you find an unexpected behaviour, different with Koishi's [Official registry](https://registry.koishi.chat/),
 > please open an issue.
 
 ## Install
@@ -65,12 +69,12 @@ let returns: string[] // a list of package name of koishi plugins
 ## License
 
 The project is All rights reserved.
-You are allowed to deploy the software only after approve in project issues (https://github.com/CyanChanges/koishi-registry),
-use `Context.prototype.plugin` to plug your own plugin to make modification,
-without modify the original codebase.
-Any monkeypatch to manipulate original plugin behaviour is not allowed
-(including modify prototype of classes of this project, or any ES6 builtin object aka "prototype pollution").
+Public deployment requires authorization in the [Project Issue](https://github.com/CyanChanges/koishi-registry-private),
+No authorization required for personal local deployments.
 The license includes additional restrictions:
+
+No modify the original codebase
+(Any attempt to manipulate original plugin behaviour is not allowed)
 
 ilharp(Individual with GitHub https://github.com/ilharp, refers as "ilharp")
 is **FORBIDDEN** to deal with the software in any form (including use, copy, modify, or distribute the software).
@@ -85,4 +89,4 @@ You are **FORBIDDEN** to use JavaScript in this project (e.g. compile TypeScript
 
 The above **MUST BE** included in the license of any forks of this project.
 
-The final explanation belongs to the author of the project.
+The final explanation belongs to the koishi-registry authors.

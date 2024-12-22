@@ -1,24 +1,11 @@
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
-OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Permission is hereby granted to Shigma<shigma10826@gmail.com>
-to a non-transferable permission to deal in the Software,
-including without limitation the rights to use, copy, and/or modify of the Software
-to be used in @koishijs GitHub organizations.
+All rights reserved 2024 Copyright Cyan Changes/koishi-registry authors
 
 The project is All rights reserved.
-You are allowed to deploy the software only after approve in project issues (https://github.com/CyanChanges/koishi-registry),
-use `Context.prototype.plugin` to plug your own plugin to make modification,
-without modify the original codebase.
-Any monkeypatch to manipulate original plugin behaviour is not allowed
-(including modify prototype of classes of this project, or any ES6 builtin object aka "prototype pollution").
+No authorization required for local deployments.
 The license includes additional restrictions:
+
+No modify the original codebase
+(Any attempt to manipulate original plugin behaviour is not allowed)
 
 ilharp(Individual with GitHub https://github.com/ilharp, refers as "ilharp")
 is FORBIDDEN to deal with the software in any form (including use, copy, modify, or distribute the software).
@@ -38,4 +25,4 @@ to make sure you are receiving the updates.
 We assume you are received the license updates of the latest the commit on the main branch.
 Any license apply as soon as you received the update.
 
-The final explanation belongs to the author of the project.
+The final explanation belongs to the koishi-registry authors.
