@@ -64,13 +64,13 @@ let returns: string[] // a list of package name of koishi plugins
 
 ## License
 
-The project is All rights reserved.  
-You are free to deploy the software on your server,  
+The project is All rights reserved.
+You are allowed to deploy the software only after approve in project issues (https://github.com/CyanChanges/koishi-registry),
 use `Context.prototype.plugin` to plug your own plugin to make modification,
-without modify the original codebase.  
-Any monkeypatch to manipulate original plugin behaviour is not allowed 
-(including modify prototype of classes of this project, or any ES6 builtin object).  
-The license includes additional restrictions:  
+without modify the original codebase.
+Any monkeypatch to manipulate original plugin behaviour is not allowed
+(including modify prototype of classes of this project, or any ES6 builtin object aka "prototype pollution").
+The license includes additional restrictions:
 
 ilharp(Individual with GitHub https://github.com/ilharp, refers as "ilharp")
 is **FORBIDDEN** to deal with the software in any form (including use, copy, modify, or distribute the software).
@@ -85,3 +85,4 @@ You are **FORBIDDEN** to use JavaScript in this project (e.g. compile TypeScript
 
 The above **MUST BE** included in the license of any forks of this project.
 
+The final explanation belongs to the author of the project.

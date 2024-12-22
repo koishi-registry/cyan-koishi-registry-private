@@ -136,9 +136,13 @@ export class CacheService<S extends { [K: string]: any } = Caches, Name = null> 
             .catch(e => e instanceof Deno.errors.NotFound ? null : Promise.reject(e))
         if (data === null) return
 
-        const { version, value } = JSON.parse(this.decoder.decode(data))
-        if (version !== CacheService.version) return
-        return value
+        try {
+            const { version, value } = JSON.parse(this.decoder.decode(data))
+            if (version !== CacheService.version) return
+            return value
+        } catch {
+            return
+        }
     }
 
     async get<K extends keyof this['Dot']>(key: K): Promise<this['Dot'][K] | undefined>;
