@@ -1,10 +1,10 @@
 {
   "version": "4",
   "specifiers": {
-    "jsr:@km-api/km-api@^1.0.1": "1.0.1",
+    "jsr:@km-api/km-api@^1.1.0-0": "1.1.0-0",
     "jsr:@std/assert@^1.0.9": "1.0.10",
     "jsr:@std/dotenv@~0.225.3": "0.225.3",
-    "jsr:@std/fs@^1.0.7": "1.0.7",
+    "jsr:@std/fs@^1.0.7": "1.0.8",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/path@^1.0.8": "1.0.8",
     "jsr:@std/semver@^1.0.3": "1.0.3",
@@ -32,8 +32,8 @@
     "npm:schemastery@^3.14.7": "3.14.7"
   },
   "jsr": {
-    "@km-api/km-api@1.0.1": {
-      "integrity": "72e1e4c44dc845ccc2f1e1e4f053c3f366f62d4f5d64afaa2224ef113022ee0b",
+    "@km-api/km-api@1.1.0-0": {
+      "integrity": "064990b5db16920809fd33fee20c5376234ce678b695823b76e97237b662961b",
       "dependencies": [
         "jsr:@std/semver"
       ]
@@ -49,6 +49,12 @@
     },
     "@std/fs@1.0.7": {
       "integrity": "95ac7326e0e59089c979706e17bb28db03b5fb41c5a37c9c556788198b0662d6",
+      "dependencies": [
+        "jsr:@std/path"
+      ]
+    },
+    "@std/fs@1.0.8": {
+      "integrity": "161c721b6f9400b8100a851b6f4061431c538b204bb76c501d02c508995cffe0",
       "dependencies": [
         "jsr:@std/path"
       ]
@@ -518,7 +524,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@km-api/km-api@^1.0.1",
+      "jsr:@km-api/km-api@^1.1.0-0",
       "jsr:@std/assert@^1.0.9",
       "jsr:@std/dotenv@~0.225.3",
       "jsr:@std/fs@^1.0.7",

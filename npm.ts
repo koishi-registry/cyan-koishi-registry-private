@@ -4,6 +4,7 @@ import trim from 'lodash.trim'
 import trimEnd from 'lodash.trimend'
 import Schema from "schemastery";
 import type { Awaitable, Dict } from "cosmokit";
+import { NpmWatcher as preload } from '@km-api/km-api/preload'
 
 declare module 'cordis' {
     export interface Events {
@@ -49,8 +50,8 @@ export class NpmWatcher extends Service {
 
     fetchTask?: Promise<void>
 
-    _seq = 8000000 // 2022-01(Koishi v4)
-    plugins: Map<string, number> = new Map()
+    _seq = preload.seq // 2022-01(Koishi v4)
+    plugins: Map<string, number> = new Map(Object.entries(preload.plugins))
     synchronized = false
 
     get seq(): number {
@@ -266,7 +267,6 @@ export class NpmWatcher extends Service {
             this.plugins = new Map(Object.entries((await this.ctx.storage.get<Dict<number>>('npm.plugins'))!));
             this.ctx.logger.info("\trestored %C plugins", this.plugins.size)
         }
-
 
         this._startFetchTask()
     }
