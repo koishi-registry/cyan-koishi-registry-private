@@ -91,7 +91,12 @@ export namespace KoishiMarket {
 
     export interface Manifest extends KoishiManifest {}
 
-    export interface User extends RegistryUser {}
+    export interface User {
+        name?: string;
+        email: string;
+        url?: string;
+        username?: string;
+    }
 }
 
 export interface NuxtPackage {

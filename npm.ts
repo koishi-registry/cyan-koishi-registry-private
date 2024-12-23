@@ -75,7 +75,7 @@ export class NpmWatcher extends Service {
     async handle(stream: ReadableStream<Uint8Array>, update?: (seq: number) => void, stop_at: number = 0): Promise<boolean> {
         const decoder = new TextDecoderStream("utf-8")
         const reader = stream.pipeThrough(decoder).getReader()
-        while (this.ctx.scope.isActive) {
+        while (this.ctx.scope.active) {
             let result: ReadableStreamReadResult<string>;
             try {
                 result = await reader.read()
@@ -97,7 +97,7 @@ export class NpmWatcher extends Service {
                 const last = records[records.length - 1]
                 // this.ctx.logger.debug(`Fetched ${records.length} packages from ${this.options.endpoint}`)
                 update?.(last.seq)
-                this.ctx.parallel(this, 'npm/fetched-packages', records).then()
+                this.ctx.parallel('npm/fetched-packages', records).then()
                 if (stop_at > 0 && last.seq >= stop_at) return true
             }
 
@@ -107,7 +107,7 @@ export class NpmWatcher extends Service {
                 this.ctx.logger.debug(`fetched ${filtered.length} plugins from ${this.options.endpoint}`)
                 filtered.forEach(record => this.plugins.set(record.id, record.seq))
                 await this.flushPlugins()
-                this.ctx.parallel(this, 'npm/fetched-plugins', filtered).then()
+                this.ctx.parallel('npm/fetched-plugins', filtered).then()
                 // console.log('-- data: ', filtered)
             }
         }
@@ -116,7 +116,7 @@ export class NpmWatcher extends Service {
 
     // fetch from begin till a seq >= end
     private async fetchSpan(begin: number, end: number, update?: (seq: number) => void) {
-        while (this.ctx.scope.isActive) {
+        while (this.ctx.scope.active) {
             let body: ReadableStream<Uint8Array>
             try {
                 const response = await this.ctx.http(`${this.options.endpoint}/_changes?since=${begin}&seq_interval=${end - begin}`, {
@@ -143,7 +143,7 @@ export class NpmWatcher extends Service {
         //     }
         // })
 
-        while (this.ctx.scope.isActive) {
+        while (this.ctx.scope.active) {
             let body: ReadableStream<Uint8Array>
             try {
                 const response = await this.ctx.http(`${this.options.endpoint}/_changes?since=${this.seq}`, {
@@ -244,7 +244,7 @@ export class NpmWatcher extends Service {
         this.ctx.logger.info('synchronized with npm')
 
         this.synchronized = true
-        await this.ctx.parallel(this, "npm/synchronized")
+        await this.ctx.parallel("npm/synchronized")
 
         this.ctx.logger.debug('start synchronizing with npm (seq: %c)', this.seq)
         await this.simpleFetch() // Since we are synchronized, so we can just watch all new changes here
@@ -254,7 +254,7 @@ export class NpmWatcher extends Service {
         this.synchronized = false
 
         await this.ctx.info.checkTask
-        if (!satisfies(this.ctx.info.previous ?? parse("0.0.1"), parseRange("^0.2"))) {
+        if (!satisfies(this.ctx.info.previous ?? parse("0.0.1"), parseRange("^0.3"))) {
             this.ctx.storage.remove('npm.seq')
             this.ctx.storage.remove('npm.plugins')
         }
@@ -274,7 +274,7 @@ export class NpmWatcher extends Service {
     private _startFetchTask() {
         this.fetchTask = this.fetch().catch(e => { // catches error, log the error, finally cancel our scope (dispose the plugin)
             this.ctx.logger.error(e)
-            this.ctx.scope.cancel(e)
+            this.ctx.scope.active = false
         })
     }
 }

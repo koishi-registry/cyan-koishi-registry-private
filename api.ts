@@ -1,15 +1,15 @@
 import { Context } from './context.ts'
 
-export const inject = ['hono']
+export const inject = ['hono', 'timer']
 
 export function apply(ctx: Context) {
     let functionality = {
-        registry: !!ctx.root.get('koishi'),
+        generator: !!ctx.root.get('koishi.generator'),
         analyzer: !!ctx.root.get('koishi.analyzer'),
         npm: !!ctx.root.get('npm')
     }
     const checkFunctionality = ctx.throttle(() => (functionality = {
-        registry: !!ctx.root.get('koishi'),
+        generator: !!ctx.root.get('koishi.generator'),
         analyzer: !!ctx.root.get('koishi.analyzer'),
         npm: !!ctx.root.get('npm')
     }), 100)
@@ -28,18 +28,18 @@ export function apply(ctx: Context) {
             });
         });
     })
-    ctx.inject(['koishi', 'koishi.meta', 'koishi.analyzer'], (ctx) => {
-        ctx.hono.get("/api/registry/status", (c) => {
+    ctx.inject(['koishi', 'koishi.generator', 'koishi.meta', 'koishi.analyzer'], (ctx) => {
+        ctx.hono.get("/api/generator/status", (c) => {
             return c.json({
                 version: ctx.info.version,
-                updateAt: ctx.koishi.last_refresh.toUTCString(),
-                synchronized: ctx.koishi.isSynchronized(),
-                features: ctx.koishi.getFeatures(),
+                updateAt: ctx.koishi.generator.last_refresh.toUTCString(),
+                synchronized: ctx.koishi.generator.isSynchronized(),
+                features: ctx.koishi.generator.getFeatures(),
             })
         })
-        ctx.hono.get("/api/registry/:name", async (c) => {
+        ctx.hono.get("/api/generator/:name", async (c) => {
             const name = c.req.param('name')!
-            const result = await ctx.koishi.fetchObject(name)
+            const result = await ctx.koishi.generator.fetchObject(name)
             if (result === null)
                 return c.json({
                     name: name,

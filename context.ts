@@ -5,9 +5,8 @@ import Storage from "./storage";
 import CacheService from "./cache.ts";
 import Logger from 'reggol'
 import Schema from 'schemastery'
-import SchemaService from "@cordisjs/schema";
 import HttpService from '@cordisjs/plugin-http'
-import * as LoggerService from "@cordisjs/plugin-logger";
+import TimerService from '@cordisjs/plugin-timer'
 import { join, fromFileUrl, dirname } from '@std/path'
 import meta from './deno.json' with { type: 'json' }
 
@@ -17,22 +16,21 @@ export interface Events<in C extends Context = Context> extends cordis.Events<C>
 
 export interface Context {
     [Context.events]: Events<this>
-    info: AppInfo
 }
 
 export class Context extends cordis.Context {
+    info: AppInfo
+
     constructor(config: Context.Config = {}) {
         super();
         const logger = new Logger("app")
         logger.info("Fetcher/%C Deno/%C", meta.version, Deno.version.deno)
-        this.plugin(SchemaService)
-        this.plugin(LoggerService)
-        // this.plugin(TimerService)
+        this.plugin(TimerService)
         this.plugin(HttpService)
         this.plugin(Server, config.server)
         this.plugin(Storage)
         this.plugin(CacheService)
-        this.provide('info', new AppInfo(this), true)
+        this.info = new AppInfo(this)
     }
 }
 
@@ -56,7 +54,9 @@ export class AppInfo {
         this.isUpdated = new Promise(r => this.checkTask.then(x => x !== Updated.None).then(r))
         this.isUpgrade = new Promise(r => this.checkTask.then(x => x === Updated.Upgrade).then(r))
         this.isDowngrade = new Promise(r => this.checkTask.then(x => x === Updated.Downgrade).then(r))
-        this.ctx.scope.ensure(() => this.checkTask.then())
+        this.ctx.on('ready', ()=>
+            this.checkTask.then()
+        )
     }
 
     async check(): Promise<Updated> {

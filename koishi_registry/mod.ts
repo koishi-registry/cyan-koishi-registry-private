@@ -8,19 +8,12 @@ import type { KoishiMarket, NpmRegistry } from "./types.ts";
 import { Analyzer, Features, SimpleAnalyzer } from "../analyzer";
 import CacheService, { Caches } from "../cache.ts";
 import HTTP from "@cordisjs/plugin-http";
+import { createRegExp, exactly, wordChar, anyOf, oneOrMore, maybe, char } from 'magic-regexp'
 // import { ObjectList } from "./serializing.ts"; // whatevers, avsc doesn't work with my prefect Schema ;(
 // import { BSON } from 'bson'
 // import { Buffer } from "node:buffer";
 
 export type { Feature, Features } from '../analyzer'
-
-// const stopWords = [
-//     'koishi',
-//     'plugin',
-//     'bot',
-//     'coolq',
-//     'cqhttp',
-// ]
 
 export function aligned(s: string, pad = 35): string {
     if (s.length > pad)
@@ -29,13 +22,25 @@ export function aligned(s: string, pad = 35): string {
 }
 
 export function shortnameOf(name: string) { // get shortname of a koishi plugin package
-    return name.replace(/(koishi-|^@koishijs\/)plugin-/, '')
+    return name.replace(createRegExp(
+        exactly('koishi-').or(exactly('@koishijs/').at.lineStart()).grouped(),
+        'plugin-'
+    ), '')
+}
+
+declare module '../koishi.ts' {
+    export interface Koishi {
+        generator: RegistryGenerator
+        meta: KoishiMeta
+        npm: NpmProvider
+    }
 }
 
 declare module 'cordis' {
     export interface Context {
-        koishi: RegistryGenerator
+        'koishi.generator': RegistryGenerator
         'koishi.meta': KoishiMeta
+        'koishi.npm': NpmProvider
     }
 
     export interface Events {
@@ -192,14 +197,9 @@ export namespace KoishiMeta {
     })
 }
 
-export interface RegistryGenerator {
-    analyzer: Analyzer
-}
-
 export class RegistryGenerator extends Service {
-    static inject = ['http', 'koishi.analyzer', 'koishi.meta']
+    static inject = ['http', 'koishi', 'koishi.analyzer', 'koishi.meta']
 
-    declare meta: KoishiMeta
     last_refresh: Date = new Date()
     object_cache: Map<string, KoishiMarket.Object | null> = new Map()
     fetch_task: number = 0
@@ -208,7 +208,7 @@ export class RegistryGenerator extends Service {
     context: Context
 
     constructor(ctx: Context, protected options: Partial<RegistryGenerator.Config> = {}) {
-        super(ctx, 'koishi')
+        super(ctx, 'koishi.generator')
         this.context = ctx
 
         // this.meta_cache = new MetaCache(this.ctx, {
@@ -230,13 +230,13 @@ export class RegistryGenerator extends Service {
         if (!this.ctx.root.get('timer'))
             this.ctx.logger.warn('timer service not found, could not do scheduled refresh')
         else
-            this.ctx.inject(['timer'], (ctx) => {
-                ctx.setInterval(() => ctx.koishi.refreshFast(), this.options.refreshInterval! * 1000)
+            this.ctx.inject(['timer', 'koishi'], (ctx) => {
+                ctx.setInterval(() => ctx.koishi.generator.refreshFast(), this.options.refreshInterval! * 1000)
             })
     }
 
     public getFeatures(): Features {
-        const analyzer = this.analyzer.getFeatures()
+        const analyzer = this.ctx.koishi.analyzer.getFeatures()
         return {
             ...analyzer
         }
@@ -267,24 +267,37 @@ export class RegistryGenerator extends Service {
     }
 
     private async _generateObject(packageName: string): Promise<KoishiMarket.Object | null> {
-        const pack = await this.meta.get(packageName)
+        const pack = await this.ctx.koishi.meta.get(packageName)
 
         const convertUser = (user: NpmRegistry.User | string): KoishiMarket.User => {
             if (typeof user === 'string') {
-                const matches = user.match(/^([\w-_.]+) ?<(.*)>$/)
+                // const matches = user.match(/^([\w-_.]+) ?<(.*)>$/)
+                // format: user <user@example.com>
+                const matches = user.match(createRegExp(
+                    oneOrMore(anyOf(wordChar, '-', '_', '.'))
+                        .at.lineStart()
+                        .groupedAs("name"),
+
+                    maybe(' '),
+
+                    exactly('<').and(
+                        oneOrMore(char).groupedAs("email")
+                    ).and('>')
+                        .at.lineEnd()
+                ))
                 if (matches === null) return {
                     name: user,
                     username: user,
-                    email: null!
+                    email: user
                 }
                 else return {
-                    name: matches.at(0),
-                    username: matches.at(0),
-                    email: matches.at(1)!
+                    name: matches.groups.name,
+                    username: matches.groups.name,
+                    email: matches.groups.email!
                 }
             }
             user = structuredClone(user)
-            if (!user.username) user.username = user.name ?? 'koishi'
+            if (!user.username) user.username = user.name ?? user.email ?? '<unknown-user>'
             return user
         }
 
@@ -389,7 +402,7 @@ export class RegistryGenerator extends Service {
             publishSize: meta.dist.unpackedSize,
         } satisfies Partial<KoishiMarket.Object>
 
-        await SimpleAnalyzer.prototype.analyzeAll.call(this.analyzer, {
+        await SimpleAnalyzer.prototype.analyzeAll.call(this.ctx.koishi.analyzer, {
             ctx: this.context,
             name: packageName,
             object,
@@ -434,7 +447,7 @@ export class RegistryGenerator extends Service {
     // prefer cached result
     public async fetchObject(packageName: string, regenerate: boolean = false, refresh_meta: boolean = false): Promise<KoishiMarket.Object | null> {
         if (regenerate) {
-            if (refresh_meta) await this.meta.refetchOne(packageName)
+            if (refresh_meta) await this.ctx.koishi.meta.refetchOne(packageName)
             return await this.generateObject(packageName)
         }
         const object = this.object_cache.get(packageName)
@@ -460,7 +473,7 @@ export class RegistryGenerator extends Service {
 
         await Promise.all(this.object_cache.entries().filter(([_, object]) => !!object).map(async ([packageName, object]) => {
             if (!object) return
-            const pack = await this.meta.get(packageName)
+            const pack = await this.ctx.koishi.meta.get(packageName)
             if (!pack) {
                 this.object_cache.delete(packageName)
                 return
@@ -476,7 +489,7 @@ export class RegistryGenerator extends Service {
             if (versions.length === 0) return
             const meta = versions[versions.length - 1]
 
-            await SimpleAnalyzer.prototype.analyzeAll.call(this.analyzer, {
+            await SimpleAnalyzer.prototype.analyzeAll.call(this.ctx.koishi.analyzer, {
                 ctx: this.ctx,
                 name: packageName,
                 meta,
@@ -533,7 +546,7 @@ export namespace RegistryGenerator {
 }
 
 export class NpmProvider extends Service {
-    static inject = ['koishi', 'koishi.analyzer', 'koishi.meta', 'npm', 'storage']
+    static inject = ['koishi', 'koishi.generator', 'koishi.analyzer', 'koishi.meta', 'npm', 'storage', 'timer']
     cache: Map<string, number> = new Map()
 
     constructor(ctx: Context) {
@@ -546,9 +559,9 @@ export class NpmProvider extends Service {
 
         this.ctx.on('dispose', () => this.saveCache())
 
-        this.ctx.on('npm/synchronized', () => this.ctx.koishi.refreshFast())
+        this.ctx.on('npm/synchronized', () => this.ctx.koishi.generator.refreshFast())
         this.ctx.on('npm/fetched-plugins', record => Promise.all(
-            record.map((rec) => this.ctx.koishi.fetch(rec.id, true, true))
+            record.map((rec) => this.ctx.koishi.generator.fetch(rec.id, true, true))
         ).then())
 
         await this.fetchUncached()
@@ -556,17 +569,17 @@ export class NpmProvider extends Service {
     }
 
     public async refreshNpm(): Promise<void> {
-        this.ctx.koishi.beforeRefresh()
+        this.ctx.koishi.generator.beforeRefresh()
 
         await Promise.all(
             this.ctx.npm.plugins
                 .entries()
-                .map(([packageName]) => this.ctx.koishi.fetch(packageName, true, false))
+                .map(([packageName]) => this.ctx.koishi.generator.fetch(packageName, true, false))
         )
     }
 
     async fetchUncached(): Promise<void> {
-        this.ctx.koishi.beforeRefresh()
+        this.ctx.koishi.generator.beforeRefresh()
         // update those exist in ctx.npm.plugins, but not in our cache
         await Promise.all(this.ctx.npm.plugins
             .entries()
@@ -596,6 +609,12 @@ export class NpmProvider extends Service {
 
 }
 
+export class Koishi extends Service {
+    constructor(ctx: Context) {
+        super(ctx, 'koishi');
+    }
+}
+
 export interface Config {
     registry: KoishiMeta.Config,
     generator: RegistryGenerator.Config
@@ -610,6 +629,7 @@ export const Config: Schema = Schema.intersect([Schema.object({
 export function apply(ctx: Context, config: Config) {
     // if (!ctx.get('koishi.analyzer'))
     //     ctx.plugin(SimpleAnalyzer)
+    ctx.plugin(Koishi)
     ctx.plugin(RegistryGenerator, config.generator)
     ctx.plugin(KoishiMeta, config.registry)
     ctx.inject(['npm'], (ctx) => {

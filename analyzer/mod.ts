@@ -4,12 +4,23 @@ import { KoishiMarket, NpmRegistry } from "../koishi_registry/types.ts";
 import Schema from 'schemastery'
 import { Score as RegistryScore } from "@koishijs/registry";
 import merge from 'lodash.merge'
+import { CheckResult as KMCheck } from '@km-api/km-api/check'
+
+declare module '../koishi.ts' {
+    export interface Koishi {
+        analyzer: Analyzer
+    }
+}
 
 declare module 'cordis' {
     export interface Events {
         'analyzer/is-insecure'(context: AnalyzerContext): Awaitable<boolean | null | undefined>;
 
         'analyzer/is-verified'(context: AnalyzerContext): Awaitable<boolean | null | undefined>;
+    }
+
+    export interface Context {
+        'koishi.analyzer': Analyzer
     }
 }
 
@@ -47,10 +58,15 @@ export interface Scores {
     scopes: Dict<number, keyof RegistryScore.Detail>
 }
 
-export interface KMCheck {
-    insecure: boolean | { value: boolean; reason?: string };
-    hidden: boolean;
-    overrides: object;
+interface NuxtPackage {
+    version: string
+    license: string
+    publishedAt: string
+    createdAt: string
+    updatedAt: string
+    downloads: {
+        lastMonth: number
+    }
 }
 
 // analyze step
@@ -65,7 +81,7 @@ export abstract class Analyzer extends Service {
     }
 
     protected constructor(ctx: Context) {
-        super(ctx, `koishi.analyzer`, true);
+        super(ctx, `koishi.analyzer`);
     }
 
     addDefaults() {
@@ -153,6 +169,10 @@ export abstract class Analyzer extends Service {
         context.object.insecure = insecure
         const score = await this.evaluate(context, ratingWeights)
         context.object.rating = (score.final * 10) - 0.3
+        context.object.score = {
+            final: score.final,
+            detail: score.scopes
+        }
     }
 }
 
@@ -183,14 +203,22 @@ export class SimpleAnalyzer extends Analyzer {
         };
     }
 
-    downloadsOf(context: AnalyzerContext): Promise<{ lastMonth: number }> {
-        return this.options.download?.fetch?.(context) ?? Promise.resolve({ lastMonth: 0 })
+    async downloadsOf(context: AnalyzerContext): Promise<{ lastMonth: number }> {
+        if (!this.options.download?.fetch) {
+            try {
+                const { downloads } = await this.ctx.http.get<NuxtPackage>(`https://api.nuxtjs.org/api/npm/package/${context.name}`)
+                return downloads
+            } catch {
+                return { lastMonth: 0 }
+            }
+        }
+        return await this.options.download?.fetch(context)
     }
 
     async analyzePackage(context: AnalyzerContext): Promise<AnalyzeResult> {
         if (!this.options.analyzer?.analyze) {
             try {
-                const check = await this.ctx.http.get<KMCheck>(`https://km-api.cyans.me/api/check/${context.name}`)
+                const check = await this.ctx.http.get<KMCheck>(`https://km-api.cyans.me/api/check/${encodeURIComponent(context.name)}`)
                 context.object.ignored = check.hidden
                 context.object.insecure = typeof check.insecure === 'object' ? check.insecure.value : !!check.insecure
                 if (check.overrides)
@@ -206,10 +234,10 @@ export class SimpleAnalyzer extends Analyzer {
                 }
             }
         }
-        return this.options.analyzer?.analyze?.(context) ?? Promise.resolve({
+        return await this.options.analyzer?.analyze?.(context) ?? {
             installSize: context.meta.dist.unpackedSize,
             publishSize: context.meta.dist.unpackedSize,
-        });
+        };
     }
 
     async isInsecure(context: AnalyzerContext): Promise<boolean> {
