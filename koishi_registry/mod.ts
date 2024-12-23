@@ -158,7 +158,7 @@ export class KoishiMeta {
                 await this.set(name, cached)
                 return cached
             } else
-                return await this.query(name)
+                return await this.query(name, true)
         }
         return result
     }
@@ -542,7 +542,7 @@ export class NpmProvider extends Service {
 
     override async start() {
         if (this.ctx.storage.has("koishi.npm.cache"))
-            this.cache = new Map(Object.entries(this.ctx.storage.get<Dict<number>>("koishi.npm.cache")))
+            this.cache = new Map(Object.entries((await this.ctx.storage.get<Dict<number>>("koishi.npm.cache"))!))
 
         this.ctx.on('dispose', () => this.saveCache())
 
