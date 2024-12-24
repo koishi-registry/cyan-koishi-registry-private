@@ -1,5 +1,5 @@
 {
-  "version": "0.3.3",
+  "version": "0.3.4-rc.0",
   "imports": {
     "@cordisjs/plugin-logger": "npm:@cordisjs/plugin-logger@^0",
     "@cordisjs/plugin-timer": "npm:@cordisjs/plugin-timer@^1.0.0-alpha.0",

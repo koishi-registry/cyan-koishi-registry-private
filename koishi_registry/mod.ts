@@ -541,7 +541,7 @@ export namespace RegistryGenerator {
 
     export const Config: Schema = Schema.object({
         npmURL: Schema.string().default("https://www.npmjs.com/"),
-        refreshInterval: Schema.number().min(30).default(600).description("Unit: seconds"),
+        refreshInterval: Schema.number().min(30).default(60*60).description("Unit: seconds"),
     })
 }
 

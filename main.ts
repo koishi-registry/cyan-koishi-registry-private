@@ -4,6 +4,7 @@ import Logger from 'reggol'
 import * as KoishiRegistry from './koishi_registry'
 import * as API from './api.ts'
 import * as MarketEndpoints from './market.ts'
+import * as ManageAPI from './manage_api.ts'
 import { SimpleAnalyzer } from "./analyzer";
 import "@std/dotenv/load";
 
@@ -19,7 +20,12 @@ const app = new Context({
     }
 });
 app.plugin(SimpleAnalyzer) // analyzer is required for KoishiRegistry
-app.plugin(KoishiRegistry)
+app.plugin(KoishiRegistry, {
+    generator: {
+        refreshInterval: 60 * 60
+    }
+})
 app.plugin(NpmWatcher, { block_size: 1000, concurrent: 50 })
 app.plugin(API)
 app.plugin(MarketEndpoints)
+app.plugin(ManageAPI)
