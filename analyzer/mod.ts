@@ -220,7 +220,7 @@ export class SimpleAnalyzer extends Analyzer {
     async analyzePackage(context: AnalyzerContext): Promise<AnalyzeResult> {
         if (!this.options.analyzer?.analyze) {
             try {
-                const check = await this.ctx.http.get<KMCheck>(`https://km-api.cyans.me/api/check/${encodeURIComponent(context.name)}`)
+                const check = await this.ctx.http.get<KMCheck>(`https://km-api.cyans.me/api/check/${encodeURIComponent(context.name)}/`)
                 if (check.category) context.object.category = check.category
                 context.object.ignored = check.hidden
                 context.object.insecure = typeof check.insecure === 'object' ? check.insecure.value : !!check.insecure
