@@ -167,11 +167,11 @@ export abstract class Analyzer extends Service {
         context.object.dependents = dependents ?? 0
         context.object.downloads = downloads
         const [verified, insecure] = await Promise.all([this.isVerified(context), this.isInsecure(context)])
-        context.object.verified = verified
-        context.object.insecure = insecure
+        context.object.verified ||= verified
+        context.object.insecure ||= insecure
         const score = await this.evaluate(context, ratingWeights)
-        context.object.rating = (score.final * 10) - 0.3
-        context.object.score = {
+        context.object.rating ||= (score.final * 10) - 0.3
+        context.object.score ||= {
             final: score.final,
             detail: score.scopes
         }
