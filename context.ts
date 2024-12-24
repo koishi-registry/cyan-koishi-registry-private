@@ -24,7 +24,7 @@ export class Context extends cordis.Context {
     constructor(config: Context.Config = {}) {
         super();
         const logger = new Logger("app")
-        logger.info("Fetcher/%C Deno/%C", meta.version, Deno.version.deno)
+        logger.info("App/%C Deno/%C", meta.version, Deno.version.deno)
         this.plugin(TimerService)
         this.plugin(HttpService)
         this.plugin(Server, config.server)
@@ -54,9 +54,10 @@ export class AppInfo {
         this.isUpdated = new Promise(r => this.checkTask.then(x => x !== Updated.None).then(r))
         this.isUpgrade = new Promise(r => this.checkTask.then(x => x === Updated.Upgrade).then(r))
         this.isDowngrade = new Promise(r => this.checkTask.then(x => x === Updated.Downgrade).then(r))
-        this.ctx.on('ready', ()=>
-            this.checkTask.then()
-        )
+    }
+
+    async [cordis.symbols.setup]() {
+        await this.checkTask
     }
 
     async check(): Promise<Updated> {

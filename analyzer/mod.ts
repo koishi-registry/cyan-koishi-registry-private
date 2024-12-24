@@ -41,6 +41,7 @@ export interface AnalyzerContext {
 
 export interface AnalyzeResult {
     dependents?: number;
+    category: string
     installSize: number;
     publishSize: number;
 }
@@ -158,10 +159,11 @@ export abstract class Analyzer extends Service {
     }
 
     async analyzeAll(context: AnalyzerContext, ratingWeights: Record<keyof RegistryScore.Detail, number>): Promise<void> {
-        const [downloads, { installSize, publishSize, dependents }] =
+        const [downloads, { installSize, publishSize, dependents, category }] =
             await Promise.all([this.downloadsOf(context), this.analyzePackage(context)])
         context.object.installSize = installSize
         context.object.publishSize = publishSize
+        context.object.category = category
         context.object.dependents = dependents ?? 0
         context.object.downloads = downloads
         const [verified, insecure] = await Promise.all([this.isVerified(context), this.isInsecure(context)])
@@ -219,22 +221,26 @@ export class SimpleAnalyzer extends Analyzer {
         if (!this.options.analyzer?.analyze) {
             try {
                 const check = await this.ctx.http.get<KMCheck>(`https://km-api.cyans.me/api/check/${encodeURIComponent(context.name)}`)
+                if (check.category) context.object.category = check.category
                 context.object.ignored = check.hidden
                 context.object.insecure = typeof check.insecure === 'object' ? check.insecure.value : !!check.insecure
                 if (check.overrides)
                     Object.assign(context.object, merge(context.object, check.overrides))
                 return {
+                    category: check.category ?? 'unscoped',
                     installSize: context.meta.dist.unpackedSize,
                     publishSize: context.meta.dist.unpackedSize,
                 }
             } catch {
                 return {
+                    category: 'unscoped',
                     installSize: context.meta.dist.unpackedSize,
                     publishSize: context.meta.dist.unpackedSize,
                 }
             }
         }
         return await this.options.analyzer?.analyze?.(context) ?? {
+            category: 'unscoped',
             installSize: context.meta.dist.unpackedSize,
             publishSize: context.meta.dist.unpackedSize,
         };

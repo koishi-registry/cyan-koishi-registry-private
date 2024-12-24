@@ -365,7 +365,7 @@ export class RegistryGenerator extends Service {
         })
 
         const object = {
-            category: 'other', // todo
+            category: 'unscoped',
             shortname: shortname,
             createdAt: times[0],
             updatedAt: times[times.length - 1],
