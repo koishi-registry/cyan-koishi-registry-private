@@ -615,6 +615,8 @@ export class Koishi extends Service {
     }
 }
 
+export const name = 'koishi-registry'
+
 export interface Config {
     registry: KoishiMeta.Config,
     generator: RegistryGenerator.Config

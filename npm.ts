@@ -68,6 +68,26 @@ export class NpmWatcher extends Service {
         this.options.endpoint = trimEnd(this.options.endpoint, '/')
     }
 
+    override async start() {
+        this.synchronized = false
+
+        await this.ctx.info.checkTask
+        if (!satisfies(this.ctx.info.previous ?? parse("0.0.1"), parseRange("^0.3.4-rc.1"))) {
+            this.ctx.storage.remove('npm.seq')
+            this.ctx.storage.remove('npm.plugins')
+        }
+        if (await this.ctx.storage.has('npm.seq')) { // restore seq if we can
+            this.seq = await this.ctx.storage.get('npm.seq') as unknown as number;
+            this.ctx.logger.debug("\trestored seq %C", this.seq)
+        }
+        if (await this.ctx.storage.has('npm.plugins')) { // restore plugins if we can
+            this.plugins = new Map(Object.entries((await this.ctx.storage.get<Dict<number>>('npm.plugins'))!));
+            this.ctx.logger.info("\trestored %C plugins", this.plugins.size)
+        }
+
+        this._startFetchTask()
+    }
+
     public async flushPlugins() { // flush plugins to the store
         await this.ctx.storage.set("npm.plugins", Object.fromEntries(this.plugins.entries()))
     }
@@ -115,7 +135,6 @@ export class NpmWatcher extends Service {
         return false
     }
 
-    // fetch from begin till a seq >= end
     private async fetchSpan(begin: number, end: number, update?: (seq: number) => void) {
         while (this.ctx.scope.active) {
             let body: ReadableStream<Uint8Array>
@@ -134,7 +153,6 @@ export class NpmWatcher extends Service {
         }
     }
 
-    // simple sequential fetch
     private async simpleFetch() {
         // const response = await this.ctx.http(`https://replicate.npmjs.com/_changes?filter=_selector&since=${this.seq}`, {
         //     responseType: (response) => response.body,
@@ -156,7 +174,7 @@ export class NpmWatcher extends Service {
                 continue
             }
 
-            await this.handle(body)
+            await this.handle(body, (seq) => this.seq = seq)
             break
         }
     }
@@ -249,26 +267,6 @@ export class NpmWatcher extends Service {
 
         this.ctx.logger.debug('start synchronizing with npm (seq: %c)', this.seq)
         await this.simpleFetch() // Since we are synchronized, so we can just watch all new changes here
-    }
-
-    override async start() {
-        this.synchronized = false
-
-        await this.ctx.info.checkTask
-        if (!satisfies(this.ctx.info.previous ?? parse("0.0.1"), parseRange("^0.3"))) {
-            this.ctx.storage.remove('npm.seq')
-            this.ctx.storage.remove('npm.plugins')
-        }
-        if (await this.ctx.storage.has('npm.seq')) { // restore seq if we can
-            this.seq = await this.ctx.storage.get('npm.seq') as unknown as number;
-            this.ctx.logger.debug("\trestored seq %C", this.seq)
-        }
-        if (await this.ctx.storage.has('npm.plugins')) { // restore plugins if we can
-            this.plugins = new Map(Object.entries((await this.ctx.storage.get<Dict<number>>('npm.plugins'))!));
-            this.ctx.logger.info("\trestored %C plugins", this.plugins.size)
-        }
-
-        this._startFetchTask()
     }
 
     private _startFetchTask() {
