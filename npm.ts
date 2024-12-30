@@ -77,7 +77,7 @@ export class NpmSynchronizer extends Service {
     if (
       !satisfies(
         this.ctx.info.previous ?? parse("0.0.1"),
-        parseRange("^0.3.4-rc.2"),
+        parseRange("^0.3.4"),
       )
     ) {
       this.ctx.storage.remove("npm.seq");
