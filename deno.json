@@ -1,5 +1,5 @@
 {
-  "version": "0.3.4-rc.1",
+  "version": "0.3.4-rc.2",
   "imports": {
     "@cordisjs/plugin-logger": "npm:@cordisjs/plugin-logger@^0",
     "@cordisjs/plugin-timer": "npm:@cordisjs/plugin-timer@^1.0.0-alpha.0",
@@ -44,11 +44,6 @@
   "workspace": ["./hono-mod", "./http-mod/http", "./http-mod/socks"],
   "compilerOptions": {
     "jsx": "precompile",
-    "jsxImportSource": "hono/jsx",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "deno.ns"
-    ]
+    "jsxImportSource": "hono/jsx"
   }
 }

@@ -1,10 +1,10 @@
 import { Context } from "./context.ts";
-import NpmWatcher from "./npm.ts";
-import Logger from 'reggol'
-import * as KoishiRegistry from './koishi_registry'
-import * as API from './api.ts'
-import * as MarketEndpoints from './market.ts'
-import * as ManageAPI from './manage_api.ts'
+import NpmSynchronizer from "./npm.ts";
+// import Logger from 'reggol'
+import * as KoishiRegistry from "./koishi_registry";
+import * as API from "./api.ts";
+import * as MarketEndpoints from "./market.ts";
+import * as ManageAPI from "./manage_api.ts";
 import { SimpleAnalyzer } from "./analyzer";
 import "@std/dotenv/load";
 
@@ -13,7 +13,7 @@ import "@std/dotenv/load";
 const host = Deno.env.get("HOST") ?? '127.0.0.1'
 const port = parseInt(Deno.env.get("PORT") ?? '8000')
 
-Logger.levels.base = 5
+// Logger.levels.base = 5
 const app = new Context({
     server: {
         host, port
@@ -21,11 +21,25 @@ const app = new Context({
 });
 app.plugin(SimpleAnalyzer) // analyzer is required for KoishiRegistry
 app.plugin(KoishiRegistry, {
-    generator: {
-        refreshInterval: 60 * 60
-    }
-})
-app.plugin(NpmWatcher, { block_size: 1000, concurrent: 50 })
-app.plugin(API)
-app.plugin(MarketEndpoints)
-app.plugin(ManageAPI)
+  generator: {
+    refreshInterval: 60 * 60,
+  },
+});
+app.plugin(NpmSynchronizer, { block_size: 1000, concurrent: 50 });
+app.plugin(API);
+app.plugin(MarketEndpoints);
+app.plugin(ManageAPI);
+
+async function handleQuit() {
+  await app.parallel("exit", "SIGINT");
+  app.registry.values().forEach(
+    (rt) =>
+      rt.scopes
+        .clear()
+        .forEach((scope) => scope.dispose()),
+  );
+  Deno.exit();
+}
+
+Deno.addSignalListener("SIGINT", handleQuit);
+Deno.addSignalListener("SIGTERM", handleQuit);
