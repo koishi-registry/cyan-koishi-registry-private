@@ -22,7 +22,7 @@ export type RootOptions = Record<string, unknown>
  */
 export const createRoot = (
   element: HTMLElement | DocumentFragment,
-  options: RootOptions = {}
+  options: RootOptions = {},
 ): Root => {
   let setJsxNode:
     | undefined // initial state
@@ -54,7 +54,7 @@ export const createRoot = (
             props: {},
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any) as NodeObject,
-          element
+          element,
         )
       }
     },
@@ -76,7 +76,7 @@ export const createRoot = (
 export const hydrateRoot = (
   element: HTMLElement | DocumentFragment,
   reactNode: Child,
-  options: RootOptions = {}
+  options: RootOptions = {},
 ): Root => {
   const root = createRoot(element, options)
   root.render(reactNode)

@@ -10,7 +10,7 @@ const app = new Hono()
   .get(
     '/',
     (_, next) => next(),
-    (c) => c.text('hi')
+    (c) => c.text('hi'),
   )
   .get('/named', namedMiddleware, namedHandler)
   .post('/', (c) => c.text('hi'))
@@ -26,14 +26,29 @@ describe('inspectRoutes()', () => {
       { path: '/*', method: 'ALL', name: '[middleware]', isMiddleware: true },
       { path: '/', method: 'GET', name: '[middleware]', isMiddleware: true },
       { path: '/', method: 'GET', name: '[handler]', isMiddleware: false },
-      { path: '/named', method: 'GET', name: 'namedMiddleware', isMiddleware: true },
-      { path: '/named', method: 'GET', name: 'namedHandler', isMiddleware: false },
+      {
+        path: '/named',
+        method: 'GET',
+        name: 'namedMiddleware',
+        isMiddleware: true,
+      },
+      {
+        path: '/named',
+        method: 'GET',
+        name: 'namedHandler',
+        isMiddleware: false,
+      },
       { path: '/', method: 'POST', name: '[handler]', isMiddleware: false },
       { path: '/', method: 'PUT', name: '[handler]', isMiddleware: false },
       { path: '/', method: 'PATCH', name: '[handler]', isMiddleware: false },
       { path: '/', method: 'DELETE', name: '[handler]', isMiddleware: false },
       { path: '/', method: 'OPTIONS', name: '[handler]', isMiddleware: false },
-      { path: '/static', method: 'GET', name: '[handler]', isMiddleware: false },
+      {
+        path: '/static',
+        method: 'GET',
+        name: '[handler]',
+        isMiddleware: false,
+      },
     ])
   })
 

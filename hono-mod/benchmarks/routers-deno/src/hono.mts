@@ -3,9 +3,12 @@ import { RegExpRouter } from '../../../src/router/reg-exp-router/index.ts'
 import { TrieRouter } from '../../../src/router/trie-router/index.ts'
 import { PatternRouter } from '../../../src/router/pattern-router/index.ts'
 import type { RouterInterface } from './tool.mts'
-import { routes, handler } from './tool.mts'
+import { handler, routes } from './tool.mts'
 
-const createHonoRouter = (name: string, router: Router<unknown>): RouterInterface => {
+const createHonoRouter = (
+  name: string,
+  router: Router<unknown>,
+): RouterInterface => {
   for (const route of routes) {
     router.add(route.method, route.path, handler)
   }
@@ -17,6 +20,12 @@ const createHonoRouter = (name: string, router: Router<unknown>): RouterInterfac
   }
 }
 
-export const regExpRouter = createHonoRouter('RegExpRouter', new RegExpRouter())
+export const regExpRouter = createHonoRouter(
+  'RegExpRouter',
+  new RegExpRouter(),
+)
 export const trieRouter = createHonoRouter('TrieRouter', new TrieRouter())
-export const patternRouter = createHonoRouter('PatternRouter', new PatternRouter())
+export const patternRouter = createHonoRouter(
+  'PatternRouter',
+  new PatternRouter(),
+)

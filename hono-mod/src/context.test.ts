@@ -51,14 +51,18 @@ describe('Context', () => {
   it('c.json()', async () => {
     const res = c.json({ message: 'Hello' }, 201, { 'X-Custom': 'Message' })
     expect(res.status).toBe(201)
-    expect(res.headers.get('Content-Type')).toMatch('application/json; charset=UTF-8')
+    expect(res.headers.get('Content-Type')).toMatch(
+      'application/json; charset=UTF-8',
+    )
     const text = await res.text()
     expect(text).toBe('{"message":"Hello"}')
     expect(res.headers.get('X-Custom')).toBe('Message')
   })
 
   it('c.html()', async () => {
-    const res: Response = c.html('<h1>Hello! Hono!</h1>', 201, { 'X-Custom': 'Message' })
+    const res: Response = c.html('<h1>Hello! Hono!</h1>', 201, {
+      'X-Custom': 'Message',
+    })
     expect(res.status).toBe(201)
     expect(res.headers.get('Content-Type')).toMatch('text/html')
     expect(await res.text()).toBe('<h1>Hello! Hono!</h1>')
@@ -67,11 +71,13 @@ describe('Context', () => {
 
   it('c.html() with async', async () => {
     const resPromise: Promise<Response> = c.html(
-      new Promise<string>((resolve) => setTimeout(() => resolve('<h1>Hello! Hono!</h1>'), 0)),
+      new Promise<string>((resolve) =>
+        setTimeout(() => resolve('<h1>Hello! Hono!</h1>'), 0)
+      ),
       201,
       {
         'X-Custom': 'Message',
-      }
+      },
     )
     const res = await resPromise
     expect(res.status).toBe(201)
@@ -182,7 +188,9 @@ describe('Context', () => {
     c.status(404)
     const res = c.json({ hono: 'great app' })
     expect(res.status).toBe(404)
-    expect(res.headers.get('Content-Type')).toMatch('application/json; charset=UTF-8')
+    expect(res.headers.get('Content-Type')).toMatch(
+      'application/json; charset=UTF-8',
+    )
     const obj: { [key: string]: string } = await res.json()
     expect(obj['hono']).toBe('great app')
   })
@@ -432,7 +440,7 @@ describe('Pass a ResponseInit to respond methods', () => {
       {
         message: 'Unauthorized',
       },
-      originalResponse
+      originalResponse,
     )
     expect(res.status).toBe(401)
     expect(res.headers.get('content-type')).toMatch(/^application\/json/)
@@ -486,7 +494,10 @@ describe('Pass a ResponseInit to respond methods', () => {
 
 declare module './context' {
   interface ContextRenderer {
-    (content: string | Promise<string>, head: { title: string }): Response | Promise<Response>
+    (
+      content: string | Promise<string>,
+      head: { title: string },
+    ): Response | Promise<Response>
   }
 }
 
@@ -506,11 +517,15 @@ describe('c.render', () => {
 
   it('Should return a Response from the custom renderer', async () => {
     c.setRenderer((content, head) => {
-      return c.html(`<html><head>${head.title}</head><body>${content}</body></html>`)
+      return c.html(
+        `<html><head>${head.title}</head><body>${content}</body></html>`,
+      )
     })
     c.header('foo', 'bar')
     const res = await c.render('<h1>content</h1>', { title: 'title' })
     expect(res.headers.get('foo')).toBe('bar')
-    expect(await res.text()).toBe('<html><head>title</head><body><h1>content</h1></body></html>')
+    expect(await res.text()).toBe(
+      '<html><head>title</head><body><h1>content</h1></body></html>',
+    )
   })
 })

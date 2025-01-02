@@ -67,7 +67,8 @@ describe('JWT', () => {
   })
 
   it('JwtTokenInvalid', async () => {
-    const tok = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXNzYWdlIjoiaGVsbG8gd29ybGQifQ'
+    const tok =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXNzYWdlIjoiaGVsbG8gd29ybGQifQ'
     const secret = 'a-secret'
     let err: JwtTokenInvalid
     let authorized
@@ -166,7 +167,11 @@ describe('JWT', () => {
     let err = null
     let authorized
     try {
-      authorized = await JWT.verify(tok, secret + 'invalid', AlgorithmTypes.HS256)
+      authorized = await JWT.verify(
+        tok,
+        secret + 'invalid',
+        AlgorithmTypes.HS256,
+      )
     } catch (e) {
       err = e
     }
@@ -208,7 +213,11 @@ describe('JWT', () => {
     let err = null
     let authorized
     try {
-      authorized = await JWT.verify(tok, secret + 'invalid', AlgorithmTypes.HS256)
+      authorized = await JWT.verify(
+        tok,
+        secret + 'invalid',
+        AlgorithmTypes.HS256,
+      )
     } catch (e) {
       err = e
     }
@@ -227,7 +236,11 @@ describe('JWT', () => {
     let err = null
     let authorized
     try {
-      authorized = await JWT.verify(tok, secret + 'invalid', AlgorithmTypes.HS256)
+      authorized = await JWT.verify(
+        tok,
+        secret + 'invalid',
+        AlgorithmTypes.HS256,
+      )
     } catch (e) {
       err = e
     }
@@ -245,10 +258,13 @@ describe('JWT', () => {
     }
     const secret = await crypto.subtle.importKey(
       'raw',
-      Buffer.from('cefb73234d5fae4bf27662900732b52943e8d53e871fe0f353da95de4599c21d', 'hex'),
+      Buffer.from(
+        'cefb73234d5fae4bf27662900732b52943e8d53e871fe0f353da95de4599c21d',
+        'hex',
+      ),
       algorithm,
       false,
-      ['sign', 'verify']
+      ['sign', 'verify'],
     )
     const tok = await JWT.sign(payload, secret)
     const expected =
@@ -261,10 +277,13 @@ describe('JWT', () => {
 
     const invalidSecret = await crypto.subtle.importKey(
       'raw',
-      Buffer.from('cefb73234d5fae4bf27662900732b52943e8d53e871fe0f353da95de41111111', 'hex'),
+      Buffer.from(
+        'cefb73234d5fae4bf27662900732b52943e8d53e871fe0f353da95de41111111',
+        'hex',
+      ),
       algorithm,
       false,
-      ['sign', 'verify']
+      ['sign', 'verify'],
     )
     let err = null
     let authorized
@@ -306,7 +325,9 @@ describe('JWT', () => {
       expect(await JWT.verify(tok, jwkPublicKey, alg)).toEqual(payload)
 
       const keyPair2 = await generateRSAKey(tc.hash)
-      const unexpectedPemPublicKey = await exportPEMPublicKey(keyPair2.publicKey)
+      const unexpectedPemPublicKey = await exportPEMPublicKey(
+        keyPair2.publicKey,
+      )
 
       let err = null
       let authorized
@@ -359,7 +380,9 @@ describe('JWT', () => {
       expect(await JWT.verify(tok, jwkPublicKey, alg)).toEqual(payload)
 
       const keyPair2 = await generateRSAPSSKey(tc.hash)
-      const unexpectedPemPublicKey = await exportPEMPublicKey(keyPair2.publicKey)
+      const unexpectedPemPublicKey = await exportPEMPublicKey(
+        keyPair2.publicKey,
+      )
 
       let err = null
       let authorized
@@ -412,7 +435,9 @@ describe('JWT', () => {
       expect(await JWT.verify(tok, jwkPublicKey, alg)).toEqual(payload)
 
       const keyPair2 = await generateECDSAKey(tc.namedCurve)
-      const unexpectedPemPublicKey = await exportPEMPublicKey(keyPair2.publicKey)
+      const unexpectedPemPublicKey = await exportPEMPublicKey(
+        keyPair2.publicKey,
+      )
 
       let err = null
       let authorized
@@ -476,13 +501,17 @@ describe('JWT', () => {
 
 async function exportPEMPrivateKey(key: CryptoKey): Promise<string> {
   const exported = await crypto.subtle.exportKey('pkcs8', key)
-  const pem = `-----BEGIN PRIVATE KEY-----\n${encodeBase64(exported)}\n-----END PRIVATE KEY-----`
+  const pem = `-----BEGIN PRIVATE KEY-----\n${
+    encodeBase64(exported)
+  }\n-----END PRIVATE KEY-----`
   return pem
 }
 
 async function exportPEMPublicKey(key: CryptoKey): Promise<string> {
   const exported = await crypto.subtle.exportKey('spki', key)
-  const pem = `-----BEGIN PUBLIC KEY-----\n${encodeBase64(exported)}\n-----END PUBLIC KEY-----`
+  const pem = `-----BEGIN PUBLIC KEY-----\n${
+    encodeBase64(exported)
+  }\n-----END PUBLIC KEY-----`
   return pem
 }
 
@@ -499,7 +528,7 @@ async function generateRSAKey(hash: string): Promise<CryptoKeyPair> {
       name: 'RSASSA-PKCS1-v1_5',
     },
     true,
-    ['sign', 'verify']
+    ['sign', 'verify'],
   )
 }
 
@@ -512,7 +541,7 @@ async function generateRSAPSSKey(hash: string): Promise<CryptoKeyPair> {
       name: 'RSA-PSS',
     },
     true,
-    ['sign', 'verify']
+    ['sign', 'verify'],
   )
 }
 
@@ -523,7 +552,7 @@ async function generateECDSAKey(namedCurve: string): Promise<CryptoKeyPair> {
       namedCurve,
     },
     true,
-    ['sign', 'verify']
+    ['sign', 'verify'],
   )
 }
 
@@ -534,6 +563,6 @@ async function generateEd25519Key(): Promise<CryptoKeyPair> {
       namedCurve: 'Ed25519',
     },
     true,
-    ['sign', 'verify']
+    ['sign', 'verify'],
   )
 }

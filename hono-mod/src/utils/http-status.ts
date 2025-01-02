@@ -4,9 +4,27 @@
  */
 
 export type InfoStatusCode = 100 | 101 | 102 | 103
-export type SuccessStatusCode = 200 | 201 | 202 | 203 | 204 | 205 | 206 | 207 | 208 | 226
+export type SuccessStatusCode =
+  | 200
+  | 201
+  | 202
+  | 203
+  | 204
+  | 205
+  | 206
+  | 207
+  | 208
+  | 226
 export type DeprecatedStatusCode = 305 | 306
-export type RedirectStatusCode = 300 | 301 | 302 | 303 | 304 | DeprecatedStatusCode | 307 | 308
+export type RedirectStatusCode =
+  | 300
+  | 301
+  | 302
+  | 303
+  | 304
+  | DeprecatedStatusCode
+  | 307
+  | 308
 export type ClientErrorStatusCode =
   | 400
   | 401
@@ -37,7 +55,18 @@ export type ClientErrorStatusCode =
   | 429
   | 431
   | 451
-export type ServerErrorStatusCode = 500 | 501 | 502 | 503 | 504 | 505 | 506 | 507 | 508 | 510 | 511
+export type ServerErrorStatusCode =
+  | 500
+  | 501
+  | 502
+  | 503
+  | 504
+  | 505
+  | 506
+  | 507
+  | 508
+  | 510
+  | 511
 
 /**
  * `UnofficialStatusCode` can be used to specify an unofficial status code.

@@ -9,7 +9,11 @@ export const buildPage = () => {
       <p id='b' class='class-name'>
         2<br />b
       </p>
-      <div dangerouslySetInnerHTML={{ __html: '<p id="c" class="class-name">3<br/>c</p>' }} />
+      <div
+        dangerouslySetInnerHTML={{
+          __html: '<p id="c" class="class-name">3<br/>c</p>',
+        }}
+      />
       {null}
       {undefined}
     </>
@@ -17,11 +21,36 @@ export const buildPage = () => {
 
   const Form = () => (
     <form>
-      <input type='text' value='1234567890 < 1234567891' readonly tabindex={1} />
-      <input type='checkbox' value='1234567890 < 1234567891' checked={true} tabindex={2} />
-      <input type='checkbox' value='1234567890 < 1234567891' checked={true} tabindex={3} />
-      <input type='checkbox' value='1234567890 < 1234567891' checked={false} tabindex={4} />
-      <input type='checkbox' value='1234567890 < 1234567891' checked={false} tabindex={5} />
+      <input
+        type='text'
+        value='1234567890 < 1234567891'
+        readonly
+        tabindex={1}
+      />
+      <input
+        type='checkbox'
+        value='1234567890 < 1234567891'
+        checked={true}
+        tabindex={2}
+      />
+      <input
+        type='checkbox'
+        value='1234567890 < 1234567891'
+        checked={true}
+        tabindex={3}
+      />
+      <input
+        type='checkbox'
+        value='1234567890 < 1234567891'
+        checked={false}
+        tabindex={4}
+      />
+      <input
+        type='checkbox'
+        value='1234567890 < 1234567891'
+        checked={false}
+        tabindex={5}
+      />
     </form>
   )
 

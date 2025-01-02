@@ -40,7 +40,8 @@ describe('accepts', () => {
   test('should return matched support', () => {
     const c = {
       req: {
-        header: () => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        header: () =>
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
@@ -56,7 +57,8 @@ describe('accepts', () => {
   test('should return default support if no matched support', () => {
     const c = {
       req: {
-        header: () => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        header: () =>
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
@@ -88,7 +90,8 @@ describe('accepts', () => {
   test('should return matched support with custom match function', () => {
     const c = {
       req: {
-        header: () => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        header: () =>
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
@@ -140,12 +143,18 @@ describe('Usage', () => {
       c.body(COMPRESS_DATA)
     })
 
-    const req1 = await app.request('/compressed', { headers: { 'Accept-Encoding': 'deflate' } })
-    const req2 = await app.request('/compressed', { headers: { 'Accept-Encoding': 'gzip' } })
+    const req1 = await app.request('/compressed', {
+      headers: { 'Accept-Encoding': 'deflate' },
+    })
+    const req2 = await app.request('/compressed', {
+      headers: { 'Accept-Encoding': 'gzip' },
+    })
     const req3 = await app.request('/compressed', {
       headers: { 'Accept-Encoding': 'gzip;q=0.5,deflate' },
     })
-    const req4 = await app.request('/compressed', { headers: { 'Accept-Encoding': 'br' } })
+    const req4 = await app.request('/compressed', {
+      headers: { 'Accept-Encoding': 'br' },
+    })
 
     expect(req1.headers.get('Content-Encoding')).toBe('deflate')
     expect(req2.headers.get('Content-Encoding')).toBe('gzip')
@@ -162,7 +171,9 @@ describe('Usage', () => {
         supports: SUPPORTED_LANGS,
         default: 'en',
       })
-      const isLangedPath = SUPPORTED_LANGS.some((l) => c.req.path.startsWith(`/${l}`))
+      const isLangedPath = SUPPORTED_LANGS.some((l) =>
+        c.req.path.startsWith(`/${l}`)
+      )
       if (isLangedPath) {
         return c.body(`lang: ${lang}`)
       }
@@ -170,8 +181,12 @@ describe('Usage', () => {
       return c.redirect(`/${lang}${c.req.path}`)
     })
 
-    const req1 = await app.request('/foo', { headers: { 'Accept-Language': 'en=0.8,ja' } })
-    const req2 = await app.request('/en/foo', { headers: { 'Accept-Language': 'en' } })
+    const req1 = await app.request('/foo', {
+      headers: { 'Accept-Language': 'en=0.8,ja' },
+    })
+    const req2 = await app.request('/en/foo', {
+      headers: { 'Accept-Language': 'en' },
+    })
 
     expect(req1.status).toBe(302)
     expect(req1.headers.get('Location')).toBe('/ja/foo')

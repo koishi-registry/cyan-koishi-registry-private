@@ -34,7 +34,9 @@ describe('renderToString', () => {
 
 describe('renderToReadableStream', () => {
   const textDecoder = new TextDecoder()
-  const getStringFromStream = async (stream: ReadableStream<Uint8Array>): Promise<string> => {
+  const getStringFromStream = async (
+    stream: ReadableStream<Uint8Array>,
+  ): Promise<string> => {
     const reader = stream.getReader()
     let str = ''
     for (;;) {
@@ -58,19 +60,25 @@ describe('renderToReadableStream', () => {
   })
 
   it('Should be able to render null', async () => {
-    expect(await getStringFromStream(await renderToReadableStream(null))).toBe('')
+    expect(await getStringFromStream(await renderToReadableStream(null))).toBe(
+      '',
+    )
   })
 
   it('Should be able to render undefined', async () => {
-    expect(await getStringFromStream(await renderToReadableStream(undefined))).toBe('')
+    expect(await getStringFromStream(await renderToReadableStream(undefined)))
+      .toBe('')
   })
 
   it('Should be able to render number', async () => {
-    expect(await getStringFromStream(await renderToReadableStream(1))).toBe('1')
+    expect(await getStringFromStream(await renderToReadableStream(1))).toBe(
+      '1',
+    )
   })
 
   it('Should be able to render string', async () => {
-    expect(await getStringFromStream(await renderToReadableStream('Hono'))).toBe('Hono')
+    expect(await getStringFromStream(await renderToReadableStream('Hono')))
+      .toBe('Hono')
   })
 
   it('Should be called `onError` if there is an error', async () => {
@@ -80,22 +88,30 @@ describe('renderToReadableStream', () => {
 
     const onError = vi.fn()
     expect(
-      await getStringFromStream(await renderToReadableStream(<ErrorComponent />, { onError }))
+      await getStringFromStream(
+        await renderToReadableStream(<ErrorComponent />, { onError }),
+      ),
     ).toBe('')
     expect(onError).toBeCalledWith(new Error('Server error'))
   })
 
   it('Should not be called `onError` if there is no error', async () => {
     const onError = vi.fn(() => 'error')
-    expect(await getStringFromStream(await renderToReadableStream('Hono', { onError }))).toBe(
-      'Hono'
+    expect(
+      await getStringFromStream(
+        await renderToReadableStream('Hono', { onError }),
+      ),
+    ).toBe(
+      'Hono',
     )
     expect(onError).toBeCalledTimes(0)
   })
 
   it('Should omit options, except onError', async () => {
     expect(
-      await getStringFromStream(await renderToReadableStream('Hono', { identifierPrefix: 'test' }))
+      await getStringFromStream(
+        await renderToReadableStream('Hono', { identifierPrefix: 'test' }),
+      ),
     ).toBe('Hono')
   })
 
@@ -120,7 +136,7 @@ describe('renderToReadableStream', () => {
     let { done, value } = await reader.read()
     expect(done).toBe(false)
     expect(textDecoder.decode(value)).toBe(
-      '<h1>Hello from async component<span>child async component</span></h1>'
+      '<h1>Hello from async component<span>child async component</span></h1>',
     )
     done = (await reader.read()).done
     expect(done).toBe(true)

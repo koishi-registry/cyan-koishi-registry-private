@@ -16,14 +16,18 @@ enum LogPrefix {
 const humanize = (times: string[]) => {
   const [delimiter, separator] = [',', '.']
 
-  const orderTimes = times.map((v) => v.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1' + delimiter))
+  const orderTimes = times.map((v) =>
+    v.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1' + delimiter)
+  )
 
   return orderTimes.join(separator)
 }
 
 const time = (start: number) => {
   const delta = Date.now() - start
-  return humanize([delta < 1000 ? delta + 'ms' : Math.round(delta / 1000) + 's'])
+  return humanize([
+    delta < 1000 ? delta + 'ms' : Math.round(delta / 1000) + 's',
+  ])
 }
 
 const colorStatus = (status: number) => {
@@ -54,12 +58,11 @@ function log(
   method: string,
   path: string,
   status: number = 0,
-  elapsed?: string
+  elapsed?: string,
 ) {
-  const out =
-    prefix === LogPrefix.Incoming
-      ? `${prefix} ${method} ${path}`
-      : `${prefix} ${method} ${path} ${colorStatus(status)} ${elapsed}`
+  const out = prefix === LogPrefix.Incoming
+    ? `${prefix} ${method} ${path}`
+    : `${prefix} ${method} ${path} ${colorStatus(status)} ${elapsed}`
   fn(out)
 }
 

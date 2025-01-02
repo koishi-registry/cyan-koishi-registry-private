@@ -29,7 +29,7 @@ export const equal = (a: ArrayBuffer, b: ArrayBuffer): boolean => {
 export const timingSafeEqual = async (
   a: string | object | boolean,
   b: string | object | boolean,
-  hashFunction?: Function
+  hashFunction?: Function,
 ): Promise<boolean> => {
   if (!hashFunction) {
     hashFunction = sha256
@@ -54,7 +54,7 @@ export const bufferToString = (buffer: ArrayBuffer): string => {
 
 export const bufferToFormData = (
   arrayBuffer: ArrayBuffer,
-  contentType: string
+  contentType: string,
 ): Promise<FormData> => {
   const response = new Response(arrayBuffer, {
     headers: {

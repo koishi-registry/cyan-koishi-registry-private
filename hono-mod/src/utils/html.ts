@@ -10,10 +10,13 @@ export const HtmlEscapedCallbackPhase = {
 } as const
 type HtmlEscapedCallbackOpts = {
   buffer?: [string]
-  phase: (typeof HtmlEscapedCallbackPhase)[keyof typeof HtmlEscapedCallbackPhase]
+  phase:
+    (typeof HtmlEscapedCallbackPhase)[keyof typeof HtmlEscapedCallbackPhase]
   context: Readonly<object> // An object unique to each JSX tree. This object is used as the WeakMap key.
 }
-export type HtmlEscapedCallback = (opts: HtmlEscapedCallbackOpts) => Promise<string> | undefined
+export type HtmlEscapedCallback = (
+  opts: HtmlEscapedCallbackOpts,
+) => Promise<string> | undefined
 export type HtmlEscaped = {
   isEscaped: true
   callbacks?: HtmlEscapedCallback[]
@@ -35,9 +38,14 @@ export type HtmlEscapedString = string & HtmlEscaped
  * ]
  */
 export type StringBuffer = (string | Promise<string>)[]
-export type StringBufferWithCallbacks = StringBuffer & { callbacks: HtmlEscapedCallback[] }
+export type StringBufferWithCallbacks = StringBuffer & {
+  callbacks: HtmlEscapedCallback[]
+}
 
-export const raw = (value: unknown, callbacks?: HtmlEscapedCallback[]): HtmlEscapedString => {
+export const raw = (
+  value: unknown,
+  callbacks?: HtmlEscapedCallback[],
+): HtmlEscapedString => {
   const escapedString = new String(value) as HtmlEscapedString
   escapedString.isEscaped = true
   escapedString.callbacks = callbacks
@@ -52,12 +60,12 @@ const escapeRe = /[&<>'"]/
 
 export const stringBufferToString = async (
   buffer: StringBuffer,
-  callbacks: HtmlEscapedCallback[] | undefined
+  callbacks: HtmlEscapedCallback[] | undefined,
 ): Promise<HtmlEscapedString> => {
   let str = ''
   callbacks ||= []
   const resolvedBuffer = await Promise.all(buffer)
-  for (let i = resolvedBuffer.length - 1; ; i--) {
+  for (let i = resolvedBuffer.length - 1;; i--) {
     str += resolvedBuffer[i]
     i--
     if (i < 0) {
@@ -126,25 +134,31 @@ export const escapeToBuffer = (str: string, buffer: StringBuffer): void => {
   buffer[0] += str.substring(lastIndex, index)
 }
 
-export const resolveCallbackSync = (str: string | HtmlEscapedString): string => {
-  const callbacks = (str as HtmlEscapedString).callbacks as HtmlEscapedCallback[]
+export const resolveCallbackSync = (
+  str: string | HtmlEscapedString,
+): string => {
+  const callbacks = (str as HtmlEscapedString)
+    .callbacks as HtmlEscapedCallback[]
   if (!callbacks?.length) {
     return str
   }
   const buffer: [string] = [str]
   const context = {}
 
-  callbacks.forEach((c) => c({ phase: HtmlEscapedCallbackPhase.Stringify, buffer, context }))
+  callbacks.forEach((c) =>
+    c({ phase: HtmlEscapedCallbackPhase.Stringify, buffer, context })
+  )
 
   return buffer[0]
 }
 
 export const resolveCallback = async (
   str: string | HtmlEscapedString | Promise<string>,
-  phase: (typeof HtmlEscapedCallbackPhase)[keyof typeof HtmlEscapedCallbackPhase],
+  phase:
+    (typeof HtmlEscapedCallbackPhase)[keyof typeof HtmlEscapedCallbackPhase],
   preserveCallbacks: boolean,
   context: object,
-  buffer?: [string]
+  buffer?: [string],
 ): Promise<string> => {
   if (typeof str === 'object' && !(str instanceof String)) {
     if (!((str as unknown) instanceof Promise)) {
@@ -155,7 +169,8 @@ export const resolveCallback = async (
     }
   }
 
-  const callbacks = (str as HtmlEscapedString).callbacks as HtmlEscapedCallback[]
+  const callbacks = (str as HtmlEscapedString)
+    .callbacks as HtmlEscapedCallback[]
   if (!callbacks?.length) {
     return Promise.resolve(str)
   }
@@ -165,12 +180,14 @@ export const resolveCallback = async (
     buffer = [str as string]
   }
 
-  const resStr = Promise.all(callbacks.map((c) => c({ phase, buffer, context }))).then((res) =>
+  const resStr = Promise.all(
+    callbacks.map((c) => c({ phase, buffer, context })),
+  ).then((res) =>
     Promise.all(
       res
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .filter<string>(Boolean as any)
-        .map((str) => resolveCallback(str, phase, false, context, buffer))
+        .map((str) => resolveCallback(str, phase, false, context, buffer)),
     ).then(() => (buffer as [string])[0])
   )
 

@@ -42,9 +42,15 @@ export const prettyJSON = (options?: PrettyOptions): MiddlewareHandler => {
   return async function prettyJSON(c, next) {
     const pretty = c.req.query(targetQuery) || c.req.query(targetQuery) === ''
     await next()
-    if (pretty && c.res.headers.get('Content-Type')?.startsWith('application/json')) {
+    if (
+      pretty &&
+      c.res.headers.get('Content-Type')?.startsWith('application/json')
+    ) {
       const obj = await c.res.json()
-      c.res = new Response(JSON.stringify(obj, null, options?.space ?? 2), c.res)
+      c.res = new Response(
+        JSON.stringify(obj, null, options?.space ?? 2),
+        c.res,
+      )
     }
   }
 }

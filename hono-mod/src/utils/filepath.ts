@@ -30,7 +30,7 @@ export const getFilePath = (options: FilePathOptions): string | undefined => {
 }
 
 export const getFilePathWithoutDefaultDocument = (
-  options: Omit<FilePathOptions, 'defaultDocument'>
+  options: Omit<FilePathOptions, 'defaultDocument'>,
 ): string | undefined => {
   let root = options.root || ''
   let filename = options.filename

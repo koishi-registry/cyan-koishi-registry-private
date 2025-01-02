@@ -15,7 +15,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><title>Hello</title></head><body><h1>World</h1></body></html>'
+          '<html><head><title>Hello</title></head><body><h1>World</h1></body></html>',
         )
       })
     })
@@ -32,7 +32,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><link rel="stylesheet" href="style.css" data-precedence="default"/></head><body><h1>World</h1></body></html>'
+          '<html><head><link rel="stylesheet" href="style.css" data-precedence="default"/></head><body><h1>World</h1></body></html>',
         )
       })
 
@@ -49,7 +49,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><link rel="stylesheet" href="style1.css" data-precedence="default"/><link rel="stylesheet" href="style3.css" data-precedence="default"/><link rel="stylesheet" href="style2.css" data-precedence="high"/></head><body><h1>World</h1></body></html>'
+          '<html><head><link rel="stylesheet" href="style1.css" data-precedence="default"/><link rel="stylesheet" href="style3.css" data-precedence="default"/><link rel="stylesheet" href="style2.css" data-precedence="high"/></head><body><h1>World</h1></body></html>',
         )
       })
 
@@ -66,7 +66,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><link rel="stylesheet" href="style1.css" data-precedence="default"/><link rel="stylesheet" href="style2.css" data-precedence="high"/></head><body><h1>World</h1></body></html>'
+          '<html><head><link rel="stylesheet" href="style1.css" data-precedence="default"/><link rel="stylesheet" href="style2.css" data-precedence="high"/></head><body><h1>World</h1></body></html>',
         )
       })
 
@@ -81,7 +81,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><body><link rel="stylesheet" href="style1.css" data-precedence="default"/><link rel="stylesheet" href="style2.css" data-precedence="high"/><h1>World</h1></body></html>'
+          '<html><body><link rel="stylesheet" href="style1.css" data-precedence="default"/><link rel="stylesheet" href="style2.css" data-precedence="high"/><h1>World</h1></body></html>',
         )
       })
 
@@ -91,13 +91,18 @@ describe('intrinsic element', () => {
             <head></head>
             <body>
               <link rel='stylesheet' href='style1.css' precedence='default' />
-              <link rel='stylesheet' href='style2.css' precedence='default' disabled />
+              <link
+                rel='stylesheet'
+                href='style2.css'
+                precedence='default'
+                disabled
+              />
               <h1>World</h1>
             </body>
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><link rel="stylesheet" href="style1.css" data-precedence="default"/></head><body><link rel="stylesheet" href="style2.css" precedence="default" disabled=""/><h1>World</h1></body></html>'
+          '<html><head><link rel="stylesheet" href="style1.css" data-precedence="default"/></head><body><link rel="stylesheet" href="style2.css" precedence="default" disabled=""/><h1>World</h1></body></html>',
         )
       })
 
@@ -112,7 +117,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head></head><body><link rel="stylesheet" href="style1.css"/><h1>World</h1></body></html>'
+          '<html><head></head><body><link rel="stylesheet" href="style1.css"/><h1>World</h1></body></html>',
         )
       })
     })
@@ -129,7 +134,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><meta name="description" content="Hello"/></head><body><h1>World</h1></body></html>'
+          '<html><head><meta name="description" content="Hello"/></head><body><h1>World</h1></body></html>',
         )
       })
 
@@ -145,7 +150,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><meta name="description" content="Hello"/></head><body><h1>World</h1></body></html>'
+          '<html><head><meta name="description" content="Hello"/></head><body><h1>World</h1></body></html>',
         )
       })
 
@@ -160,7 +165,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head></head><body><meta name="description" content="Hello" itemprop="test"/><h1>World</h1></body></html>'
+          '<html><head></head><body><meta name="description" content="Hello" itemprop="test"/><h1>World</h1></body></html>',
         )
       })
     })
@@ -177,7 +182,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><script src="script.js" async=""></script></head><body><h1>World</h1></body></html>'
+          '<html><head><script src="script.js" async=""></script></head><body><h1>World</h1></body></html>',
         )
       })
 
@@ -193,7 +198,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><script src="script.js" async=""></script></head><body><h1>World</h1></body></html>'
+          '<html><head><script src="script.js" async=""></script></head><body><h1>World</h1></body></html>',
         )
       })
 
@@ -214,7 +219,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><script src="script.js" async=""></script></head><body><h1>World</h1></body></html>'
+          '<html><head><script src="script.js" async=""></script></head><body><h1>World</h1></body></html>',
         )
       })
 
@@ -229,7 +234,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head></head><body><script src="script.js"></script><h1>World</h1></body></html>'
+          '<html><head></head><body><script src="script.js"></script><h1>World</h1></body></html>',
         )
       })
     })
@@ -248,7 +253,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><style data-href="red" data-precedence="default">body { color: red; }</style></head><body><h1>World</h1></body></html>'
+          '<html><head><style data-href="red" data-precedence="default">body { color: red; }</style></head><body><h1>World</h1></body></html>',
         )
       })
 
@@ -271,7 +276,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head><style data-href="red" data-precedence="default">body { color: red; }</style><style data-href="blue" data-precedence="default">body { color: blue; }</style><style data-href="green" data-precedence="high">body { color: green; }</style></head><body><h1>World</h1></body></html>'
+          '<html><head><style data-href="red" data-precedence="default">body { color: red; }</style><style data-href="blue" data-precedence="default">body { color: blue; }</style><style data-href="green" data-precedence="high">body { color: green; }</style></head><body><h1>World</h1></body></html>',
         )
       })
 
@@ -286,7 +291,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head></head><body><style>body { color: red; }</style><h1>World</h1></body></html>'
+          '<html><head></head><body><style>body { color: red; }</style><h1>World</h1></body></html>',
         )
       })
     })
@@ -305,7 +310,7 @@ describe('intrinsic element', () => {
         </html>
       )
       expect(template.toString()).toBe(
-        '<html><head></head><body><form method="get"><input type="text"/></form></body></html>'
+        '<html><head></head><body><form method="get"><input type="text"/></form></body></html>',
       )
     })
 
@@ -322,7 +327,7 @@ describe('intrinsic element', () => {
         </html>
       )
       expect(template.toString()).toBe(
-        '<html><head></head><body><form action="permalink" method="get"><input type="text"/></form></body></html>'
+        '<html><head></head><body><form action="permalink" method="get"><input type="text"/></form></body></html>',
       )
     })
 
@@ -338,7 +343,7 @@ describe('intrinsic element', () => {
         </html>
       )
       expect(template.toString()).toBe(
-        '<html><head></head><body><form action="/entries" method="get"><input type="text"/></form></body></html>'
+        '<html><head></head><body><form action="/entries" method="get"><input type="text"/></form></body></html>',
       )
     })
 
@@ -354,7 +359,7 @@ describe('intrinsic element', () => {
         </html>
       )
       expect(template.toString()).toBe(
-        '<html><head></head><body><form><input type="text"/></form></body></html>'
+        '<html><head></head><body><form><input type="text"/></form></body></html>',
       )
     })
 
@@ -374,7 +379,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head></head><body><input type="text"/></body></html>'
+          '<html><head></head><body><input type="text"/></body></html>',
         )
       })
 
@@ -389,7 +394,7 @@ describe('intrinsic element', () => {
           </html>
         )
         expect(template.toString()).toBe(
-          '<html><head></head><body><input type="text" formaction="permalink"/></body></html>'
+          '<html><head></head><body><input type="text" formaction="permalink"/></body></html>',
         )
       })
     })

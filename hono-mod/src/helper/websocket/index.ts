@@ -22,7 +22,7 @@ export interface WSEvents<T = unknown> {
  */
 export type UpgradeWebSocket<T = unknown, U = any, _WSEvents = WSEvents<T>> = (
   createEvents: (c: Context) => _WSEvents | Promise<_WSEvents>,
-  options?: U
+  options?: U,
 ) => MiddlewareHandler<
   any,
   string,
@@ -84,7 +84,9 @@ export class WSContext<T = unknown> {
 
 export type WSMessageReceive = string | Blob | ArrayBufferLike
 
-export const createWSMessageEvent = (source: WSMessageReceive): MessageEvent<WSMessageReceive> => {
+export const createWSMessageEvent = (
+  source: WSMessageReceive,
+): MessageEvent<WSMessageReceive> => {
   return new MessageEvent<WSMessageReceive>('message', {
     data: source,
   })
@@ -94,14 +96,14 @@ export interface WebSocketHelperDefineContext {}
 export type WebSocketHelperDefineHandler<T, U> = (
   c: Context,
   events: WSEvents<T>,
-  options?: U
+  options?: U,
 ) => Promise<Response | void> | Response | void
 
 /**
  * Create a WebSocket adapter/helper
  */
 export const defineWebSocketHelper = <T = unknown, U = any>(
-  handler: WebSocketHelperDefineHandler<T, U>
+  handler: WebSocketHelperDefineHandler<T, U>,
 ): UpgradeWebSocket<T, U> => {
   return (createEvents, options) => {
     return async function UpgradeWebSocket(c, next) {

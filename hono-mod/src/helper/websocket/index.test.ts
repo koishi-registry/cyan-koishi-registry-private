@@ -1,6 +1,6 @@
 import { Context } from '../../context'
 import type { WSContextInit } from '.'
-import { WSContext, createWSMessageEvent, defineWebSocketHelper } from '.'
+import { createWSMessageEvent, defineWebSocketHelper, WSContext } from '.'
 
 describe('`createWSMessageEvent`', () => {
   it('Should `createWSMessageEvent` is working for string', () => {
@@ -23,7 +23,7 @@ describe('defineWebSocketHelper', () => {
     })
     const response = await upgradeWebSocket(() => ({}))(
       new Context(new Request('http://localhost')),
-      () => Promise.resolve()
+      () => Promise.resolve(),
     )
     expect(response).toBeTruthy()
     expect((response as Response).status).toBe(200)
@@ -33,7 +33,10 @@ describe('defineWebSocketHelper', () => {
       return
     })
     const next = vi.fn()
-    await upgradeWebSocket(() => ({}))(new Context(new Request('http://localhost')), next)
+    await upgradeWebSocket(() => ({}))(
+      new Context(new Request('http://localhost')),
+      next,
+    )
     expect(next).toBeCalled()
   })
 })

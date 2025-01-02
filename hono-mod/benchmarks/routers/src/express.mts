@@ -1,6 +1,6 @@
 import routerFunc from 'express/lib/router/index.js'
 import type { RouterInterface } from './tool.mts'
-import { routes, handler } from './tool.mts'
+import { handler, routes } from './tool.mts'
 
 const router = routerFunc()
 const name = 'express (WARNING: includes handling)'

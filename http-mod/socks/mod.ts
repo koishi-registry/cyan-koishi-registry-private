@@ -42,14 +42,20 @@ export function apply(ctx: Context) {
     const proxy: SocksProxy = { host, port, type }
     if (url.username) proxy.userId = decodeURIComponent(url.username)
     if (url.password) proxy.password = decodeURIComponent(url.password)
-    return new ctx.http.undici.Agent({ connect: createConnect(proxy, shouldLookup) })
+    return new ctx.http.undici.Agent({
+      connect: createConnect(proxy, shouldLookup),
+    })
   })
 
   function resolvePort(protocol: string, port: string) {
     return port ? Number.parseInt(port) : protocol === 'http:' ? 80 : 443
   }
 
-  function createConnect(proxy: SocksProxy, shouldLookup: boolean, tlsOpts: buildConnector.BuildOptions = {}): buildConnector.connector {
+  function createConnect(
+    proxy: SocksProxy,
+    shouldLookup: boolean,
+    tlsOpts: buildConnector.BuildOptions = {},
+  ): buildConnector.connector {
     const { timeout = 10e3 } = tlsOpts
     const connect = ctx.http.undici.buildConnector(tlsOpts)
 

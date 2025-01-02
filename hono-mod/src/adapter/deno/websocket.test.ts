@@ -16,7 +16,7 @@ describe('WebSockets', () => {
         '/ws',
         upgradeWebSocket(() => ({
           onMessage: (evt) => resolve(evt.data),
-        }))
+        })),
       )
     )
     const socket = new EventTarget() as WebSocket
@@ -36,7 +36,7 @@ describe('WebSockets', () => {
       socket.onmessage(
         new MessageEvent('message', {
           data,
-        })
+        }),
       )
     expect(await messagePromise).toBe(data)
   })
@@ -51,8 +51,8 @@ describe('WebSockets', () => {
           }),
           {
             idleTimeout: 5000,
-          }
-        )
+          },
+        ),
       )
     )
     const socket = new EventTarget() as WebSocket
@@ -72,7 +72,7 @@ describe('WebSockets', () => {
       socket.onmessage(
         new MessageEvent('message', {
           data,
-        })
+        }),
       )
     expect(await messagePromise).toBe(data)
   })
@@ -84,9 +84,9 @@ describe('WebSockets', () => {
           headers: {
             Upgrade: 'example',
           },
-        })
+        }),
       ),
-      next
+      next,
     )
     expect(next).toBeCalled()
   })

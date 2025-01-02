@@ -24,7 +24,7 @@ describe('upgradeWebSocket middleware', () => {
         onMessage(evt, ws) {
           resolve([evt.data, ws.readyState || 1])
         },
-      }))
+      })),
     )
   )
   it('Should receive message and readyState is valid', async () => {
@@ -37,7 +37,7 @@ describe('upgradeWebSocket middleware', () => {
     server.dispatchEvent(
       new MessageEvent('message', {
         data: sendingData,
-      })
+      }),
     )
 
     expect([sendingData, 1]).toStrictEqual(await wsPromise)
@@ -50,9 +50,9 @@ describe('upgradeWebSocket middleware', () => {
           headers: {
             Upgrade: 'example',
           },
-        })
+        }),
       ),
-      next
+      next,
     )
     expect(next).toBeCalled()
   })

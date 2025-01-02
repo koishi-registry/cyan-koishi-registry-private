@@ -47,12 +47,15 @@ export interface LambdaContext {
   getRemainingTimeInMillis(): number
 }
 
-type Callback<TResult = any> = (error?: Error | string | null, result?: TResult) => void
+type Callback<TResult = any> = (
+  error?: Error | string | null,
+  result?: TResult,
+) => void
 
 export type Handler<TEvent = any, TResult = any> = (
   event: TEvent,
   context: LambdaContext,
-  callback: Callback<TResult>
+  callback: Callback<TResult>,
 ) => void | Promise<TResult>
 
 interface ClientCert {

@@ -6,8 +6,15 @@
 import type { JSXNode, Props } from '../base'
 import * as intrinsicElementTags from './intrinsic-element/components'
 
-export const jsxDEV = (tag: string | Function, props: Props, key?: string): JSXNode => {
-  if (typeof tag === 'string' && intrinsicElementTags[tag as keyof typeof intrinsicElementTags]) {
+export const jsxDEV = (
+  tag: string | Function,
+  props: Props,
+  key?: string,
+): JSXNode => {
+  if (
+    typeof tag === 'string' &&
+    intrinsicElementTags[tag as keyof typeof intrinsicElementTags]
+  ) {
     tag = intrinsicElementTags[tag as keyof typeof intrinsicElementTags]
   }
   return {
@@ -19,4 +26,5 @@ export const jsxDEV = (tag: string | Function, props: Props, key?: string): JSXN
   } as JSXNode
 }
 
-export const Fragment = (props: Record<string, unknown>): JSXNode => jsxDEV('', props, undefined)
+export const Fragment = (props: Record<string, unknown>): JSXNode =>
+  jsxDEV('', props, undefined)

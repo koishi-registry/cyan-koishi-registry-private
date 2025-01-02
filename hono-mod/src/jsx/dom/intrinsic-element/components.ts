@@ -1,7 +1,11 @@
 import type { Props } from '../../base'
 import { useContext } from '../../context'
 import { use, useCallback, useMemo, useState } from '../../hooks'
-import { dataPrecedenceAttr, deDupeKeyMap, domRenderers } from '../../intrinsic-element/common'
+import {
+  dataPrecedenceAttr,
+  deDupeKeyMap,
+  domRenderers,
+} from '../../intrinsic-element/common'
 import type { IntrinsicElements } from '../../intrinsic-elements'
 import type { FC, JSXNode, PropsWithChildren, RefObject } from '../../types'
 import { FormContext, registerAction } from '../hooks'
@@ -17,15 +21,14 @@ export const clearCache = () => {
 // this function is exported for testing and should not be used by the user
 export const composeRef = <T>(
   ref: RefObject<T> | Function | undefined,
-  cb: (e: T) => void | (() => void)
-): ((e: T) => () => void) => {
+  cb: (e: T) => void | (() => void),
+): (e: T) => () => void => {
   return useMemo(
     () => (e: T) => {
       let refCleanup: (() => void) | undefined
       if (ref) {
         if (typeof ref === 'function') {
-          refCleanup =
-            ref(e) ||
+          refCleanup = ref(e) ||
             (() => {
               ref(null)
             })
@@ -43,18 +46,19 @@ export const composeRef = <T>(
         refCleanup?.()
       }
     },
-    [ref]
+    [ref],
   )
 }
 
-let blockingPromiseMap: Record<string, Promise<Event> | undefined> = Object.create(null)
+let blockingPromiseMap: Record<string, Promise<Event> | undefined> = Object
+  .create(null)
 let createdElements: Record<string, HTMLElement> = Object.create(null)
 const documentMetadataTag = (
   tag: string,
   props: Props,
   preserveNodeType: PreserveNodeType | undefined,
   supportSort: boolean,
-  supportBlocking: boolean
+  supportBlocking: boolean,
 ) => {
   if (props?.itemProp) {
     return {
@@ -86,8 +90,11 @@ const documentMetadataTag = (
 
     if (!element) {
       const cacheKey = deDupeKeys.reduce(
-        (acc, key) => (props[key] === undefined ? acc : `${acc}-${key}-${props[key]}`),
-        tag
+        (
+          acc,
+          key,
+        ) => (props[key] === undefined ? acc : `${acc}-${key}-${props[key]}`),
+        tag,
       )
       created = !createdElements[cacheKey]
       element = createdElements[cacheKey] ||= (() => {
@@ -118,7 +125,10 @@ const documentMetadataTag = (
       if (deDupeKeys.length > 0) {
         let found = false
         for (const existingElement of head.querySelectorAll<HTMLElement>(tag)) {
-          if (found && existingElement.getAttribute(dataPrecedenceAttr) !== precedence) {
+          if (
+            found &&
+            existingElement.getAttribute(dataPrecedenceAttr) !== precedence
+          ) {
             head.insertBefore(e, existingElement)
             return
           }
@@ -141,13 +151,15 @@ const documentMetadataTag = (
           // newly created element
           head.insertBefore(
             e,
-            head.contains(existingElements[0]) ? existingElements[0] : head.querySelector(tag)
+            head.contains(existingElements[0])
+              ? existingElements[0]
+              : head.querySelector(tag),
           )
         }
         existingElements = undefined
       }
     },
-    [precedence]
+    [precedence],
   )
 
   const ref = composeRef(props.ref, (e: HTMLElement) => {
@@ -165,12 +177,13 @@ const documentMetadataTag = (
       return
     }
 
-    let promise = (blockingPromiseMap[e.getAttribute(key) as string] ||= new Promise<Event>(
-      (resolve, reject) => {
-        e.addEventListener('load', resolve)
-        e.addEventListener('error', reject)
-      }
-    ))
+    let promise =
+      (blockingPromiseMap[e.getAttribute(key) as string] ||= new Promise<Event>(
+        (resolve, reject) => {
+          e.addEventListener('load', resolve)
+          e.addEventListener('error', reject)
+        },
+      ))
     if (onLoad) {
       promise = promise.then(onLoad)
     }
@@ -184,11 +197,12 @@ const documentMetadataTag = (
     const key = deDupeKeyMap[tag][0]
     if (props[key]) {
       const value = props[key]
-      const promise = (blockingPromiseMap[value] ||= new Promise<Event>((resolve, reject) => {
-        insert(element as HTMLElement)
-        element!.addEventListener('load', resolve)
-        element!.addEventListener('error', reject)
-      }))
+      const promise =
+        (blockingPromiseMap[value] ||= new Promise<Event>((resolve, reject) => {
+          insert(element as HTMLElement)
+          element!.addEventListener('load', resolve)
+          element!.addEventListener('error', reject)
+        }))
       use(promise)
     }
   }
@@ -210,7 +224,7 @@ const documentMetadataTag = (
 
   return createPortal(
     jsxNode,
-    head
+    head,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ) as any
 }
@@ -229,7 +243,9 @@ export const title: FC<PropsWithChildren> = (props) => {
   return documentMetadataTag('title', props, undefined, false, false)
 }
 
-export const script: FC<PropsWithChildren<IntrinsicElements['script']>> = (props) => {
+export const script: FC<PropsWithChildren<IntrinsicElements['script']>> = (
+  props,
+) => {
   if (!props || ['src', 'async'].some((k) => !props[k])) {
     return {
       tag: 'script',
@@ -241,7 +257,9 @@ export const script: FC<PropsWithChildren<IntrinsicElements['script']>> = (props
   return documentMetadataTag('script', props, 1, false, true)
 }
 
-export const style: FC<PropsWithChildren<IntrinsicElements['style']>> = (props) => {
+export const style: FC<PropsWithChildren<IntrinsicElements['style']>> = (
+  props,
+) => {
   if (!props || !['href', 'precedence'].every((k) => k in props)) {
     return {
       tag: 'style',
@@ -255,11 +273,14 @@ export const style: FC<PropsWithChildren<IntrinsicElements['style']>> = (props) 
   return documentMetadataTag('style', props, 2, true, true)
 }
 
-export const link: FC<PropsWithChildren<IntrinsicElements['link']>> = (props) => {
+export const link: FC<PropsWithChildren<IntrinsicElements['link']>> = (
+  props,
+) => {
   if (
     !props ||
     ['onLoad', 'onError'].some((k) => k in props) ||
-    (props.rel === 'stylesheet' && (!('precedence' in props) || 'disabled' in props))
+    (props.rel === 'stylesheet' &&
+      (!('precedence' in props) || 'disabled' in props))
   ) {
     return {
       tag: 'link',
@@ -280,7 +301,9 @@ export const form: FC<
   PropsWithChildren<{
     action?: Function | string
     method?: 'get' | 'post'
-    ref?: RefObject<HTMLFormElement> | ((e: HTMLFormElement | null) => void | (() => void))
+    ref?:
+      | RefObject<HTMLFormElement>
+      | ((e: HTMLFormElement | null) => void | (() => void))
   }>
 > = (props) => {
   const { action, ...restProps } = props
@@ -309,7 +332,7 @@ export const form: FC<
       }
       setState([null, true])
     },
-    []
+    [],
   )
 
   const ref = composeRef(props.ref, (el: HTMLFormElement) => {
@@ -352,14 +375,18 @@ const formActionableElement = (
     ...props
   }: {
     formAction?: Function | string
-    ref?: RefObject<HTMLInputElement> | ((e: HTMLInputElement) => void | (() => void))
-  }
+    ref?:
+      | RefObject<HTMLInputElement>
+      | ((e: HTMLInputElement) => void | (() => void))
+  },
 ) => {
   if (typeof formAction === 'function') {
     const onClick = useCallback<(ev: MouseEvent) => void>((ev: MouseEvent) => {
       ev.preventDefault()
       ;(ev.currentTarget! as HTMLInputElement).form!.dispatchEvent(
-        new CustomEvent('submit', { detail: { [customEventFormAction]: formAction } })
+        new CustomEvent('submit', {
+          detail: { [customEventFormAction]: formAction },
+        }),
       )
     }, [])
 
@@ -380,11 +407,13 @@ const formActionableElement = (
   } as any
 }
 
-export const input: FC<PropsWithChildren<IntrinsicElements['input']>> = (props) =>
-  formActionableElement('input', props)
+export const input: FC<PropsWithChildren<IntrinsicElements['input']>> = (
+  props,
+) => formActionableElement('input', props)
 
-export const button: FC<PropsWithChildren<IntrinsicElements['button']>> = (props) =>
-  formActionableElement('button', props)
+export const button: FC<PropsWithChildren<IntrinsicElements['button']>> = (
+  props,
+) => formActionableElement('button', props)
 
 Object.assign(domRenderers, {
   title,

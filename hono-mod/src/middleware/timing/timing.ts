@@ -105,18 +105,21 @@ export const timing = (config?: TimingOptions): MiddlewareHandler => {
       timers.forEach((_, key) => endTime(c, key))
     }
 
-    const enabled = typeof options.enabled === 'function' ? options.enabled(c) : options.enabled
+    const enabled = typeof options.enabled === 'function'
+      ? options.enabled(c)
+      : options.enabled
 
     if (enabled) {
       c.res.headers.append('Server-Timing', headers.join(','))
 
-      const crossOrigin =
-        typeof options.crossOrigin === 'function' ? options.crossOrigin(c) : options.crossOrigin
+      const crossOrigin = typeof options.crossOrigin === 'function'
+        ? options.crossOrigin(c)
+        : options.crossOrigin
 
       if (crossOrigin) {
         c.res.headers.append(
           'Timing-Allow-Origin',
-          typeof crossOrigin === 'string' ? crossOrigin : '*'
+          typeof crossOrigin === 'string' ? crossOrigin : '*',
         )
       }
     }
@@ -124,7 +127,13 @@ export const timing = (config?: TimingOptions): MiddlewareHandler => {
 }
 
 interface SetMetric {
-  (c: Context, name: string, value: number, description?: string, precision?: number): void
+  (
+    c: Context,
+    name: string,
+    value: number,
+    description?: string,
+    precision?: number,
+  ): void
 
   (c: Context, name: string, description?: string): void
 }
@@ -149,22 +158,28 @@ export const setMetric: SetMetric = (
   name: string,
   valueDescription: number | string | undefined,
   description?: string,
-  precision?: number
+  precision?: number,
 ) => {
   const metrics = c.get('metric')
   if (!metrics) {
-    console.warn('Metrics not initialized! Please add the `timing()` middleware to this route!')
+    console.warn(
+      'Metrics not initialized! Please add the `timing()` middleware to this route!',
+    )
     return
   }
   if (typeof valueDescription === 'number') {
     const dur = valueDescription.toFixed(precision || 1)
 
-    const metric = description ? `${name};dur=${dur};desc="${description}"` : `${name};dur=${dur}`
+    const metric = description
+      ? `${name};dur=${dur};desc="${description}"`
+      : `${name};dur=${dur}`
 
     metrics.headers.push(metric)
   } else {
     // Value-less metric
-    const metric = valueDescription ? `${name};desc="${valueDescription}"` : `${name}`
+    const metric = valueDescription
+      ? `${name};desc="${valueDescription}"`
+      : `${name}`
 
     metrics.headers.push(metric)
   }
@@ -185,7 +200,9 @@ export const setMetric: SetMetric = (
 export const startTime = (c: Context, name: string, description?: string) => {
   const metrics = c.get('metric')
   if (!metrics) {
-    console.warn('Metrics not initialized! Please add the `timing()` middleware to this route!')
+    console.warn(
+      'Metrics not initialized! Please add the `timing()` middleware to this route!',
+    )
     return
   }
   metrics.timers.set(name, { description, start: getTime() })
@@ -206,7 +223,9 @@ export const startTime = (c: Context, name: string, description?: string) => {
 export const endTime = (c: Context, name: string, precision?: number) => {
   const metrics = c.get('metric')
   if (!metrics) {
-    console.warn('Metrics not initialized! Please add the `timing()` middleware to this route!')
+    console.warn(
+      'Metrics not initialized! Please add the `timing()` middleware to this route!',
+    )
     return
   }
   const timer = metrics.timers.get(name)

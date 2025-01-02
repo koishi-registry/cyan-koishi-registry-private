@@ -1,4 +1,4 @@
-import { run, group, bench } from 'mitata'
+import { bench, group, run } from 'mitata'
 import fastQuerystring from './fast-querystring.mts'
 import hono from './hono.mts'
 import qs from './qs.mts'
@@ -20,11 +20,13 @@ import qs from './qs.mts'
     key: undefined,
   },
   {
-    url: 'http://example.com/?url=http://example.com/very/very/deep/path/to/something&search=very-long-search-string',
+    url:
+      'http://example.com/?url=http://example.com/very/very/deep/path/to/something&search=very-long-search-string',
     key: undefined,
   },
   {
-    url: 'http://example.com/?search=Hono+is+a+small,+simple,+and+ultrafast+web+framework+for+the+Edge.&page=1',
+    url:
+      'http://example.com/?search=Hono+is+a+small,+simple,+and+ultrafast+web+framework+for+the+Edge.&page=1',
     key: undefined,
   },
   {

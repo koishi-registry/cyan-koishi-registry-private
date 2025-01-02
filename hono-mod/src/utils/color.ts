@@ -14,13 +14,12 @@ export function getColorEnabled(): boolean {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { process, Deno } = globalThis as any
 
-  const isNoColor =
-    typeof Deno?.noColor === 'boolean'
-      ? (Deno.noColor as boolean)
-      : process !== undefined
-      ? // eslint-disable-next-line no-unsafe-optional-chaining
-        'NO_COLOR' in process?.env
-      : false
+  const isNoColor = typeof Deno?.noColor === 'boolean'
+    ? (Deno.noColor as boolean)
+    : process !== undefined
+    // eslint-disable-next-line no-unsafe-optional-chaining
+    ? 'NO_COLOR' in process?.env
+    : false
 
   return !isNoColor
 }

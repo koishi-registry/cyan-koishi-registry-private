@@ -39,7 +39,7 @@ describe('Basic Auth Middleware without `hashFunction`', () => {
     basicAuth({
       username,
       password,
-    })
+    }),
   )
 
   app.get('/auth/*', () => new Response('auth'))
@@ -63,7 +63,7 @@ describe('Basic Auth Middleware with `hashFunction`', () => {
       username,
       password,
       hashFunction: (m: string) => createHash('sha256').update(m).digest('hex'),
-    })
+    }),
   )
 
   app.get('/auth/*', () => new Response('auth'))
@@ -92,9 +92,12 @@ describe('JWT Auth Middleware does not work', () => {
   // but WebCrypto does not have compatibility with Fastly Compute runtime (lacking some objects/methods in Fastly)
   // so following test should run only be polyfill-ed via vite-plugin-fastly-js-compute plugin.
   // To confirm polyfill-ed or not, check __fastlyComputeNodeDefaultCrypto field is true.
-  it.runIf(!globalThis.__fastlyComputeNodeDefaultCrypto)('Should throw error', () => {
-    expect(() => {
-      app.use('/jwt/*', jwt({ secret: 'secret' }))
-    }).toThrow(/`crypto.subtle.importKey` is undefined/)
-  })
+  it.runIf(!globalThis.__fastlyComputeNodeDefaultCrypto)(
+    'Should throw error',
+    () => {
+      expect(() => {
+        app.use('/jwt/*', jwt({ secret: 'secret' }))
+      }).toThrow(/`crypto.subtle.importKey` is undefined/)
+    },
+  )
 })

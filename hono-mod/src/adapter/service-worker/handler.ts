@@ -18,7 +18,7 @@ export const handle = (
   } = {
     // To use `fetch` on a Service Worker correctly, bind it to `globalThis`.
     fetch: globalThis.fetch.bind(globalThis),
-  }
+  },
 ): Handler => {
   return (evt) => {
     evt.respondWith(
@@ -28,7 +28,7 @@ export const handle = (
           return await opts.fetch(evt.request)
         }
         return res
-      })()
+      })(),
     )
   }
 }

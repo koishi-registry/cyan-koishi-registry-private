@@ -7,11 +7,14 @@ beforeAll(() => {
   // set a fetch stub to emulate that behavior
   vi.stubGlobal(
     'fetch',
-    function fetch(this: undefined | typeof globalThis, arg0: string | Request) {
+    function fetch(
+      this: undefined | typeof globalThis,
+      arg0: string | Request,
+    ) {
       if (this !== globalThis) {
         const error = new Error(
           // eslint-disable-next-line quotes
-          "Failed to execute 'fetch' on 'WorkerGlobalScope': Illegal invocation"
+          "Failed to execute 'fetch' on 'WorkerGlobalScope': Illegal invocation",
         )
         error.name = 'TypeError'
         throw error
@@ -20,7 +23,7 @@ beforeAll(() => {
         return new Response('hello world')
       }
       return Response.error()
-    }
+    },
   )
 })
 afterAll(() => {

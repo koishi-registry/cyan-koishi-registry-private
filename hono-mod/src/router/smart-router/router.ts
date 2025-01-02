@@ -1,5 +1,8 @@
 import type { Result, Router } from '../../router'
-import { MESSAGE_MATCHER_IS_ALREADY_BUILT, UnsupportedPathError } from '../../router'
+import {
+  MESSAGE_MATCHER_IS_ALREADY_BUILT,
+  UnsupportedPathError,
+} from '../../router'
 
 export class SmartRouter<T> implements Router<T> {
   name: string = 'SmartRouter'

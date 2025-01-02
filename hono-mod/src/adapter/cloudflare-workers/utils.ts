@@ -10,7 +10,7 @@ export type KVAssetOptions = {
 
 export const getContentFromKVAsset = async (
   path: string,
-  options?: KVAssetOptions
+  options?: KVAssetOptions,
 ): Promise<ReadableStream | null> => {
   let ASSET_MANIFEST: Record<string, string>
 

@@ -67,7 +67,7 @@ describe('styleObjectForEach', () => {
       styleObjectForEach({ [property]: 1 }, fn)
       expect(fn).toBeCalledWith(
         property.replace(/[A-Z]/g, (m: string) => `-${m.toLowerCase()}`),
-        '1'
+        '1',
       )
     })
   })
@@ -101,7 +101,7 @@ describe('styleObjectForEach', () => {
       styleObjectForEach({ [property]: 1 }, fn)
       expect(fn).toBeCalledWith(
         property.replace(/[A-Z]/g, (m: string) => `-${m.toLowerCase()}`),
-        '1px'
+        '1px',
       )
     })
   })

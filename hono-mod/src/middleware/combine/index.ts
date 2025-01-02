@@ -35,7 +35,9 @@ type Condition = (c: Context) => boolean
  * ));
  * ```
  */
-export const some = (...middleware: (MiddlewareHandler | Condition)[]): MiddlewareHandler => {
+export const some = (
+  ...middleware: (MiddlewareHandler | Condition)[]
+): MiddlewareHandler => {
   return async function some(c, next) {
     let lastError: unknown
     for (const handler of middleware) {
@@ -88,7 +90,9 @@ export const some = (...middleware: (MiddlewareHandler | Condition)[]): Middlewa
  * ));
  * ```
  */
-export const every = (...middleware: (MiddlewareHandler | Condition)[]): MiddlewareHandler => {
+export const every = (
+  ...middleware: (MiddlewareHandler | Condition)[]
+): MiddlewareHandler => {
   return async function every(c, next) {
     const currentRouteIndex = c.req.routeIndex
     await compose<Context>(
@@ -103,7 +107,7 @@ export const every = (...middleware: (MiddlewareHandler | Condition)[]): Middlew
             return res
           },
         ],
-      ])
+      ]),
     )(c, next)
   }
 }
@@ -147,10 +151,15 @@ export const except = (
     .filter(Boolean) as Condition[]
 
   if (router) {
-    conditions.unshift((c: Context) => !!router?.match(METHOD_NAME_ALL, c.req.path)?.[0]?.[0]?.[0])
+    conditions.unshift((c: Context) =>
+      !!router?.match(METHOD_NAME_ALL, c.req.path)?.[0]?.[0]?.[0]
+    )
   }
 
-  const handler = some((c: Context) => conditions.some((cond) => cond(c)), every(...middleware))
+  const handler = some(
+    (c: Context) => conditions.some((cond) => cond(c)),
+    every(...middleware),
+  )
   return async function except(c, next) {
     await handler(c, next)
   }

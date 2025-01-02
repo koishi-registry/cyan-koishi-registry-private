@@ -3,11 +3,13 @@ import type { ServeStaticOptions as BaseServeStaticOptions } from '../../middlew
 import type { Env, MiddlewareHandler } from '../../types'
 import { getContentFromKVAsset } from './utils'
 
-export type ServeStaticOptions<E extends Env = Env> = BaseServeStaticOptions<E> & {
-  // namespace is KVNamespace
-  namespace?: unknown
-  manifest: object | string
-}
+export type ServeStaticOptions<E extends Env = Env> =
+  & BaseServeStaticOptions<E>
+  & {
+    // namespace is KVNamespace
+    namespace?: unknown
+    manifest: object | string
+  }
 
 /**
  * @deprecated
@@ -19,7 +21,7 @@ export type ServeStaticOptions<E extends Env = Env> = BaseServeStaticOptions<E> 
  * application with the `npm create hono@latest` command.
  */
 export const serveStatic = <E extends Env = Env>(
-  options: ServeStaticOptions<E>
+  options: ServeStaticOptions<E>,
 ): MiddlewareHandler => {
   return async function serveStatic(c, next) {
     const getContent = async (path: string) => {

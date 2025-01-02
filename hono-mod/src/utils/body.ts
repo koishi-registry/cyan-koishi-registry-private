@@ -9,35 +9,37 @@ type BodyDataValueDot = { [x: string]: string | File | BodyDataValueDot }
 type BodyDataValueDotAll = {
   [x: string]: string | File | (string | File)[] | BodyDataValueDotAll
 }
-type SimplifyBodyData<T> = {
-  [K in keyof T]: string | File | (string | File)[] | BodyDataValueDotAll extends T[K]
-    ? string | File | (string | File)[] | BodyDataValueDotAll
-    : string | File | BodyDataValueDot extends T[K]
-    ? string | File | BodyDataValueDot
-    : string | File | (string | File)[] extends T[K]
-    ? string | File | (string | File)[]
-    : string | File
-} & {}
+type SimplifyBodyData<T> =
+  & {
+    [K in keyof T]:
+      string | File | (string | File)[] | BodyDataValueDotAll extends T[K]
+        ? string | File | (string | File)[] | BodyDataValueDotAll
+        : string | File | BodyDataValueDot extends T[K]
+          ? string | File | BodyDataValueDot
+        : string | File | (string | File)[] extends T[K]
+          ? string | File | (string | File)[]
+        : string | File
+  }
+  & {}
 
 type BodyDataValueComponent<T> =
   | string
   | File
-  | (T extends { all: false }
-      ? never // explicitly set to false
-      : T extends { all: true } | { all: boolean }
-      ? (string | File)[] // use all option
-      : never) // without options
-type BodyDataValueObject<T> = { [key: string]: BodyDataValueComponent<T> | BodyDataValueObject<T> }
+  | (T extends { all: false } ? never // explicitly set to false
+    : T extends { all: true } | { all: boolean } ? (string | File)[] // use all option
+    : never) // without options
+type BodyDataValueObject<T> = {
+  [key: string]: BodyDataValueComponent<T> | BodyDataValueObject<T>
+}
 type BodyDataValue<T> =
   | BodyDataValueComponent<T>
-  | (T extends { dot: false }
-      ? never // explicitly set to false
-      : T extends { dot: true } | { dot: boolean }
-      ? BodyDataValueObject<T> // use dot option
-      : never) // without options
-export type BodyData<T extends Partial<ParseBodyOptions> = {}> = SimplifyBodyData<
-  Record<string, BodyDataValue<T>>
->
+  | (T extends { dot: false } ? never // explicitly set to false
+    : T extends { dot: true } | { dot: boolean } ? BodyDataValueObject<T> // use dot option
+    : never) // without options
+export type BodyData<T extends Partial<ParseBodyOptions> = {}> =
+  SimplifyBodyData<
+    Record<string, BodyDataValue<T>>
+  >
 
 export type ParseBodyOptions = {
   /**
@@ -84,20 +86,22 @@ export type ParseBodyOptions = {
 interface ParseBody {
   <Options extends Partial<ParseBodyOptions>, T extends BodyData<Options>>(
     request: HonoRequest | Request,
-    options?: Options
+    options?: Options,
   ): Promise<T>
   <T extends BodyData>(
     request: HonoRequest | Request,
-    options?: Partial<ParseBodyOptions>
+    options?: Partial<ParseBodyOptions>,
   ): Promise<T>
 }
 export const parseBody: ParseBody = async (
   request: HonoRequest | Request,
-  options = Object.create(null)
+  options = Object.create(null),
 ) => {
   const { all = false, dot = false } = options
 
-  const headers = request instanceof HonoRequest ? request.raw.headers : request.headers
+  const headers = request instanceof HonoRequest
+    ? request.raw.headers
+    : request.headers
   const contentType = headers.get('Content-Type')
 
   if (
@@ -120,7 +124,7 @@ export const parseBody: ParseBody = async (
  */
 async function parseFormData<T extends BodyData>(
   request: HonoRequest | Request,
-  options: ParseBodyOptions
+  options: ParseBodyOptions,
 ): Promise<T> {
   const formData = await (request as Request).formData()
 
@@ -141,7 +145,7 @@ async function parseFormData<T extends BodyData>(
  */
 function convertFormDataToBodyData<T extends BodyData = BodyData>(
   formData: FormData,
-  options: ParseBodyOptions
+  options: ParseBodyOptions,
 ): T {
   const form: BodyData = Object.create(null)
 
@@ -179,7 +183,7 @@ function convertFormDataToBodyData<T extends BodyData = BodyData>(
 const handleParsingAllValues = (
   form: BodyData<{ all: true }>,
   key: string,
-  value: FormDataEntryValue
+  value: FormDataEntryValue,
 ): void => {
   if (form[key] !== undefined) {
     if (Array.isArray(form[key])) {
@@ -202,7 +206,7 @@ const handleParsingAllValues = (
 const handleParsingNestedValues = (
   form: BodyData,
   key: string,
-  value: BodyDataValue<Partial<ParseBodyOptions>>
+  value: BodyDataValue<Partial<ParseBodyOptions>>,
 ): void => {
   let nestedForm = form
   const keys = key.split('.')

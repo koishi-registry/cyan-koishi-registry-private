@@ -1,5 +1,10 @@
 import { createHash } from 'crypto'
-import { bufferToFormData, bufferToString, equal, timingSafeEqual } from './buffer'
+import {
+  bufferToFormData,
+  bufferToString,
+  equal,
+  timingSafeEqual,
+} from './buffer'
 
 describe('equal', () => {
   it('should return true for identical ArrayBuffers', () => {
@@ -32,8 +37,8 @@ describe('buffer', () => {
     expect(
       await timingSafeEqual(
         '127e6fbfe24a750e72930c220a8e138275656b8e5d8f48a98c3c92df2caba935',
-        '127e6fbfe24a750e72930c220a8e138275656b8e5d8f48a98c3c92df2caba935'
-      )
+        '127e6fbfe24a750e72930c220a8e138275656b8e5d8f48a98c3c92df2caba935',
+      ),
     ).toBe(true)
     expect(await timingSafeEqual('a', 'a')).toBe(true)
     expect(await timingSafeEqual('', '')).toBe(true)
@@ -43,19 +48,27 @@ describe('buffer', () => {
     expect(await timingSafeEqual(true, true)).toBe(true)
     expect(await timingSafeEqual(false, false)).toBe(true)
     expect(
-      await timingSafeEqual(true, true, (d: boolean) =>
-        createHash('sha256').update(d.toString()).digest('hex')
-      )
+      await timingSafeEqual(
+        true,
+        true,
+        (d: boolean) => createHash('sha256').update(d.toString()).digest('hex'),
+      ),
     )
   })
 
   it('negative', async () => {
     expect(await timingSafeEqual('a', 'b')).toBe(false)
     expect(
-      await timingSafeEqual('a', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+      await timingSafeEqual(
+        'a',
+        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      ),
     ).toBe(false)
     expect(
-      await timingSafeEqual('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'a')
+      await timingSafeEqual(
+        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        'a',
+      ),
     ).toBe(false)
     expect(await timingSafeEqual('alpha', 'beta')).toBe(false)
     expect(await timingSafeEqual(false, true)).toBe(false)
@@ -65,8 +78,8 @@ describe('buffer', () => {
     expect(
       await timingSafeEqual(
         () => {},
-        () => {}
-      )
+        () => {},
+      ),
     ).toBe(false)
     expect(await timingSafeEqual({}, {})).toBe(false)
     expect(await timingSafeEqual({ a: 1 }, { a: 1 })).toBe(false)
@@ -79,7 +92,23 @@ describe('buffer', () => {
 
 describe('bufferToString', () => {
   it('Should return あいうえお', () => {
-    const bytes = [227, 129, 130, 227, 129, 132, 227, 129, 134, 227, 129, 136, 227, 129, 138]
+    const bytes = [
+      227,
+      129,
+      130,
+      227,
+      129,
+      132,
+      227,
+      129,
+      134,
+      227,
+      129,
+      136,
+      227,
+      129,
+      138,
+    ]
     const buffer = Uint8Array.from(bytes).buffer
     expect(bufferToString(buffer)).toBe('あいうえお')
   })
@@ -98,7 +127,7 @@ describe('bufferToFormData', () => {
 
     const result = await bufferToFormData(
       arrayBuffer,
-      'multipart/form-data; boundary=sampleboundary'
+      'multipart/form-data; boundary=sampleboundary',
     )
 
     expect(result.get('test')).toBe('Hello')
@@ -112,7 +141,10 @@ describe('bufferToFormData', () => {
     const testData = searchParams.toString()
     const arrayBuffer = encoder.encode(testData).buffer
 
-    const result = await bufferToFormData(arrayBuffer, 'application/x-www-form-urlencoded')
+    const result = await bufferToFormData(
+      arrayBuffer,
+      'application/x-www-form-urlencoded',
+    )
 
     expect(result.get('id')).toBe('123')
     expect(result.get('title')).toBe('Good title')

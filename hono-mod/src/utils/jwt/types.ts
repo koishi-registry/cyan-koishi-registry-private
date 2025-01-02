@@ -33,7 +33,9 @@ export class JwtTokenExpired extends Error {
 
 export class JwtTokenIssuedAt extends Error {
   constructor(currentTimestamp: number, iat: number) {
-    super(`Incorrect "iat" claim must be a older than "${currentTimestamp}" (iat: "${iat}")`)
+    super(
+      `Incorrect "iat" claim must be a older than "${currentTimestamp}" (iat: "${iat}")`,
+    )
     this.name = 'JwtTokenIssuedAt'
   }
 }

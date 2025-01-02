@@ -1,5 +1,5 @@
 import { Hono } from '../../hono'
-import { RETAINED_304_HEADERS, etag } from '.'
+import { etag, RETAINED_304_HEADERS } from '.'
 
 describe('Etag Middleware', () => {
   it('Should return etag header', async () => {
@@ -13,11 +13,15 @@ describe('Etag Middleware', () => {
     })
     let res = await app.request('http://localhost/etag/abc')
     expect(res.headers.get('ETag')).not.toBeFalsy()
-    expect(res.headers.get('ETag')).toBe('"4e32298b1cb4edc595237405e5b696e105c2399a"')
+    expect(res.headers.get('ETag')).toBe(
+      '"4e32298b1cb4edc595237405e5b696e105c2399a"',
+    )
 
     res = await app.request('http://localhost/etag/def')
     expect(res.headers.get('ETag')).not.toBeFalsy()
-    expect(res.headers.get('ETag')).toBe('"4515561204e8269cb4468d5b39288d8f2482dcfe"')
+    expect(res.headers.get('ETag')).toBe(
+      '"4515561204e8269cb4468d5b39288d8f2482dcfe"',
+    )
   })
 
   it('Should return etag header - binary', async () => {
@@ -76,7 +80,7 @@ describe('Etag Middleware', () => {
             controller.enqueue(new Uint8Array([2]))
             controller.close()
           },
-        })
+        }),
       )
     })
     app.get('/etag/rs2', (c) => {
@@ -87,7 +91,7 @@ describe('Etag Middleware', () => {
             controller.enqueue(new Uint8Array([3]))
             controller.close()
           },
-        })
+        }),
       )
     })
 
@@ -131,7 +135,9 @@ describe('Etag Middleware', () => {
 
     const res = await app.request('http://localhost/etag/abc')
     expect(res.headers.get('ETag')).not.toBeFalsy()
-    expect(res.headers.get('ETag')).toBe('W/"4e32298b1cb4edc595237405e5b696e105c2399a"')
+    expect(res.headers.get('ETag')).toBe(
+      'W/"4e32298b1cb4edc595237405e5b696e105c2399a"',
+    )
   })
 
   it('Should handle conditional GETs', async () => {
@@ -144,8 +150,7 @@ describe('Etag Middleware', () => {
         expires: 'Mon, Feb 27 2023 12:10:36 GMT',
         server: 'Upstream 1.2',
         vary: 'Accept-Language',
-      })
-    )
+      }))
 
     // unconditional GET
     let res = await app.request('http://localhost/etag/ghi')
@@ -193,14 +198,17 @@ describe('Etag Middleware', () => {
 
     const res = await app.request('http://localhost/etag/abc')
     expect(res.headers.get('ETag')).not.toBeFalsy()
-    expect(res.headers.get('ETag')).toBe('"4e32298b1cb4edc595237405e5b696e105c2399a"')
+    expect(res.headers.get('ETag')).toBe(
+      '"4e32298b1cb4edc595237405e5b696e105c2399a"',
+    )
   })
 
   it('Should not override ETag headers from upstream', async () => {
     const app = new Hono()
     app.use('/etag/*', etag())
-    app.get('/etag/predefined', (c) =>
-      c.text('This response has an ETag', 200, { ETag: '"f-0194-d"' })
+    app.get(
+      '/etag/predefined',
+      (c) => c.text('This response has an ETag', 200, { ETag: '"f-0194-d"' }),
     )
 
     const res = await app.request('http://localhost/etag/predefined')
@@ -215,7 +223,7 @@ describe('Etag Middleware', () => {
       '/etag/*',
       etag({
         retainedHeaders: ['x-message-retain', ...RETAINED_304_HEADERS],
-      })
+      }),
     )
     app.get('/etag', (c) => {
       return c.text('Hono is cool', 200, {
@@ -231,7 +239,9 @@ describe('Etag Middleware', () => {
     })
     expect(res.status).toBe(304)
     expect(res.headers.get('ETag')).not.toBeFalsy()
-    expect(res.headers.get('ETag')).toBe('"4e32298b1cb4edc595237405e5b696e105c2399a"')
+    expect(res.headers.get('ETag')).toBe(
+      '"4e32298b1cb4edc595237405e5b696e105c2399a"',
+    )
     expect(res.headers.get('Cache-Control')).toBe(cacheControl)
     expect(res.headers.get('x-message-retain')).toBe(message)
     expect(res.headers.get('x-message')).toBeFalsy()

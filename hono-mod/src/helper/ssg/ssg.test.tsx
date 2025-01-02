@@ -3,13 +3,18 @@
 import { Hono } from '../../hono'
 import { poweredBy } from '../../middleware/powered-by'
 import {
-  X_HONO_DISABLE_SSG_HEADER_KEY,
   disableSSG,
   isSSGContext,
   onlySSG,
   ssgParams,
+  X_HONO_DISABLE_SSG_HEADER_KEY,
 } from './middleware'
-import { defaultExtensionMap, fetchRoutesContent, saveContentToFile, toSSG } from './ssg'
+import {
+  defaultExtensionMap,
+  fetchRoutesContent,
+  saveContentToFile,
+  toSSG,
+} from './ssg'
 import type {
   AfterGenerateHook,
   AfterResponseHook,
@@ -18,8 +23,13 @@ import type {
   ToSSGResult,
 } from './ssg'
 
-const resolveRoutesContent = async (res: ReturnType<typeof fetchRoutesContent>) => {
-  const htmlMap = new Map<string, { content: string | ArrayBuffer; mimeType: string }>()
+const resolveRoutesContent = async (
+  res: ReturnType<typeof fetchRoutesContent>,
+) => {
+  const htmlMap = new Map<
+    string,
+    { content: string | ArrayBuffer; mimeType: string }
+  >()
   for (const getInfoPromise of res) {
     const getInfo = await getInfoPromise
     if (!getInfo) {
@@ -62,7 +72,7 @@ describe('toSSG function', () => {
             <body>
               <p>{content}</p>
             </body>
-          </html>
+          </html>,
         )
       })
       await next()
@@ -75,13 +85,13 @@ describe('toSSG function', () => {
     app.get(
       '/post/:post',
       ssgParams(() => postParams),
-      (c) => c.html(<h1>{c.req.param('post')}</h1>)
+      (c) => c.html(<h1>{c.req.param('post')}</h1>),
     )
 
     app.get(
       '/user/:user_id',
       ssgParams([{ user_id: '1' }, { user_id: '2' }, { user_id: '3' }]),
-      (c) => c.html(<h1>{c.req.param('user_id')}</h1>)
+      (c) => c.html(<h1>{c.req.param('user_id')}</h1>),
     )
 
     type Env = {
@@ -99,7 +109,7 @@ describe('toSSG function', () => {
         expectTypeOf<typeof c.env.FOO_DB>().toBeString()
         expectTypeOf<typeof c.var.FOO_VAR>().toBeString()
         return []
-      })
+      }),
     )
 
     fsMock = {
@@ -163,16 +173,34 @@ describe('toSSG function', () => {
   it('Should correctly generate files with the expected paths', async () => {
     await toSSG(app, fsMock, { dir: './static' })
 
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/index.html', expect.any(String))
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/about.html', expect.any(String))
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/about/some.txt', expect.any(String))
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/index.html',
+      expect.any(String),
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/about.html',
+      expect.any(String),
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/about/some.txt',
+      expect.any(String),
+    )
     expect(fsMock.writeFile).not.toHaveBeenCalledWith(
       'static/about/some/thing.txt',
-      expect.any(String)
+      expect.any(String),
     )
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/about.html', expect.any(String))
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/bravo.html', expect.any(String))
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/Charlie.html', expect.any(String))
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/about.html',
+      expect.any(String),
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/bravo.html',
+      expect.any(String),
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/Charlie.html',
+      expect.any(String),
+    )
   })
 
   it('should modify the request if the hook is provided', async () => {
@@ -188,7 +216,9 @@ describe('toSSG function', () => {
 
   it('should skip the route if the request hook returns false', async () => {
     const beforeRequest: BeforeRequestHook = () => false
-    const result = await toSSG(app, fsMock, { beforeRequestHook: beforeRequest })
+    const result = await toSSG(app, fsMock, {
+      beforeRequestHook: beforeRequest,
+    })
     expect(result.success).toBe(true)
     expect(result.files).toStrictEqual([])
   })
@@ -206,7 +236,9 @@ describe('toSSG function', () => {
 
   it('should skip the route if the response hook returns false', async () => {
     const afterResponse: AfterResponseHook = () => false
-    const result = await toSSG(app, fsMock, { afterResponseHook: afterResponse })
+    const result = await toSSG(app, fsMock, {
+      afterResponseHook: afterResponse,
+    })
     expect(result.success).toBe(true)
     expect(result.files).toStrictEqual([])
   })
@@ -216,13 +248,18 @@ describe('toSSG function', () => {
       writeFile: vi.fn(() => Promise.resolve()),
       mkdir: vi.fn(() => Promise.resolve()),
     }
-    const afterGenerateHookMock: AfterGenerateHook = vi.fn<AfterGenerateHook>((result) => {
-      if (result.files) {
-        result.files.forEach((file) => console.log(file))
-      }
-    })
+    const afterGenerateHookMock: AfterGenerateHook = vi.fn<AfterGenerateHook>(
+      (result) => {
+        if (result.files) {
+          result.files.forEach((file) => console.log(file))
+        }
+      },
+    )
 
-    await toSSG(app, fsMock, { dir: './static', afterGenerateHook: afterGenerateHookMock })
+    await toSSG(app, fsMock, {
+      dir: './static',
+      afterGenerateHook: afterGenerateHookMock,
+    })
 
     expect(afterGenerateHookMock).toHaveBeenCalled()
     expect(afterGenerateHookMock).toHaveBeenCalledWith(expect.anything())
@@ -277,8 +314,10 @@ describe('toSSG function', () => {
 
     const signalAddEventListener = vi.fn(() => {})
     const app = new Hono()
-    app.get('/post/:post', ssgParams([{ post: '1' }, { post: '2' }]), (c) =>
-      c.html(<h1>{c.req.param('post')}</h1>)
+    app.get(
+      '/post/:post',
+      ssgParams([{ post: '1' }, { post: '2' }]),
+      (c) => c.html(<h1>{c.req.param('post')}</h1>),
     )
     await toSSG(app, fsMock, {
       beforeRequestHook: (req) => {
@@ -298,7 +337,9 @@ describe('fetchRoutesContent function', () => {
     app = new Hono()
     app.get('/text', (c) => c.text('Text Response'))
     app.get('/text-utf8', (c) => {
-      return c.text('Text Response', 200, { 'Content-Type': 'text/plain;charset=UTF-8' })
+      return c.text('Text Response', 200, {
+        'Content-Type': 'text/plain;charset=UTF-8',
+      })
     })
     app.get('/html', (c) => c.html('<p>HTML Response</p>'))
     app.get('/json', (c) => c.json({ message: 'JSON Response' }))
@@ -333,7 +374,9 @@ describe('fetchRoutesContent function', () => {
 
   it('should handle errors correctly', async () => {
     vi.spyOn(app, 'fetch').mockRejectedValue(new Error('Network error'))
-    await expect(resolveRoutesContent(fetchRoutesContent(app))).rejects.toThrow('Network error')
+    await expect(resolveRoutesContent(fetchRoutesContent(app))).rejects.toThrow(
+      'Network error',
+    )
     vi.restoreAllMocks()
   })
 })
@@ -342,20 +385,20 @@ describe('saveContentToFile function', () => {
   // tar.gz, testdir/test.txt
   const gzFileBuffer = Buffer.from(
     'H4sIAAAAAAAAA+3SQQrCMBSE4aw9RU6gSc3LO0/FLgqukgj29qZgsQgqCEHE/9vMIoEMTMqQy3FMO9OQq1RkTq/i1rkwPkiMUXWvnXG+U/XGSstSi3MufbLWHIZ0mvLYP7v37vxHldv+c27LpbR4Yx44hvBi/3DfX3zdP0j9Eta1KPPoz/ef+mnz7Q4AAAAAAAAAAAAAAAAAPnMFqt1/BQAoAAA=',
-    'base64'
+    'base64',
   )
   const gzFileArrayBuffer = gzFileBuffer.buffer.slice(
     gzFileBuffer.byteOffset,
-    gzFileBuffer.byteLength + gzFileBuffer.byteOffset
+    gzFileBuffer.byteLength + gzFileBuffer.byteOffset,
   )
   // PNG, red dot (1x1)
   const pngFileBuffer = Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCCAAAALw',
-    'base64'
+    'base64',
   )
   const pngFileArrayBuffer = pngFileBuffer.buffer.slice(
     pngFileBuffer.byteOffset,
-    pngFileBuffer.byteLength + pngFileBuffer.byteOffset
+    pngFileBuffer.byteLength + pngFileBuffer.byteOffset,
   )
 
   const fileData = [
@@ -363,16 +406,36 @@ describe('saveContentToFile function', () => {
     { routePath: '/index.html', content: 'Home Page2', mimeType: 'text/html' },
     { routePath: '/about', content: 'About Page', mimeType: 'text/html' },
     { routePath: '/about/', content: 'About Page', mimeType: 'text/html' },
-    { routePath: '/bravo/index.html', content: 'About Page', mimeType: 'text/html' },
-    { routePath: '/bravo/release-4.0.0', content: 'Release 4.0.0', mimeType: 'text/html' },
+    {
+      routePath: '/bravo/index.html',
+      content: 'About Page',
+      mimeType: 'text/html',
+    },
+    {
+      routePath: '/bravo/release-4.0.0',
+      content: 'Release 4.0.0',
+      mimeType: 'text/html',
+    },
     {
       routePath: '/bravo/2024.02.18-sweet-memories',
       content: 'Sweet Memories',
       mimeType: 'text/html',
     },
-    { routePath: '/bravo/deep.dive.to.html', content: 'Deep Dive To HTML', mimeType: 'text/html' },
-    { routePath: '/bravo/alert.js', content: 'alert("evil content")', mimeType: 'text/html' },
-    { routePath: '/bravo.text/index.html', content: 'About Page', mimeType: 'text/html' },
+    {
+      routePath: '/bravo/deep.dive.to.html',
+      content: 'Deep Dive To HTML',
+      mimeType: 'text/html',
+    },
+    {
+      routePath: '/bravo/alert.js',
+      content: 'alert("evil content")',
+      mimeType: 'text/html',
+    },
+    {
+      routePath: '/bravo.text/index.html',
+      content: 'About Page',
+      mimeType: 'text/html',
+    },
     { routePath: '/bravo.text/', content: 'Bravo Page', mimeType: 'text/html' },
     {
       routePath: '/bravo/index.tar.gz',
@@ -400,37 +463,58 @@ describe('saveContentToFile function', () => {
       await saveContentToFile(Promise.resolve(data), fsMock, './static')
     }
 
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/index.html', 'Home Page')
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/index.html', 'Home Page2')
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/about.html', 'About Page')
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/about/index.html', 'About Page')
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/bravo/index.html', 'About Page')
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/index.html',
+      'Home Page',
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/index.html',
+      'Home Page2',
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/about.html',
+      'About Page',
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/about/index.html',
+      'About Page',
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/bravo/index.html',
+      'About Page',
+    )
     expect(fsMock.writeFile).toHaveBeenCalledWith(
       'static/bravo/release-4.0.0.html',
-      'Release 4.0.0'
+      'Release 4.0.0',
     )
     expect(fsMock.writeFile).toHaveBeenCalledWith(
       'static/bravo/deep.dive.to.html',
-      'Deep Dive To HTML'
+      'Deep Dive To HTML',
     )
     expect(fsMock.writeFile).toHaveBeenCalledWith(
       'static/bravo/2024.02.18-sweet-memories.html',
-      'Sweet Memories'
+      'Sweet Memories',
     )
     expect(fsMock.writeFile).toHaveBeenCalledWith(
       'static/bravo/alert.js.html',
-      'alert("evil content")'
+      'alert("evil content")',
     )
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/bravo.text/index.html', 'About Page')
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/bravo.text/index.html', 'Bravo Page')
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/bravo.text/index.html',
+      'About Page',
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/bravo.text/index.html',
+      'Bravo Page',
+    )
     // binary files
     expect(fsMock.writeFile).toHaveBeenCalledWith(
       'static/bravo/index.tar.gz',
-      new Uint8Array(gzFileArrayBuffer)
+      new Uint8Array(gzFileArrayBuffer),
     )
     expect(fsMock.writeFile).toHaveBeenCalledWith(
       'static/bravo/dot.png',
-      new Uint8Array(pngFileArrayBuffer)
+      new Uint8Array(pngFileArrayBuffer),
     )
   })
 
@@ -442,9 +526,11 @@ describe('saveContentToFile function', () => {
         mimeType: 'text/html',
       }),
       fsMock,
-      './static'
+      './static',
     )
-    expect(fsMock.mkdir).toHaveBeenCalledWith('static/new-dir', { recursive: true })
+    expect(fsMock.mkdir).toHaveBeenCalledWith('static/new-dir', {
+      recursive: true,
+    })
   })
 
   it('should handle file writing or directory creation errors', async () => {
@@ -461,15 +547,21 @@ describe('saveContentToFile function', () => {
           mimeType: 'text/html',
         }),
         fsMock,
-        './static'
-      )
+        './static',
+      ),
     ).rejects.toThrow('File write error')
   })
   it('check extensions', async () => {
     for (const data of fileData) {
-      await saveContentToFile(Promise.resolve(data), fsMock, './static-check-extensions')
+      await saveContentToFile(
+        Promise.resolve(data),
+        fsMock,
+        './static-check-extensions',
+      )
     }
-    expect(fsMock.mkdir).toHaveBeenCalledWith('static-check-extensions', { recursive: true })
+    expect(fsMock.mkdir).toHaveBeenCalledWith('static-check-extensions', {
+      recursive: true,
+    })
   })
 
   it('should correctly create .yaml files for YAML content', async () => {
@@ -490,7 +582,10 @@ describe('saveContentToFile function', () => {
 
     await saveContentToFile(Promise.resolve(yamlData), fsMock, './static')
 
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/example.yaml', yamlContent)
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/example.yaml',
+      yamlContent,
+    )
   })
 
   it('should correctly create .yml files for YAML content', async () => {
@@ -530,18 +625,45 @@ describe('saveContentToFile function', () => {
       'application/yaml': 'yml',
       'x-yaml': 'xyml',
     }
-    await saveContentToFile(Promise.resolve(yamlData), fsMock, './static', extensionMap)
-    await saveContentToFile(Promise.resolve(yamlData2), fsMock, './static', extensionMap)
-    await saveContentToFile(Promise.resolve(htmlData), fsMock, './static', extensionMap)
+    await saveContentToFile(
+      Promise.resolve(yamlData),
+      fsMock,
+      './static',
+      extensionMap,
+    )
+    await saveContentToFile(
+      Promise.resolve(yamlData2),
+      fsMock,
+      './static',
+      extensionMap,
+    )
+    await saveContentToFile(
+      Promise.resolve(htmlData),
+      fsMock,
+      './static',
+      extensionMap,
+    )
     await saveContentToFile(Promise.resolve(htmlData), fsMock, './static', {
       ...defaultExtensionMap,
       ...extensionMap,
     })
 
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/yaml.yml', yamlContent)
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/yaml2.xyml', yamlContent)
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/html.htm', yamlContent) // extensionMap
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/html.html', yamlContent) // default + extensionMap
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/yaml.yml',
+      yamlContent,
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/yaml2.xyml',
+      yamlContent,
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/html.htm',
+      yamlContent,
+    ) // extensionMap
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/html.html',
+      yamlContent,
+    ) // default + extensionMap
   })
 })
 
@@ -587,7 +709,10 @@ describe('isSSGContext()', () => {
 
   it('Should not generate the page if disableSSG is set', async () => {
     await toSSG(app, fsMock, { dir: './static' })
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/index.html', '<h1>SSG</h1>')
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/index.html',
+      '<h1>SSG</h1>',
+    )
   })
 
   it('Should return 404 response if onlySSG() is set', async () => {
@@ -600,10 +725,15 @@ describe('disableSSG/onlySSG middlewares', () => {
   const app = new Hono()
   app.get('/', (c) => c.html(<h1>Hello</h1>))
   app.get('/api', disableSSG(), (c) => c.text('an-api'))
-  app.get('/disable-by-response', (c) =>
-    c.text('', 404, { [X_HONO_DISABLE_SSG_HEADER_KEY]: 'true' })
+  app.get(
+    '/disable-by-response',
+    (c) => c.text('', 404, { [X_HONO_DISABLE_SSG_HEADER_KEY]: 'true' }),
   )
-  app.get('/static-page', onlySSG(), (c) => c.html(<h1>Welcome to my site</h1>))
+  app.get(
+    '/static-page',
+    onlySSG(),
+    (c) => c.html(<h1>Welcome to my site</h1>),
+  )
 
   const fsMock: FileSystemModule = {
     writeFile: vi.fn(() => Promise.resolve()),
@@ -612,12 +742,21 @@ describe('disableSSG/onlySSG middlewares', () => {
 
   it('Should not generate the page if disableSSG is set', async () => {
     await toSSG(app, fsMock, { dir: './static' })
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/index.html', expect.any(String))
-    expect(fsMock.writeFile).toHaveBeenCalledWith('static/static-page.html', expect.any(String))
-    expect(fsMock.writeFile).not.toHaveBeenCalledWith('static/api.html', expect.any(String))
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/index.html',
+      expect.any(String),
+    )
+    expect(fsMock.writeFile).toHaveBeenCalledWith(
+      'static/static-page.html',
+      expect.any(String),
+    )
+    expect(fsMock.writeFile).not.toHaveBeenCalledWith(
+      'static/api.html',
+      expect.any(String),
+    )
     expect(fsMock.writeFile).not.toHaveBeenCalledWith(
       'static/disable-by-response.html',
-      expect.any(String)
+      expect.any(String),
     )
   })
 
@@ -631,13 +770,19 @@ describe('Request hooks - filterPathsBeforeRequestHook and denyPathsBeforeReques
   let app: Hono
   let fsMock: FileSystemModule
 
-  const filterPathsBeforeRequestHook = (allowedPaths: string | string[]): BeforeRequestHook => {
+  const filterPathsBeforeRequestHook = (
+    allowedPaths: string | string[],
+  ): BeforeRequestHook => {
     const baseURL = 'http://localhost'
     return async (req: Request): Promise<Request | false> => {
       const paths = Array.isArray(allowedPaths) ? allowedPaths : [allowedPaths]
       const pathname = new URL(req.url, baseURL).pathname
 
-      if (paths.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
+      if (
+        paths.some((path) =>
+          pathname === path || pathname.startsWith(`${path}/`)
+        )
+      ) {
         return req
       }
 
@@ -645,13 +790,19 @@ describe('Request hooks - filterPathsBeforeRequestHook and denyPathsBeforeReques
     }
   }
 
-  const denyPathsBeforeRequestHook = (deniedPaths: string | string[]): BeforeRequestHook => {
+  const denyPathsBeforeRequestHook = (
+    deniedPaths: string | string[],
+  ): BeforeRequestHook => {
     const baseURL = 'http://localhost'
     return async (req: Request): Promise<Request | false> => {
       const paths = Array.isArray(deniedPaths) ? deniedPaths : [deniedPaths]
       const pathname = new URL(req.url, baseURL).pathname
 
-      if (!paths.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
+      if (
+        !paths.some((path) =>
+          pathname === path || pathname.startsWith(`${path}/`)
+        )
+      ) {
         return req
       }
       return false
@@ -678,19 +829,30 @@ describe('Request hooks - filterPathsBeforeRequestHook and denyPathsBeforeReques
       beforeRequestHook: allowedPathsHook,
     })
 
-    expect(result.files.some((file) => file.includes('allowed-path.html'))).toBe(true)
-    expect(result.files.some((file) => file.includes('other-path.html'))).toBe(false)
+    expect(result.files.some((file) => file.includes('allowed-path.html')))
+      .toBe(true)
+    expect(result.files.some((file) => file.includes('other-path.html'))).toBe(
+      false,
+    )
   })
 
   it('should deny requests for specified paths with denyPathsBeforeRequestHook', async () => {
     const deniedPathsHook = denyPathsBeforeRequestHook(['/denied-path'])
 
-    const result = await toSSG(app, fsMock, { dir: './static', beforeRequestHook: deniedPathsHook })
+    const result = await toSSG(app, fsMock, {
+      dir: './static',
+      beforeRequestHook: deniedPathsHook,
+    })
 
-    expect(result.files.some((file) => file.includes('denied-path.html'))).toBe(false)
+    expect(result.files.some((file) => file.includes('denied-path.html'))).toBe(
+      false,
+    )
 
-    expect(result.files.some((file) => file.includes('allowed-path.html'))).toBe(true)
-    expect(result.files.some((file) => file.includes('other-path.html'))).toBe(true)
+    expect(result.files.some((file) => file.includes('allowed-path.html')))
+      .toBe(true)
+    expect(result.files.some((file) => file.includes('other-path.html'))).toBe(
+      true,
+    )
   })
 })
 
@@ -698,14 +860,18 @@ describe('Combined Response hooks - modify response content', () => {
   let app: Hono
   let fsMock: FileSystemModule
 
-  const prependContentAfterResponseHook = (prefix: string): AfterResponseHook => {
+  const prependContentAfterResponseHook = (
+    prefix: string,
+  ): AfterResponseHook => {
     return async (res: Response): Promise<Response> => {
       const originalText = await res.text()
       return new Response(`${prefix}${originalText}`, { ...res })
     }
   }
 
-  const appendContentAfterResponseHook = (suffix: string): AfterResponseHook => {
+  const appendContentAfterResponseHook = (
+    suffix: string,
+  ): AfterResponseHook => {
     return async (res: Response): Promise<Response> => {
       const originalText = await res.text()
       return new Response(`${originalText}${suffix}`, { ...res })
@@ -737,7 +903,7 @@ describe('Combined Response hooks - modify response content', () => {
     // This assumes you have a way to inspect the content of saved files or you need to mock/stub the Response text method correctly.
     expect(fsMock.writeFile).toHaveBeenCalledWith(
       'static/content-path.txt',
-      'Prefix-Original Content-Suffix'
+      'Prefix-Original Content-Suffix',
     )
   })
 })
@@ -752,7 +918,9 @@ describe('Combined Generate hooks - AfterGenerateHook', () => {
     }
   }
 
-  const appendFilesAfterGenerateHook = (additionalFiles: string[]): AfterGenerateHook => {
+  const appendFilesAfterGenerateHook = (
+    additionalFiles: string[],
+  ): AfterGenerateHook => {
     return async (result: ToSSGResult): Promise<void> => {
       result.files = result.files.concat(additionalFiles) // Append additional files to the result
     }
@@ -770,7 +938,10 @@ describe('Combined Generate hooks - AfterGenerateHook', () => {
 
   it('should execute combined AfterGenerateHooks affecting the result', async () => {
     const logHook = logResultAfterGenerateHook()
-    const appendHook = appendFilesAfterGenerateHook(['/extra/file1.html', '/extra/file2.html'])
+    const appendHook = appendFilesAfterGenerateHook([
+      '/extra/file1.html',
+      '/extra/file2.html',
+    ])
 
     const combinedHook = [logHook, appendHook]
 
@@ -781,7 +952,10 @@ describe('Combined Generate hooks - AfterGenerateHook', () => {
     })
 
     // Check that the log function was called correctly
-    expect(consoleSpy).toHaveBeenCalledWith('Generation completed with status:', true)
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Generation completed with status:',
+      true,
+    )
 
     // Check that additional files were appended to the result
     expect(result.files).toContain('/extra/file1.html')

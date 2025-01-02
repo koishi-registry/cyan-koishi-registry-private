@@ -151,8 +151,7 @@ describe('AWS Lambda Adapter for Hono', () => {
   })
 
   app.get('/cookie', (c) => {
-    const validCookies =
-      getCookie(c, testCookie1.key) === testCookie1.value &&
+    const validCookies = getCookie(c, testCookie1.key) === testCookie1.value &&
       getCookie(c, testCookie2.key) === testCookie2.value
     if (!validCookies) {
       return c.text('Invalid Cookies')
@@ -464,7 +463,8 @@ describe('AWS Lambda Adapter for Hono', () => {
       callbackWaitsForEmptyEventLoop: false,
       functionName: 'myLambdaFunction',
       functionVersion: '1.0.0',
-      invokedFunctionArn: 'arn:aws:lambda:us-west-2:123456789012:function:myLambdaFunction',
+      invokedFunctionArn:
+        'arn:aws:lambda:us-west-2:123456789012:function:myLambdaFunction',
       memoryLimitInMB: '128',
       awsRequestId: 'c6af9ac6-a7b0-11e6-80f5-76304dec7eb7',
       logGroupName: '/aws/lambda/myLambdaFunction',
@@ -475,7 +475,9 @@ describe('AWS Lambda Adapter for Hono', () => {
     }
     const response = await handler(event, context)
     expect(response.statusCode).toBe(200)
-    expect(JSON.parse(response.body).callbackWaitsForEmptyEventLoop).toEqual(false)
+    expect(JSON.parse(response.body).callbackWaitsForEmptyEventLoop).toEqual(
+      false,
+    )
   })
 
   it('Should handle a POST request and return a 200 response with cookies set (APIGatewayProxyEvent V1 and V2)', async () => {
@@ -538,7 +540,7 @@ describe('AWS Lambda Adapter for Hono', () => {
         expect(albResponse.headers).toEqual(
           expect.objectContaining({
             'content-type': 'application/json; charset=UTF-8',
-          })
+          }),
         )
       })
 
@@ -599,7 +601,7 @@ describe('AWS Lambda Adapter for Hono', () => {
         expect(albResponse.multiValueHeaders).toEqual(
           expect.objectContaining({
             'content-type': ['application/json; charset=UTF-8'],
-          })
+          }),
         )
       })
 
@@ -663,7 +665,9 @@ describe('AWS Lambda Adapter for Hono', () => {
 
     expect(apiGatewayResponseV2.statusCode).toBe(200)
     expect(apiGatewayResponseV2.body).toBe('Valid Cookies')
-    expect(apiGatewayResponseV2.headers['content-type']).toMatch(/^text\/plain/)
+    expect(apiGatewayResponseV2.headers['content-type']).toMatch(
+      /^text\/plain/,
+    )
     expect(apiGatewayResponseV2.isBase64Encoded).toBe(false)
   })
 
@@ -735,7 +739,7 @@ describe('AWS Lambda Adapter for Hono', () => {
     expect(albResponse.headers['content-type']).toMatch(/^text\/plain/)
     expect(albResponse.multiValueHeaders).toBeUndefined()
     expect(albResponse.headers['set-cookie']).toEqual(
-      [testCookie1.serialized, testCookie2.serialized].join(', ')
+      [testCookie1.serialized, testCookie2.serialized].join(', '),
     )
     expect(albResponse.isBase64Encoded).toBe(false)
   })
@@ -761,8 +765,11 @@ describe('AWS Lambda Adapter for Hono', () => {
     expect(albResponse.body).toBe('Cookies Set')
     expect(albResponse.headers['content-type']).toMatch(/^text\/plain/)
     expect(albResponse.multiValueHeaders).toBeDefined()
-    expect(albResponse.multiValueHeaders && albResponse.multiValueHeaders['set-cookie']).toEqual(
-      expect.arrayContaining([testCookie1.serialized, testCookie2.serialized])
+    expect(
+      albResponse.multiValueHeaders &&
+        albResponse.multiValueHeaders['set-cookie'],
+    ).toEqual(
+      expect.arrayContaining([testCookie1.serialized, testCookie2.serialized]),
     )
     expect(albResponse.isBase64Encoded).toBe(false)
   })
@@ -791,7 +798,7 @@ describe('AWS Lambda Adapter for Hono', () => {
       JSON.stringify({
         key1: 'value1',
         key2: 'value2',
-      })
+      }),
     )
     expect(albResponse.headers['content-type']).toMatch(/^application\/json/)
     expect(albResponse.isBase64Encoded).toBe(false)
@@ -821,7 +828,7 @@ describe('AWS Lambda Adapter for Hono', () => {
       JSON.stringify({
         key1: 'value1',
         key2: 'value2',
-      })
+      }),
     )
     expect(albResponse.headers['content-type']).toMatch(/^application\/json/)
     expect(albResponse.isBase64Encoded).toBe(false)
@@ -851,7 +858,7 @@ describe('AWS Lambda Adapter for Hono', () => {
       JSON.stringify({
         key1: ['value1'],
         key2: ['value2', 'otherValue2'],
-      })
+      }),
     )
     expect(albResponse.headers['content-type']).toMatch(/^application\/json/)
     expect(albResponse.isBase64Encoded).toBe(false)
@@ -881,7 +888,11 @@ describe('streamHandle function', () => {
 
       while (id < maxIterations) {
         const message = `Message\nIt is ${id}`
-        await stream.writeSSE({ data: message, event: 'time-update', id: String(id++) })
+        await stream.writeSSE({
+          data: message,
+          event: 'time-update',
+          id: String(id++),
+        })
         await stream.sleep(10)
       }
     })
@@ -949,7 +960,8 @@ describe('streamHandle function', () => {
       headers: { 'Custom-Header': 'value' },
       cookies: ['session=abcd1234'],
     }
-    const jsonResponsePrelude = JSON.stringify(httpResponseMetadata) + Buffer.alloc(8, 0).toString()
+    const jsonResponsePrelude = JSON.stringify(httpResponseMetadata) +
+      Buffer.alloc(8, 0).toString()
     mockReadableStream.push(jsonResponsePrelude)
 
     mockReadableStream.push('data: Message\ndata: It is 0\n\n')
@@ -969,7 +981,9 @@ describe('streamHandle function', () => {
     expect(output).toContain('data: Message\ndata: It is 1\n\n')
 
     // Assertions for the newly added header and prelude
-    expect(output).toContain('application/vnd.awslambda.http-integration-response')
+    expect(output).toContain(
+      'application/vnd.awslambda.http-integration-response',
+    )
     expect(output).toContain('Custom-Header')
     expect(output).toContain('session=abcd1234')
 

@@ -55,8 +55,7 @@ class BodyLimitError extends Error {
  * ```
  */
 export const bodyLimit = (options: BodyLimitOptions): MiddlewareHandler => {
-  const onError: OnError =
-    options.onError ||
+  const onError: OnError = options.onError ||
     (() => {
       const res = new Response(ERROR_MESSAGE, {
         status: 413,
@@ -73,7 +72,10 @@ export const bodyLimit = (options: BodyLimitOptions): MiddlewareHandler => {
 
     if (c.req.raw.headers.has('content-length')) {
       // we can trust content-length header because it's already validated by server
-      const contentLength = parseInt(c.req.raw.headers.get('content-length') || '0', 10)
+      const contentLength = parseInt(
+        c.req.raw.headers.get('content-length') || '0',
+        10,
+      )
       return contentLength > maxSize ? onError(c) : next()
     }
 
@@ -103,7 +105,10 @@ export const bodyLimit = (options: BodyLimitOptions): MiddlewareHandler => {
       },
     })
 
-    const requestInit: RequestInit & { duplex: 'half' } = { body: reader, duplex: 'half' }
+    const requestInit: RequestInit & { duplex: 'half' } = {
+      body: reader,
+      duplex: 'half',
+    }
     c.req.raw = new Request(c.req.raw, requestInit as RequestInit)
 
     await next()

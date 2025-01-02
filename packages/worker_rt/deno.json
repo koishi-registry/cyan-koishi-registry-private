@@ -1,0 +1,5 @@
+{
+  "name": "@p/worker-rt",
+  "version": "0.1.0",
+  "exports": "./main.ts"
+}

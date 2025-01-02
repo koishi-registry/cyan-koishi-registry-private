@@ -59,7 +59,7 @@ describe('createMiddleware', () => {
       async (c) => {
         const v = c.get('MY_VAR')
         expectTypeOf(v).toEqualTypeOf<string>()
-      }
+      },
     )
   })
 })
@@ -129,7 +129,7 @@ describe('createHandler', () => {
         const foo = c.var.foo
         const { page } = c.req.valid('query')
         return c.json({ page, foo })
-      }
+      },
     )
     const routes = app.get('/posts', ...handlers)
 
@@ -189,7 +189,7 @@ describe('createHandler', () => {
         const { page } = c.req.valid('query')
         const { id } = c.req.valid('json')
         return c.json({ auth, page, foo, id })
-      }
+      },
     )
     const routes = app.get('/posts', ...handlers)
 
@@ -231,15 +231,19 @@ describe('createHandler', () => {
   describe('Types - Context Env with Multiple Middlewares', () => {
     const factory = createFactory()
 
-    const mw1 = createMiddleware<{ Variables: { foo: string } }>(async (c, next) => {
-      c.set('foo', 'bar')
-      await next()
-    })
+    const mw1 = createMiddleware<{ Variables: { foo: string } }>(
+      async (c, next) => {
+        c.set('foo', 'bar')
+        await next()
+      },
+    )
 
-    const mw2 = createMiddleware<{ Variables: { bar: number } }>(async (c, next) => {
-      c.set('bar', 1)
-      await next()
-    })
+    const mw2 = createMiddleware<{ Variables: { bar: number } }>(
+      async (c, next) => {
+        c.set('bar', 1)
+        await next()
+      },
+    )
 
     it('Should set the correct type for context from multiple middlewares', () => {
       factory.createHandlers(mw1, mw2, (c) => {

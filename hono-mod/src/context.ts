@@ -71,13 +71,14 @@ interface DefaultRenderer {
 /**
  * Renderer type which can either be a ContextRenderer or DefaultRenderer.
  */
-export type Renderer = ContextRenderer extends Function ? ContextRenderer : DefaultRenderer
+export type Renderer = ContextRenderer extends Function ? ContextRenderer
+  : DefaultRenderer
 
 /**
  * Extracts the props for the renderer.
  */
-export type PropsForRenderer = [...Required<Parameters<Renderer>>] extends [unknown, infer Props]
-  ? Props
+export type PropsForRenderer = [...Required<Parameters<Renderer>>] extends
+  [unknown, infer Props] ? Props
   : unknown
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -99,8 +100,14 @@ interface Get<E extends Env> {
  * @template E - Environment type.
  */
 interface Set<E extends Env> {
-  <Key extends keyof E['Variables']>(key: Key, value: E['Variables'][Key]): void
-  <Key extends keyof ContextVariableMap>(key: Key, value: ContextVariableMap[Key]): void
+  <Key extends keyof E['Variables']>(
+    key: Key,
+    value: E['Variables'][Key],
+  ): void
+  <Key extends keyof ContextVariableMap>(
+    key: Key,
+    value: ContextVariableMap[Key],
+  ): void
 }
 
 /**
@@ -133,10 +140,14 @@ interface TextRespond {
   <T extends string, U extends StatusCode = StatusCode>(
     text: T,
     status?: U,
-    headers?: HeaderRecord
+    headers?: HeaderRecord,
   ): Response & TypedResponse<T, U, 'text'>
-  <T extends string, U extends StatusCode = StatusCode>(text: T, init?: ResponseInit): Response &
-    TypedResponse<T, U, 'text'>
+  <T extends string, U extends StatusCode = StatusCode>(
+    text: T,
+    init?: ResponseInit,
+  ):
+    & Response
+    & TypedResponse<T, U, 'text'>
 }
 
 /**
@@ -155,18 +166,18 @@ interface TextRespond {
 interface JSONRespond {
   <
     T extends JSONValue | SimplifyDeepArray<unknown> | InvalidJSONValue,
-    U extends StatusCode = StatusCode
+    U extends StatusCode = StatusCode,
   >(
     object: T,
     status?: U,
-    headers?: HeaderRecord
+    headers?: HeaderRecord,
   ): JSONRespondReturn<T, U>
   <
     T extends JSONValue | SimplifyDeepArray<unknown> | InvalidJSONValue,
-    U extends StatusCode = StatusCode
+    U extends StatusCode = StatusCode,
   >(
     object: T,
-    init?: ResponseInit
+    init?: ResponseInit,
   ): JSONRespondReturn<T, U>
 }
 
@@ -178,13 +189,13 @@ interface JSONRespond {
  */
 type JSONRespondReturn<
   T extends JSONValue | SimplifyDeepArray<unknown> | InvalidJSONValue,
-  U extends StatusCode
-> = Response &
-  TypedResponse<
+  U extends StatusCode,
+> =
+  & Response
+  & TypedResponse<
     SimplifyDeepArray<T> extends JSONValue
-      ? JSONValue extends SimplifyDeepArray<T>
-        ? never
-        : JSONParsed<T>
+      ? JSONValue extends SimplifyDeepArray<T> ? never
+      : JSONParsed<T>
       : never,
     U,
     'json'
@@ -204,10 +215,12 @@ interface HTMLRespond {
   <T extends string | Promise<string>>(
     html: T,
     status?: StatusCode,
-    headers?: HeaderRecord
+    headers?: HeaderRecord,
   ): T extends string ? Response : Promise<Response>
-  <T extends string | Promise<string>>(html: T, init?: ResponseInit): T extends string
-    ? Response
+  <T extends string | Promise<string>>(
+    html: T,
+    init?: ResponseInit,
+  ): T extends string ? Response
     : Promise<Response>
 }
 
@@ -277,7 +290,7 @@ export class Context<
   E extends Env = any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   P extends string = any,
-  I extends Input = {}
+  I extends Input = {},
 > {
   #rawRequest: Request
   #req: HonoRequest<P, I['out']> | undefined
@@ -348,7 +361,11 @@ export class Context<
    * `.req` is the instance of {@link HonoRequest}.
    */
   get req(): HonoRequest<P, I['out']> {
-    this.#req ??= new HonoRequest(this.#rawRequest, this.#path, this.#matchResult)
+    this.#req ??= new HonoRequest(
+      this.#rawRequest,
+      this.#path,
+      this.#matchResult,
+    )
     return this.#req
   }
 
@@ -453,7 +470,7 @@ export class Context<
    * @returns The layout function.
    */
   setLayout = (
-    layout: Layout<PropsForRenderer & { Layout: Layout }>
+    layout: Layout<PropsForRenderer & { Layout: Layout }>,
   ): Layout<
     PropsForRenderer & {
       Layout: Layout
@@ -465,7 +482,8 @@ export class Context<
    *
    * @returns The current layout function.
    */
-  getLayout = (): Layout<PropsForRenderer & { Layout: Layout }> | undefined => this.#layout
+  getLayout = (): Layout<PropsForRenderer & { Layout: Layout }> | undefined =>
+    this.#layout
 
   /**
    * `.setRenderer()` can set the layout in the custom middleware.
@@ -566,11 +584,10 @@ export class Context<
    * ```
    */
   set: Set<
-    IsAny<E> extends true
-      ? {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          Variables: ContextVariableMap & Record<string, any>
-        }
+    IsAny<E> extends true ? {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Variables: ContextVariableMap & Record<string, any>
+      }
       : E
   > = (key: string, value: unknown) => {
     this.#var ??= new Map()
@@ -591,11 +608,10 @@ export class Context<
    * ```
    */
   get: Get<
-    IsAny<E> extends true
-      ? {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          Variables: ContextVariableMap & Record<string, any>
-        }
+    IsAny<E> extends true ? {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Variables: ContextVariableMap & Record<string, any>
+      }
       : E
   > = (key: string) => {
     return this.#var ? this.#var.get(key) : undefined
@@ -614,7 +630,9 @@ export class Context<
   // c.var.propName is a read-only
   get var(): Readonly<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ContextVariableMap & (IsAny<E['Variables']> extends true ? Record<string, any> : E['Variables'])
+    & ContextVariableMap
+    & (IsAny<E['Variables']> extends true ? Record<string, any>
+      : E['Variables'])
   > {
     if (!this.#var) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -626,7 +644,7 @@ export class Context<
   #newResponse(
     data: Data | null,
     arg?: StatusCode | ResponseInit,
-    headers?: HeaderRecord
+    headers?: HeaderRecord,
   ): Response {
     // Optimized
     if (this.#isFresh && !headers && !arg && this.#status === 200) {
@@ -689,7 +707,8 @@ export class Context<
     })
   }
 
-  newResponse: NewResponse = (...args) => this.#newResponse(...(args as Parameters<NewResponse>))
+  newResponse: NewResponse = (...args) =>
+    this.#newResponse(...(args as Parameters<NewResponse>))
 
   /**
    * `.body()` can return the HTTP response.
@@ -715,7 +734,7 @@ export class Context<
   body: BodyRespond = (
     data: Data | null,
     arg?: StatusCode | ResponseInit,
-    headers?: HeaderRecord
+    headers?: HeaderRecord,
   ): Response => {
     return typeof arg === 'number'
       ? this.#newResponse(data, arg, headers)
@@ -737,7 +756,7 @@ export class Context<
   text: TextRespond = (
     text: string,
     arg?: StatusCode | ResponseInit,
-    headers?: HeaderRecord
+    headers?: HeaderRecord,
   ): ReturnType<TextRespond> => {
     // If the header is empty, return Response immediately.
     // Content-Type will be added automatically as `text/plain`.
@@ -769,31 +788,38 @@ export class Context<
    */
   json: JSONRespond = <
     T extends JSONValue | SimplifyDeepArray<unknown> | InvalidJSONValue,
-    U extends StatusCode = StatusCode
+    U extends StatusCode = StatusCode,
   >(
     object: T,
     arg?: U | ResponseInit,
-    headers?: HeaderRecord
+    headers?: HeaderRecord,
   ): JSONRespondReturn<T, U> => {
     const body = JSON.stringify(object)
     this.#preparedHeaders ??= {}
     this.#preparedHeaders['content-type'] = 'application/json; charset=UTF-8'
     /* eslint-disable @typescript-eslint/no-explicit-any */
     return (
-      typeof arg === 'number' ? this.#newResponse(body, arg, headers) : this.#newResponse(body, arg)
+      typeof arg === 'number'
+        ? this.#newResponse(body, arg, headers)
+        : this.#newResponse(body, arg)
     ) as any
   }
 
   html: HTMLRespond = (
     html: string | Promise<string>,
     arg?: StatusCode | ResponseInit,
-    headers?: HeaderRecord
+    headers?: HeaderRecord,
   ): Response | Promise<Response> => {
     this.#preparedHeaders ??= {}
     this.#preparedHeaders['content-type'] = 'text/html; charset=UTF-8'
 
     if (typeof html === 'object') {
-      return resolveCallback(html, HtmlEscapedCallbackPhase.Stringify, false, {}).then((html) => {
+      return resolveCallback(
+        html,
+        HtmlEscapedCallbackPhase.Stringify,
+        false,
+        {},
+      ).then((html) => {
         return typeof arg === 'number'
           ? this.#newResponse(html, arg, headers)
           : this.#newResponse(html, arg)
@@ -822,7 +848,7 @@ export class Context<
    */
   redirect = <T extends RedirectStatusCode = 302>(
     location: string | URL,
-    status?: T
+    status?: T,
   ): Response & TypedResponse<undefined, T, 'redirect'> => {
     this.#headers ??= new Headers()
     this.#headers.set('Location', String(location))

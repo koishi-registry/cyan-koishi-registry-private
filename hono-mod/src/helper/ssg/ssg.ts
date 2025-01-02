@@ -42,7 +42,7 @@ const generateFilePath = (
   routePath: string,
   outDir: string,
   mimeType: string,
-  extensionMap?: Record<string, string>
+  extensionMap?: Record<string, string>,
 ): string => {
   const extension = determineExtension(mimeType, extensionMap)
 
@@ -59,7 +59,9 @@ const generateFilePath = (
   return joinPaths(outDir, `${routePath}.${extension}`)
 }
 
-const parseResponseContent = async (response: Response): Promise<string | ArrayBuffer> => {
+const parseResponseContent = async (
+  response: Response,
+): Promise<string | ArrayBuffer> => {
   const contentType = response.headers.get('Content-Type')
 
   try {
@@ -70,7 +72,9 @@ const parseResponseContent = async (response: Response): Promise<string | ArrayB
     }
   } catch (error) {
     throw new Error(
-      `Error processing response: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Error processing response: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`,
     )
   }
 }
@@ -84,7 +88,7 @@ export const defaultExtensionMap: Record<string, string> = {
 
 const determineExtension = (
   mimeType: string,
-  userExtensionMap?: Record<string, string>
+  userExtensionMap?: Record<string, string>,
 ): string => {
   const extensionMap = userExtensionMap || defaultExtensionMap
   if (mimeType in extensionMap) {
@@ -93,12 +97,16 @@ const determineExtension = (
   return getExtension(mimeType) || 'html'
 }
 
-export type BeforeRequestHook = (req: Request) => Request | false | Promise<Request | false>
-export type AfterResponseHook = (res: Response) => Response | false | Promise<Response | false>
+export type BeforeRequestHook = (
+  req: Request,
+) => Request | false | Promise<Request | false>
+export type AfterResponseHook = (
+  res: Response,
+) => Response | false | Promise<Response | false>
 export type AfterGenerateHook = (result: ToSSGResult) => void | Promise<void>
 
 export const combineBeforeRequestHooks = (
-  hooks: BeforeRequestHook | BeforeRequestHook[]
+  hooks: BeforeRequestHook | BeforeRequestHook[],
 ): BeforeRequestHook => {
   if (!Array.isArray(hooks)) {
     return hooks
@@ -119,7 +127,7 @@ export const combineBeforeRequestHooks = (
 }
 
 export const combineAfterResponseHooks = (
-  hooks: AfterResponseHook | AfterResponseHook[]
+  hooks: AfterResponseHook | AfterResponseHook[],
 ): AfterResponseHook => {
   if (!Array.isArray(hooks)) {
     return hooks
@@ -140,7 +148,7 @@ export const combineAfterResponseHooks = (
 }
 
 export const combineAfterGenerateHooks = (
-  hooks: AfterGenerateHook | AfterGenerateHook[]
+  hooks: AfterGenerateHook | AfterGenerateHook[],
 ): AfterGenerateHook => {
   if (!Array.isArray(hooks)) {
     return hooks
@@ -169,17 +177,20 @@ export interface ToSSGOptions {
 export const fetchRoutesContent = function* <
   E extends Env = Env,
   S extends Schema = {},
-  BasePath extends string = '/'
+  BasePath extends string = '/',
 >(
   app: Hono<E, S, BasePath>,
   beforeRequestHook?: BeforeRequestHook,
   afterResponseHook?: AfterResponseHook,
-  concurrency?: number
+  concurrency?: number,
 ): Generator<
   Promise<
     | Generator<
-        Promise<{ routePath: string; mimeType: string; content: string | ArrayBuffer } | undefined>
+      Promise<
+        | { routePath: string; mimeType: string; content: string | ArrayBuffer }
+        | undefined
       >
+    >
     | undefined
   >
 > {
@@ -190,7 +201,9 @@ export const fetchRoutesContent = function* <
     // GET Route Info
     const thisRouteBaseURL = new URL(route.path, baseURL).toString()
 
-    let forGetInfoURLRequest = new Request(thisRouteBaseURL) as AddedSSGDataRequest
+    let forGetInfoURLRequest = new Request(
+      thisRouteBaseURL,
+    ) as AddedSSGDataRequest
 
     // eslint-disable-next-line no-async-promise-executor
     yield new Promise(async (resolveGetInfo, rejectGetInfo) => {
@@ -244,7 +257,8 @@ export const fetchRoutesContent = function* <
                     response = maybeResponse
                   }
                   const mimeType =
-                    response.headers.get('Content-Type')?.split(';')[0] || DEFAULT_CONTENT_TYPE
+                    response.headers.get('Content-Type')?.split(';')[0] ||
+                    DEFAULT_CONTENT_TYPE
                   const content = await parseResponseContent(response)
                   resolveReq({
                     routePath: replacedUrlParam,
@@ -256,7 +270,7 @@ export const fetchRoutesContent = function* <
                 }
               })
             }
-          })()
+          })(),
         )
       } catch (error) {
         rejectGetInfo(error)
@@ -266,7 +280,9 @@ export const fetchRoutesContent = function* <
 }
 
 const isDynamicRoute = (path: string): boolean => {
-  return path.split('/').some((segment) => segment.startsWith(':') || segment.includes('*'))
+  return path.split('/').some((segment) =>
+    segment.startsWith(':') || segment.includes('*')
+  )
 }
 
 /**
@@ -276,10 +292,13 @@ const isDynamicRoute = (path: string): boolean => {
  */
 const createdDirs: Set<string> = new Set()
 export const saveContentToFile = async (
-  data: Promise<{ routePath: string; content: string | ArrayBuffer; mimeType: string } | undefined>,
+  data: Promise<
+    | { routePath: string; content: string | ArrayBuffer; mimeType: string }
+    | undefined
+  >,
   fsModule: FileSystemModule,
   outDir: string,
-  extensionMap?: Record<string, string>
+  extensionMap?: Record<string, string>,
 ): Promise<string | undefined> => {
   const awaitedData = await data
   if (!awaitedData) {
@@ -311,7 +330,7 @@ export interface ToSSGInterface {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     app: Hono<any, any, any>,
     fsModule: FileSystemModule,
-    options?: ToSSGOptions
+    options?: ToSSGOptions,
   ): Promise<ToSSGResult>
 }
 
@@ -323,7 +342,7 @@ export interface ToSSGInterface {
 export interface ToSSGAdaptorInterface<
   E extends Env = Env,
   S extends Schema = {},
-  BasePath extends string = '/'
+  BasePath extends string = '/',
 > {
   (app: Hono<E, S, BasePath>, options?: ToSSGOptions): Promise<ToSSGResult>
 }
@@ -342,16 +361,16 @@ export const toSSG: ToSSGInterface = async (app, fs, options) => {
     const concurrency = options?.concurrency ?? DEFAULT_CONCURRENCY
 
     const combinedBeforeRequestHook = combineBeforeRequestHooks(
-      options?.beforeRequestHook || ((req) => req)
+      options?.beforeRequestHook || ((req) => req),
     )
     const combinedAfterResponseHook = combineAfterResponseHooks(
-      options?.afterResponseHook || ((req) => req)
+      options?.afterResponseHook || ((req) => req),
     )
     const getInfoGen = fetchRoutesContent(
       app,
       combinedBeforeRequestHook,
       combinedAfterResponseHook,
-      concurrency
+      concurrency,
     )
     for (const getInfo of getInfoGen) {
       getInfoPromises.push(
@@ -360,9 +379,11 @@ export const toSSG: ToSSGInterface = async (app, fs, options) => {
             return
           }
           for (const content of getContentGen) {
-            savePromises.push(saveContentToFile(content, fs, outputDir).catch((e) => e))
+            savePromises.push(
+              saveContentToFile(content, fs, outputDir).catch((e) => e),
+            )
           }
-        })
+        }),
       )
     }
     await Promise.all(getInfoPromises)
@@ -381,7 +402,9 @@ export const toSSG: ToSSGInterface = async (app, fs, options) => {
     result = { success: false, files: [], error: errorObj }
   }
   if (options?.afterGenerateHook) {
-    const combinedAfterGenerateHooks = combineAfterGenerateHooks(options?.afterGenerateHook)
+    const combinedAfterGenerateHooks = combineAfterGenerateHooks(
+      options?.afterGenerateHook,
+    )
     await combinedAfterGenerateHooks(result)
   }
   return result

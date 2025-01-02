@@ -7,14 +7,14 @@ import type { FC, PropsWithChildren } from '../'
 import type { CssClassName, CssVariableType } from '../../helper/css/common'
 import {
   CLASS_NAME,
+  cssCommon,
+  cxCommon,
   DEFAULT_STYLE_ID,
+  keyframesCommon,
   PSEUDO_GLOBAL_SELECTOR,
   SELECTOR,
   SELECTORS,
   STYLE_STRING,
-  cssCommon,
-  cxCommon,
-  keyframesCommon,
   viewTransitionCommon,
 } from '../../helper/css/common'
 export { rawCssString } from '../../helper/css/common'
@@ -66,7 +66,7 @@ interface CreateCssJsxDomObjectsType {
     {
       toString(this: CssClassName): string
     },
-    FC<PropsWithChildren<void>>
+    FC<PropsWithChildren<void>>,
   ]
 }
 
@@ -101,10 +101,10 @@ export const createCssJsxDomObjects: CreateCssJsxDomObjectsType = ({ id }) => {
       addedStyles.add(className)
       ;(className.startsWith(PSEUDO_GLOBAL_SELECTOR)
         ? splitRule(styleString)
-        : [`${className[0] === '@' ? '' : '.'}${className}{${styleString}}`]
-      ).forEach((rule) => {
-        sheet.insertRule(rule, sheet.cssRules.length)
-      })
+        : [`${className[0] === '@' ? '' : '.'}${className}{${styleString}}`])
+        .forEach((rule) => {
+          sheet.insertRule(rule, sheet.cssRules.length)
+        })
     }
   }
 
@@ -112,28 +112,30 @@ export const createCssJsxDomObjects: CreateCssJsxDomObjectsType = ({ id }) => {
     toString(this: CssClassName): string {
       const selector = this[SELECTOR]
       insertRule(selector, this[STYLE_STRING])
-      this[SELECTORS].forEach(({ [CLASS_NAME]: className, [STYLE_STRING]: styleString }) => {
-        insertRule(className, styleString)
-      })
+      this[SELECTORS].forEach(
+        ({ [CLASS_NAME]: className, [STYLE_STRING]: styleString }) => {
+          insertRule(className, styleString)
+        },
+      )
 
       return this[CLASS_NAME]
     },
   }
 
-  const Style: FC<PropsWithChildren<{ nonce?: string }>> = ({ children, nonce }) =>
-    ({
-      tag: 'style',
-      props: {
-        id,
-        nonce,
-        children:
-          children &&
-          (Array.isArray(children) ? children : [children]).map(
-            (c) => (c as unknown as CssClassName)[STYLE_STRING]
-          ),
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any)
+  const Style: FC<PropsWithChildren<{ nonce?: string }>> = (
+    { children, nonce },
+  ) => ({
+    tag: 'style',
+    props: {
+      id,
+      nonce,
+      children: children &&
+        (Array.isArray(children) ? children : [children]).map(
+          (c) => (c as unknown as CssClassName)[STYLE_STRING],
+        ),
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any)
 
   return [cssObject, Style] as const
 }
@@ -169,7 +171,9 @@ interface DefaultContextType {
  * `createCssContext` is an experimental feature.
  * The API might be changed.
  */
-export const createCssContext = ({ id }: { id: Readonly<string> }): DefaultContextType => {
+export const createCssContext = (
+  { id }: { id: Readonly<string> },
+): DefaultContextType => {
   const [cssObject, Style] = createCssJsxDomObjects({ id })
 
   const newCssClassNameObject = (cssClassName: CssClassName): string => {
@@ -207,7 +211,9 @@ export const createCssContext = ({ id }: { id: Readonly<string> }): DefaultConte
   }
 }
 
-const defaultContext: DefaultContextType = createCssContext({ id: DEFAULT_STYLE_ID })
+const defaultContext: DefaultContextType = createCssContext({
+  id: DEFAULT_STYLE_ID,
+})
 
 /**
  * @experimental

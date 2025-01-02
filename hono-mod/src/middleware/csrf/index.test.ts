@@ -17,7 +17,7 @@ const buildSimplePostRequestData = (origin?: string) => ({
     {
       'content-type': 'application/x-www-form-urlencoded',
     },
-    origin ? { origin } : {}
+    origin ? { origin } : {},
   ) as Record<string, string>,
   body: 'name=hono',
 })
@@ -48,7 +48,9 @@ describe('CSRF by Middleware', () => {
 
     describe('HEAD /form', async () => {
       it('should be 200 for any request', async () => {
-        const res = await app.request('http://localhost/form', { method: 'HEAD' })
+        const res = await app.request('http://localhost/form', {
+          method: 'HEAD',
+        })
 
         expect(res.status).toBe(200)
       })
@@ -71,7 +73,7 @@ describe('CSRF by Middleware', () => {
          */
         const res = await app.request(
           'http://localhost/form',
-          buildSimplePostRequestData('http://localhost')
+          buildSimplePostRequestData('http://localhost'),
         )
 
         expect(res.status).toBe(200)
@@ -98,7 +100,7 @@ describe('CSRF by Middleware', () => {
          */
         const res = await app.request(
           'http://localhost/form',
-          buildSimplePostRequestData('http://example.com')
+          buildSimplePostRequestData('http://example.com'),
         )
 
         expect(res.status).toBe(403)
@@ -126,7 +128,7 @@ describe('CSRF by Middleware', () => {
        */
       const res = await app.request(
         'http://localhost/form',
-        buildSimplePostRequestData('http://example.com')
+        buildSimplePostRequestData('http://example.com'),
       )
 
       expect(res.status).toBe(403)
@@ -153,7 +155,7 @@ describe('CSRF by Middleware', () => {
        */
       const res = await app.request(
         'http://localhost/form',
-        buildSimplePostRequestData('http://example.com')
+        buildSimplePostRequestData('http://example.com'),
       )
 
       expect(res.status).toBe(403)
@@ -161,7 +163,10 @@ describe('CSRF by Middleware', () => {
     })
 
     it('should be 403 if request has no origin header', async () => {
-      const res = await app.request('http://localhost/form', buildSimplePostRequestData())
+      const res = await app.request(
+        'http://localhost/form',
+        buildSimplePostRequestData(),
+      )
 
       expect(res.status).toBe(403)
       expect(simplePostHandler).not.toHaveBeenCalled()
@@ -225,14 +230,14 @@ describe('CSRF by Middleware', () => {
         '*',
         csrf({
           origin: 'https://example.com',
-        })
+        }),
       )
       app.post('/form', simplePostHandler)
 
       it('should be 200 for allowed origin', async () => {
         const res = await app.request(
           'https://example.com/form',
-          buildSimplePostRequestData('https://example.com')
+          buildSimplePostRequestData('https://example.com'),
         )
         expect(res.status).toBe(200)
       })
@@ -240,7 +245,7 @@ describe('CSRF by Middleware', () => {
       it('should be 403 for not allowed origin', async () => {
         const res = await app.request(
           'https://example.jp/form',
-          buildSimplePostRequestData('https://example.jp')
+          buildSimplePostRequestData('https://example.jp'),
         )
         expect(res.status).toBe(403)
         expect(simplePostHandler).not.toHaveBeenCalled()
@@ -254,20 +259,20 @@ describe('CSRF by Middleware', () => {
         '*',
         csrf({
           origin: ['https://example.com', 'https://hono.example.com'],
-        })
+        }),
       )
       app.post('/form', simplePostHandler)
 
       it('should be 200 for allowed origin', async () => {
         let res = await app.request(
           'https://hono.example.com/form',
-          buildSimplePostRequestData('https://hono.example.com')
+          buildSimplePostRequestData('https://hono.example.com'),
         )
         expect(res.status).toBe(200)
 
         res = await app.request(
           'https://example.com/form',
-          buildSimplePostRequestData('https://example.com')
+          buildSimplePostRequestData('https://example.com'),
         )
         expect(res.status).toBe(200)
       })
@@ -275,7 +280,7 @@ describe('CSRF by Middleware', () => {
       it('should be 403 for not allowed origin', async () => {
         const res = await app.request(
           'http://example.jp/form',
-          buildSimplePostRequestData('http://example.jp')
+          buildSimplePostRequestData('http://example.jp'),
         )
         expect(res.status).toBe(403)
         expect(simplePostHandler).not.toHaveBeenCalled()
@@ -289,20 +294,20 @@ describe('CSRF by Middleware', () => {
         '*',
         csrf({
           origin: (origin) => /https:\/\/(\w+\.)?example\.com$/.test(origin),
-        })
+        }),
       )
       app.post('/form', simplePostHandler)
 
       it('should be 200 for allowed origin', async () => {
         let res = await app.request(
           'https://hono.example.com/form',
-          buildSimplePostRequestData('https://hono.example.com')
+          buildSimplePostRequestData('https://hono.example.com'),
         )
         expect(res.status).toBe(200)
 
         res = await app.request(
           'https://example.com/form',
-          buildSimplePostRequestData('https://example.com')
+          buildSimplePostRequestData('https://example.com'),
         )
         expect(res.status).toBe(200)
       })
@@ -310,14 +315,14 @@ describe('CSRF by Middleware', () => {
       it('should be 403 for not allowed origin', async () => {
         let res = await app.request(
           'http://honojs.hono.example.jp/form',
-          buildSimplePostRequestData('http://example.jp')
+          buildSimplePostRequestData('http://example.jp'),
         )
         expect(res.status).toBe(403)
         expect(simplePostHandler).not.toHaveBeenCalled()
 
         res = await app.request(
           'http://example.jp/form',
-          buildSimplePostRequestData('http://example.jp')
+          buildSimplePostRequestData('http://example.jp'),
         )
         expect(res.status).toBe(403)
         expect(simplePostHandler).not.toHaveBeenCalled()

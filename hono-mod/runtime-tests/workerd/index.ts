@@ -19,7 +19,7 @@ app.get(
         ws.send(event.data as string)
       },
     }
-  })
+  }),
 )
 
 export default app

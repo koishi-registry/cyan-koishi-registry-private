@@ -46,13 +46,13 @@ describe('Hooks', () => {
 
       render(<App />, root)
       expect(root.innerHTML).toBe(
-        '<div>initial</div><form><input type="text" name="name" value="updated"><button>Submit</button></form>'
+        '<div>initial</div><form><input type="text" name="name" value="updated"><button>Submit</button></form>',
       )
       root.querySelector('button')?.click()
       await Promise.resolve()
       await Promise.resolve()
       expect(root.innerHTML).toBe(
-        '<div>updated</div><form><input type="text" name="name" value="updated"><button>Submit</button></form>'
+        '<div>updated</div><form><input type="text" name="name" value="updated"><button>Submit</button></form>',
       )
 
       expect(action).toHaveBeenCalledOnce()
@@ -101,7 +101,7 @@ describe('Hooks', () => {
 
       render(<App />, root)
       expect(root.innerHTML).toBe(
-        '<form><input type="text" name="name" value="updated"><button>Submit</button></form>'
+        '<form><input type="text" name="name" value="updated"><button>Submit</button></form>',
       )
       root.querySelector('button')?.click()
       await Promise.resolve()
@@ -132,7 +132,10 @@ describe('Hooks', () => {
       const formPromise = new Promise<void>((r) => (formResolve = r))
       const App = () => {
         const [count, setCount] = useState(0)
-        const [optimisticCount, setOptimisticCount] = useOptimistic(count, (c, n: number) => n)
+        const [optimisticCount, setOptimisticCount] = useOptimistic(
+          count,
+          (c, n: number) => n,
+        )
         const action = useCallback(async () => {
           setOptimisticCount(count + 1)
           await formPromise
@@ -152,12 +155,12 @@ describe('Hooks', () => {
 
       render(<App />, root)
       expect(root.innerHTML).toBe(
-        '<form><div>0</div><input type="text" name="name" value="updated"><button>Submit</button></form>'
+        '<form><div>0</div><input type="text" name="name" value="updated"><button>Submit</button></form>',
       )
       root.querySelector('button')?.click()
       await Promise.resolve()
       expect(root.innerHTML).toBe(
-        '<form><div>1</div><input type="text" name="name" value="updated"><button>Submit</button></form>'
+        '<form><div>1</div><input type="text" name="name" value="updated"><button>Submit</button></form>',
       )
       formResolve?.()
       await Promise.resolve()
@@ -165,7 +168,7 @@ describe('Hooks', () => {
       await Promise.resolve()
       await Promise.resolve()
       expect(root.innerHTML).toBe(
-        '<form><div>2</div><input type="text" name="name" value="updated"><button>Submit</button></form>'
+        '<form><div>2</div><input type="text" name="name" value="updated"><button>Submit</button></form>',
       )
     })
   })

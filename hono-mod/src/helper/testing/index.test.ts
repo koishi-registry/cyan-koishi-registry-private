@@ -25,7 +25,10 @@ describe('hono testClient', () => {
 
   it('Should not throw an error with $ws()', async () => {
     vi.stubGlobal('WebSocket', class {})
-    const app = new Hono().get('/ws', (c) => c.text('Fake response of a WebSocket'))
+    const app = new Hono().get(
+      '/ws',
+      (c) => c.text('Fake response of a WebSocket'),
+    )
     // @ts-expect-error $ws is not typed correctly
     expect(() => testClient(app).ws.$ws()).not.toThrowError()
   })

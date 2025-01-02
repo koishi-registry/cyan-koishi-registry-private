@@ -215,7 +215,11 @@ describe('Wildcard', () => {
 
 describe('Regexp', () => {
   const node = new Node()
-  node.insert('get', '/regex-abc/:id{[0-9]+}/comment/:comment_id{[a-z]+}', 'regexp')
+  node.insert(
+    'get',
+    '/regex-abc/:id{[0-9]+}/comment/:comment_id{[a-z]+}',
+    'regexp',
+  )
   it('/regexp-abc/123/comment/abc', () => {
     const [res] = node.search('get', '/regex-abc/123/comment/abc')
     expect(res.length).toBe(1)

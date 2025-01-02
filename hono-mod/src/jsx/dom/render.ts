@@ -1,4 +1,4 @@
-import type { Child, FC, JSXNode, Props, MemorableFC } from '../base'
+import type { Child, FC, JSXNode, MemorableFC, Props } from '../base'
 import { toArray } from '../children'
 import {
   DOM_ERROR_HANDLER,
@@ -54,12 +54,12 @@ export type NodeObject = {
   o?: NodeObject // original node
   [DOM_STASH]:
     | [
-        number, // current hook index
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        any[][], // stash for hooks
-        LocalJSXContexts, // context
-        [Context, Function, NodeObject] // [context, error handler, node] for closest error boundary or suspense
-      ]
+      number, // current hook index
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      any[][], // stash for hooks
+      LocalJSXContexts, // context
+      [Context, Function, NodeObject], // [context, error handler, node] for closest error boundary or suspense
+    ]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     | [number, any[][]]
 } & JSXNode
@@ -86,17 +86,17 @@ export type PendingType =
 export type UpdateHook = (
   context: Context,
   node: Node,
-  cb: (context: Context) => void
+  cb: (context: Context) => void,
 ) => Promise<void>
 export type Context =
   | [
-      PendingType, // PendingType
-      boolean, // got an error
-      UpdateHook, // update hook
-      boolean, // is in view transition
-      boolean, // is in top level render
-      [Context, Function, NodeObject][] //  [context, error handler, node] stack for this context
-    ]
+    PendingType, // PendingType
+    boolean, // got an error
+    UpdateHook, // update hook
+    boolean, // is in view transition
+    boolean, // is in top level render
+    [Context, Function, NodeObject][], //  [context, error handler, node] stack for this context
+  ]
   | [PendingType, boolean, UpdateHook, boolean]
   | [PendingType, boolean, UpdateHook]
   | [PendingType, boolean]
@@ -110,7 +110,8 @@ const refCleanupMap: WeakMap<Element, () => void> = new WeakMap()
 let nameSpaceContext: JSXContext<string> | undefined = undefined
 export const getNameSpaceContext = () => nameSpaceContext
 
-const isNodeString = (node: Node): node is NodeString => 't' in (node as NodeString)
+const isNodeString = (node: Node): node is NodeString =>
+  't' in (node as NodeString)
 
 const eventCache: Record<string, [string, boolean]> = {
   // pre-define events that are used very frequently
@@ -127,35 +128,44 @@ const getEventSpec = (key: string): [string, boolean] | undefined => {
   const match = key.match(/^on([A-Z][a-zA-Z]+?(?:PointerCapture)?)(Capture)?$/)
   if (match) {
     const [, eventName, capture] = match
-    return (eventCache[key] = [(eventAliasMap[eventName] || eventName).toLowerCase(), !!capture])
+    return (eventCache[key] = [
+      (eventAliasMap[eventName] || eventName).toLowerCase(),
+      !!capture,
+    ])
   }
   return undefined
 }
 
 const toAttributeName = (element: SupportedElement, key: string): string =>
   nameSpaceContext &&
-  element instanceof SVGElement &&
-  /[A-Z]/.test(key) &&
-  (key in element.style || // Presentation attributes are findable in style object. "clip-path", "font-size", "stroke-width", etc.
-    key.match(/^(?:o|pai|str|u|ve)/)) // Other un-deprecated kebab-case attributes. "overline-position", "paint-order", "strikethrough-position", etc.
+    element instanceof SVGElement &&
+    /[A-Z]/.test(key) &&
+    (key in element.style || // Presentation attributes are findable in style object. "clip-path", "font-size", "stroke-width", etc.
+      key.match(/^(?:o|pai|str|u|ve)/)) // Other un-deprecated kebab-case attributes. "overline-position", "paint-order", "strikethrough-position", etc.
     ? key.replace(/([A-Z])/g, '-$1').toLowerCase()
     : key
 
 const applyProps = (
   container: SupportedElement,
   attributes: Props,
-  oldAttributes?: Props
+  oldAttributes?: Props,
 ): void => {
   attributes ||= {}
   for (let key in attributes) {
     const value = attributes[key]
-    if (key !== 'children' && (!oldAttributes || oldAttributes[key] !== value)) {
+    if (
+      key !== 'children' && (!oldAttributes || oldAttributes[key] !== value)
+    ) {
       key = normalizeIntrinsicElementKey(key)
       const eventSpec = getEventSpec(key)
       if (eventSpec) {
         if (oldAttributes?.[key] !== value) {
           if (oldAttributes) {
-            container.removeEventListener(eventSpec[0], oldAttributes[key], eventSpec[1])
+            container.removeEventListener(
+              eventSpec[0],
+              oldAttributes[key],
+              eventSpec[1],
+            )
           }
           if (value != null) {
             if (typeof value !== 'function') {
@@ -188,15 +198,22 @@ const applyProps = (
       } else {
         if (key === 'value') {
           const nodeName = container.nodeName
-          if (nodeName === 'INPUT' || nodeName === 'TEXTAREA' || nodeName === 'SELECT') {
+          if (
+            nodeName === 'INPUT' || nodeName === 'TEXTAREA' ||
+            nodeName === 'SELECT'
+          ) {
             ;(container as unknown as HTMLInputElement).value =
-              value === null || value === undefined || value === false ? null : value
+              value === null || value === undefined || value === false
+                ? null
+                : value
 
             if (nodeName === 'TEXTAREA') {
               container.textContent = value
               continue
             } else if (nodeName === 'SELECT') {
-              if ((container as unknown as HTMLSelectElement).selectedIndex === -1) {
+              if (
+                (container as unknown as HTMLSelectElement).selectedIndex === -1
+              ) {
                 ;(container as unknown as HTMLSelectElement).selectedIndex = 0
               }
               continue
@@ -249,10 +266,10 @@ const invokeTag = (context: Context, node: NodeObject): Child[] => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const props = (func as any).defaultProps
     ? {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...(func as any).defaultProps,
-        ...node.props,
-      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ...(func as any).defaultProps,
+      ...node.props,
+    }
     : node.props
   try {
     return [func.call(null, props)]
@@ -266,7 +283,7 @@ const getNextChildren = (
   container: Container,
   nextChildren: Node[],
   childrenToRemove: Node[],
-  callbacks: EffectData[]
+  callbacks: EffectData[],
 ): void => {
   if (node.vR?.length) {
     childrenToRemove.push(...node.vR)
@@ -274,7 +291,9 @@ const getNextChildren = (
     delete (node as any).vR
   }
   if (typeof node.tag === 'function') {
-    node[DOM_STASH][1][STASH_EFFECT]?.forEach((data: EffectData) => callbacks.push(data))
+    node[DOM_STASH][1][STASH_EFFECT]?.forEach((data: EffectData) =>
+      callbacks.push(data)
+    )
   }
   node.vC.forEach((child) => {
     if (isNodeString(child)) {
@@ -283,7 +302,13 @@ const getNextChildren = (
       if (typeof child.tag === 'function' || child.tag === '') {
         child.c = container
         const currentNextChildrenIndex = nextChildren.length
-        getNextChildren(child, container, nextChildren, childrenToRemove, callbacks)
+        getNextChildren(
+          child,
+          container,
+          nextChildren,
+          childrenToRemove,
+          callbacks,
+        )
         if (child.s) {
           for (let i = currentNextChildrenIndex; i < nextChildren.length; i++) {
             nextChildren[i].s = true
@@ -302,8 +327,15 @@ const getNextChildren = (
   })
 }
 
-const findInsertBefore = (node: Node | undefined): SupportedElement | Text | null => {
-  for (; ; node = node.tag === HONO_PORTAL_ELEMENT || !node.vC || !node.pP ? node.nN : node.vC[0]) {
+const findInsertBefore = (
+  node: Node | undefined,
+): SupportedElement | Text | null => {
+  for (
+    ;;
+    node = node.tag === HONO_PORTAL_ELEMENT || !node.vC || !node.pP
+      ? node.nN
+      : node.vC[0]
+  ) {
     if (!node) {
       return null
     }
@@ -315,7 +347,9 @@ const findInsertBefore = (node: Node | undefined): SupportedElement | Text | nul
 
 const removeNode = (node: Node): void => {
   if (!isNodeString(node)) {
-    node[DOM_STASH]?.[1][STASH_EFFECT]?.forEach((data: EffectData) => data[2]?.())
+    node[DOM_STASH]?.[1][STASH_EFFECT]?.forEach((data: EffectData) =>
+      data[2]?.()
+    )
 
     refCleanupMap.get(node.e as Element)?.()
     if (node.p === 2) {
@@ -336,14 +370,18 @@ const removeNode = (node: Node): void => {
   }
 }
 
-const apply = (node: NodeObject, container: Container, isNew: boolean): void => {
+const apply = (
+  node: NodeObject,
+  container: Container,
+  isNew: boolean,
+): void => {
   node.c = container
   applyNodeObject(node, container, isNew)
 }
 
 const findChildNodeIndex = (
   childNodes: NodeListOf<ChildNode>,
-  child: ChildNode | null | undefined
+  child: ChildNode | null | undefined,
 ): number | undefined => {
   if (!child) {
     return
@@ -359,14 +397,20 @@ const findChildNodeIndex = (
 }
 
 const cancelBuild: symbol = Symbol()
-const applyNodeObject = (node: NodeObject, container: Container, isNew: boolean): void => {
+const applyNodeObject = (
+  node: NodeObject,
+  container: Container,
+  isNew: boolean,
+): void => {
   const next: Node[] = []
   const remove: Node[] = []
   const callbacks: EffectData[] = []
   getNextChildren(node, container, next, remove, callbacks)
   remove.forEach(removeNode)
 
-  const childNodes = (isNew ? undefined : container.childNodes) as NodeListOf<ChildNode>
+  const childNodes = (isNew ? undefined : container.childNodes) as NodeListOf<
+    ChildNode
+  >
   let offset: number
   let insertBeforeNode: ChildNode | null = null
   if (isNew) {
@@ -374,13 +418,18 @@ const applyNodeObject = (node: NodeObject, container: Container, isNew: boolean)
   } else if (!childNodes.length) {
     offset = 0
   } else {
-    const offsetByNextNode = findChildNodeIndex(childNodes, findInsertBefore(node.nN))
+    const offsetByNextNode = findChildNodeIndex(
+      childNodes,
+      findInsertBefore(node.nN),
+    )
     if (offsetByNextNode !== undefined) {
       insertBeforeNode = childNodes[offsetByNextNode]
       offset = offsetByNextNode
     } else {
-      offset =
-        findChildNodeIndex(childNodes, next.find((n) => n.tag !== HONO_PORTAL_ELEMENT && n.e)?.e) ??
+      offset = findChildNodeIndex(
+        childNodes,
+        next.find((n) => n.tag !== HONO_PORTAL_ELEMENT && n.e)?.e,
+      ) ??
         -1
     }
 
@@ -406,7 +455,9 @@ const applyNodeObject = (node: NodeObject, container: Container, isNew: boolean)
         el = child.e ||= document.createTextNode(child.t)
       } else {
         el = child.e ||= child.n
-          ? (document.createElementNS(child.n, child.tag as string) as SVGElement | MathMLElement)
+          ? (document.createElementNS(child.n, child.tag as string) as
+            | SVGElement
+            | MathMLElement)
           : document.createElement(child.tag as string)
         applyProps(el as HTMLElement, child.props, child.pP)
         applyNodeObject(child, el as HTMLElement, isNewLocal)
@@ -423,7 +474,10 @@ const applyNodeObject = (node: NodeObject, container: Container, isNew: boolean)
         // Move extra elements to the back of the container. This is to be done efficiently when elements are swapped.
         container.appendChild(childNodes[offset])
       } else {
-        container.insertBefore(el, insertBeforeNode || childNodes[offset] || null)
+        container.insertBefore(
+          el,
+          insertBeforeNode || childNodes[offset] || null,
+        )
       }
     }
   }
@@ -433,15 +487,17 @@ const applyNodeObject = (node: NodeObject, container: Container, isNew: boolean)
   if (callbacks.length) {
     const useLayoutEffectCbs: Array<() => void> = []
     const useEffectCbs: Array<() => void> = []
-    callbacks.forEach(([, useLayoutEffectCb, , useEffectCb, useInsertionEffectCb]) => {
-      if (useLayoutEffectCb) {
-        useLayoutEffectCbs.push(useLayoutEffectCb)
-      }
-      if (useEffectCb) {
-        useEffectCbs.push(useEffectCb)
-      }
-      useInsertionEffectCb?.() // invoke useInsertionEffect callbacks
-    })
+    callbacks.forEach(
+      ([, useLayoutEffectCb, , useEffectCb, useInsertionEffectCb]) => {
+        if (useLayoutEffectCb) {
+          useLayoutEffectCbs.push(useLayoutEffectCb)
+        }
+        if (useEffectCb) {
+          useEffectCbs.push(useEffectCb)
+        }
+        useInsertionEffectCb?.() // invoke useInsertionEffect callbacks
+      },
+    )
     useLayoutEffectCbs.forEach((cb) => cb()) // invoke useLayoutEffect callbacks
     if (useEffectCbs.length) {
       requestAnimationFrame(() => {
@@ -455,7 +511,11 @@ const fallbackUpdateFnArrayMap: WeakMap<
   NodeObject,
   Array<() => Promise<NodeObject | undefined>>
 > = new WeakMap<NodeObject, Array<() => Promise<NodeObject | undefined>>>()
-export const build = (context: Context, node: NodeObject, children?: Child[]): void => {
+export const build = (
+  context: Context,
+  node: NodeObject,
+  children?: Child[],
+): void => {
   const buildWithPreviousChildren = !children && node.pC
   if (children) {
     node.pC ||= node.vC
@@ -463,12 +523,17 @@ export const build = (context: Context, node: NodeObject, children?: Child[]): v
 
   let foundErrorHandler: ErrorHandler | undefined
   try {
-    children ||=
-      typeof node.tag == 'function' ? invokeTag(context, node) : toArray(node.props.children)
+    children ||= typeof node.tag == 'function'
+      ? invokeTag(context, node)
+      : toArray(node.props.children)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((children[0] as JSXNode)?.tag === '' && (children[0] as any)[DOM_ERROR_HANDLER]) {
+    if (
+      (children[0] as JSXNode)?.tag === '' &&
+      (children[0] as any)[DOM_ERROR_HANDLER]
+    ) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      foundErrorHandler = (children[0] as any)[DOM_ERROR_HANDLER] as ErrorHandler
+      foundErrorHandler =
+        (children[0] as any)[DOM_ERROR_HANDLER] as ErrorHandler
       context[5]!.push([context, foundErrorHandler, node])
     }
     const oldVChildren: Node[] | undefined = buildWithPreviousChildren
@@ -490,10 +555,16 @@ export const build = (context: Context, node: NodeObject, children?: Child[]): v
           !(child.tag as any)[DOM_INTERNAL_TAG]
         ) {
           if (globalJSXContexts.length > 0) {
-            child[DOM_STASH][2] = globalJSXContexts.map((c) => [c, c.values.at(-1)])
+            child[DOM_STASH][2] = globalJSXContexts.map((
+              c,
+            ) => [c, c.values.at(-1)])
           }
           if (context[5]?.length) {
-            child[DOM_STASH][3] = context[5].at(-1) as [Context, ErrorHandler, NodeObject]
+            child[DOM_STASH][3] = context[5].at(-1) as [
+              Context,
+              ErrorHandler,
+              NodeObject,
+            ]
           }
         }
 
@@ -503,8 +574,9 @@ export const build = (context: Context, node: NodeObject, children?: Child[]): v
             isNodeString(child)
               ? (c) => isNodeString(c)
               : child.key !== undefined
-              ? (c) => c.key === (child as Node).key && c.tag === (child as Node).tag
-              : (c) => c.tag === (child as Node).tag
+              ? (c) =>
+                c.key === (child as Node).key && c.tag === (child as Node).tag
+              : (c) => c.tag === (child as Node).tag,
           )
 
           if (i !== -1) {
@@ -531,7 +603,10 @@ export const build = (context: Context, node: NodeObject, children?: Child[]): v
               if (
                 !oldChild.f &&
                 ((oldChild.o || oldChild) === child.o || // The code generated by the react compiler is memoized under this condition.
-                  (oldChild.tag as MemorableFC<unknown>)[DOM_MEMO]?.(pP, oldChild.props)) // The `memo` function is memoized under this condition.
+                  (oldChild.tag as MemorableFC<unknown>)[DOM_MEMO]?.(
+                    pP,
+                    oldChild.props,
+                  )) // The `memo` function is memoized under this condition.
               ) {
                 oldChild.s = true
               }
@@ -552,14 +627,20 @@ export const build = (context: Context, node: NodeObject, children?: Child[]): v
         vChildren.push(child)
 
         if (prevNode && !prevNode.s && !child.s) {
-          for (let p = prevNode; p && !isNodeString(p); p = p.vC?.at(-1) as NodeObject) {
+          for (
+            let p = prevNode;
+            p && !isNodeString(p);
+            p = p.vC?.at(-1) as NodeObject
+          ) {
             p.nN = child
           }
         }
         prevNode = child
       }
     }
-    node.vR = buildWithPreviousChildren ? [...node.vC, ...(oldVChildren || [])] : oldVChildren || []
+    node.vR = buildWithPreviousChildren
+      ? [...node.vC, ...(oldVChildren || [])]
+      : oldVChildren || []
     node.vC = vChildren
     if (buildWithPreviousChildren) {
       delete node.pC
@@ -579,13 +660,21 @@ export const build = (context: Context, node: NodeObject, children?: Child[]): v
 
     if (errorHandler) {
       const fallbackUpdateFn = () =>
-        update([0, false, context[2] as UpdateHook], errorHandlerNode as NodeObject)
+        update(
+          [0, false, context[2] as UpdateHook],
+          errorHandlerNode as NodeObject,
+        )
       const fallbackUpdateFnArray =
         fallbackUpdateFnArrayMap.get(errorHandlerNode as NodeObject) || []
       fallbackUpdateFnArray.push(fallbackUpdateFn)
-      fallbackUpdateFnArrayMap.set(errorHandlerNode as NodeObject, fallbackUpdateFnArray)
+      fallbackUpdateFnArrayMap.set(
+        errorHandlerNode as NodeObject,
+        fallbackUpdateFnArray,
+      )
       const fallback = errorHandler(e, () => {
-        const fnArray = fallbackUpdateFnArrayMap.get(errorHandlerNode as NodeObject)
+        const fnArray = fallbackUpdateFnArrayMap.get(
+          errorHandlerNode as NodeObject,
+        )
         if (fnArray) {
           const i = fnArray.indexOf(fallbackUpdateFn)
           if (i !== -1) {
@@ -660,7 +749,11 @@ export const buildNode = (node: Child): Node | undefined => {
   }
 }
 
-const replaceContainer = (node: NodeObject, from: DocumentFragment, to: Container): void => {
+const replaceContainer = (
+  node: NodeObject,
+  from: DocumentFragment,
+  to: Container,
+): void => {
   if (node.c === from) {
     node.c = to
     node.vC.forEach((child) => replaceContainer(child as NodeObject, from, to))
@@ -689,14 +782,15 @@ const updateSync = (context: Context, node: NodeObject): void => {
 }
 
 type UpdateMapResolve = (node: NodeObject | undefined) => void
-const updateMap: WeakMap<NodeObject, [UpdateMapResolve, Function]> = new WeakMap<
-  NodeObject,
-  [UpdateMapResolve, Function]
->()
+const updateMap: WeakMap<NodeObject, [UpdateMapResolve, Function]> =
+  new WeakMap<
+    NodeObject,
+    [UpdateMapResolve, Function]
+  >()
 const currentUpdateSets: Set<NodeObject>[] = []
 export const update = async (
   context: Context,
-  node: NodeObject
+  node: NodeObject,
 ): Promise<NodeObject | undefined> => {
   context[5] ||= []
 
@@ -752,7 +846,10 @@ export const renderNode = (node: NodeObject, container: Container): void => {
 
 export const render = (jsxNode: Child, container: Container): void => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  renderNode(buildNode({ tag: '', props: { children: jsxNode } } as any) as NodeObject, container)
+  renderNode(
+    buildNode({ tag: '', props: { children: jsxNode } } as any) as NodeObject,
+    container,
+  )
 }
 
 export const flushSync = (callback: () => void): void => {
@@ -769,14 +866,17 @@ export const flushSync = (callback: () => void): void => {
   currentUpdateSets.pop()
 }
 
-export const createPortal = (children: Child, container: HTMLElement, key?: string): Child =>
-  ({
-    tag: HONO_PORTAL_ELEMENT,
-    props: {
-      children,
-    },
-    key,
-    e: container,
-    p: 1,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any)
+export const createPortal = (
+  children: Child,
+  container: HTMLElement,
+  key?: string,
+): Child => ({
+  tag: HONO_PORTAL_ELEMENT,
+  props: {
+    children,
+  },
+  key,
+  e: container,
+  p: 1,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any)

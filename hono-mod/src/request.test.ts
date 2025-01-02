@@ -26,7 +26,9 @@ describe('Query', () => {
   })
 
   test('decode special chars', () => {
-    const rawRequest = new Request('http://localhost?mail=framework%40hono.dev&tag=%401&tag=%402')
+    const rawRequest = new Request(
+      'http://localhost?mail=framework%40hono.dev&tag=%401&tag=%402',
+    )
     const req = new HonoRequest(rawRequest)
 
     const mail = req.query('mail')
@@ -81,7 +83,9 @@ describe('matchedRoutes', () => {
     const rawRequest = new Request('http://localhost?page=2&tag=A&tag=B')
     const req = new HonoRequest<'/:id/:name'>(rawRequest, '/123/key', [
       [
-        [[handlerA, { handler: handlerA, method: 'GET', path: '/:id' }], { id: '123' }],
+        [[handlerA, { handler: handlerA, method: 'GET', path: '/:id' }], {
+          id: '123',
+        }],
         [
           [handlerA, { handler: handlerB, method: 'GET', path: '/:id/:name' }],
           { id: '456', name: 'key' },
@@ -103,7 +107,9 @@ describe('routePath', () => {
     const rawRequest = new Request('http://localhost?page=2&tag=A&tag=B')
     const req = new HonoRequest<'/:id/:name'>(rawRequest, '/123/key', [
       [
-        [[handlerA, { handler: handlerA, method: 'GET', path: '/:id' }], { id: '123' }],
+        [[handlerA, { handler: handlerA, method: 'GET', path: '/:id' }], {
+          id: '123',
+        }],
         [
           [handlerA, { handler: handlerB, method: 'GET', path: '/:id/:name' }],
           { id: '456', name: 'key' },
@@ -157,7 +163,9 @@ describe('req.addValidatedData() and req.data()', () => {
 
 describe('headers', () => {
   test('empty string is a valid header value', () => {
-    const req = new HonoRequest(new Request('http://localhost', { headers: { foo: '' } }))
+    const req = new HonoRequest(
+      new Request('http://localhost', { headers: { foo: '' } }),
+    )
     const foo = req.header('foo')
     expect(foo).toEqual('')
   })
@@ -173,7 +181,7 @@ describe('Body methods with caching', () => {
       new Request('http://localhost', {
         method: 'POST',
         body: text,
-      })
+      }),
     )
     expect(await req.text()).toEqual(text)
     expect(await req.json()).toEqual(json)
@@ -181,7 +189,7 @@ describe('Body methods with caching', () => {
     expect(await req.blob()).toEqual(
       new Blob([text], {
         type: 'text/plain;charset=utf-8',
-      })
+      }),
     )
   })
 
@@ -190,7 +198,7 @@ describe('Body methods with caching', () => {
       new Request('http://localhost', {
         method: 'POST',
         body: '{"foo":"bar"}',
-      })
+      }),
     )
     expect(await req.json()).toEqual(json)
     expect(await req.text()).toEqual(text)
@@ -198,7 +206,7 @@ describe('Body methods with caching', () => {
     expect(await req.blob()).toEqual(
       new Blob([text], {
         type: 'text/plain;charset=utf-8',
-      })
+      }),
     )
   })
 
@@ -208,7 +216,7 @@ describe('Body methods with caching', () => {
       new Request('http://localhost', {
         method: 'POST',
         body: buffer,
-      })
+      }),
     )
     expect(await req.arrayBuffer()).toEqual(buffer)
     expect(await req.text()).toEqual(text)
@@ -216,7 +224,7 @@ describe('Body methods with caching', () => {
     expect(await req.blob()).toEqual(
       new Blob([text], {
         type: '',
-      })
+      }),
     )
   })
 
@@ -228,7 +236,7 @@ describe('Body methods with caching', () => {
       new Request('http://localhost', {
         method: 'POST',
         body: blob,
-      })
+      }),
     )
     expect(await req.blob()).toEqual(blob)
     expect(await req.text()).toEqual(text)
@@ -243,7 +251,7 @@ describe('Body methods with caching', () => {
       new Request('http://localhost', {
         method: 'POST',
         body: data,
-      })
+      }),
     )
     expect((await req.formData()).get('foo')).toBe('bar')
     expect(async () => await req.text()).not.toThrow()
@@ -259,7 +267,7 @@ describe('Body methods with caching', () => {
         new Request('http://localhost', {
           method: 'POST',
           body: data,
-        })
+        }),
       )
       expect((await req.parseBody())['foo']).toBe('bar')
       expect(async () => await req.text()).not.toThrow()
@@ -276,12 +284,14 @@ describe('Body methods with caching', () => {
           new Request('http://localhost', {
             method: 'POST',
             body: data,
-          })
+          }),
         )
       })
 
       it('without options', async () => {
-        expectTypeOf((await req.parseBody())['key']).toEqualTypeOf<string | File>()
+        expectTypeOf((await req.parseBody())['key']).toEqualTypeOf<
+          string | File
+        >()
       })
 
       it('{all: true}', async () => {
@@ -297,17 +307,21 @@ describe('Body methods with caching', () => {
       })
 
       it('{all: true, dot: true}', async () => {
-        expectTypeOf((await req.parseBody({ all: true, dot: true }))['key']).toEqualTypeOf<
-          | string
-          | File
-          | (string | File)[]
-          | RecursiveRecord<string, string | File | (string | File)[]>
-        >()
+        expectTypeOf((await req.parseBody({ all: true, dot: true }))['key'])
+          .toEqualTypeOf<
+            | string
+            | File
+            | (string | File)[]
+            | RecursiveRecord<string, string | File | (string | File)[]>
+          >()
       })
 
       it('specify return type explicitly', async () => {
         expectTypeOf(
-          await req.parseBody<{ key1: string; key2: string }>({ all: true, dot: true })
+          await req.parseBody<{ key1: string; key2: string }>({
+            all: true,
+            dot: true,
+          }),
         ).toEqualTypeOf<{ key1: string; key2: string }>()
       })
     })

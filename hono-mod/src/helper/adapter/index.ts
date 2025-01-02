@@ -5,11 +5,21 @@
 
 import type { Context } from '../../context'
 
-export type Runtime = 'node' | 'deno' | 'bun' | 'workerd' | 'fastly' | 'edge-light' | 'other'
+export type Runtime =
+  | 'node'
+  | 'deno'
+  | 'bun'
+  | 'workerd'
+  | 'fastly'
+  | 'edge-light'
+  | 'other'
 
-export const env = <T extends Record<string, unknown>, C extends Context = Context<{}>>(
+export const env = <
+  T extends Record<string, unknown>,
+  C extends Context = Context<{}>,
+>(
   c: C,
-  runtime?: Runtime
+  runtime?: Runtime,
 ): T & C['env'] => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const global = globalThis as any
@@ -47,8 +57,8 @@ export const getRuntimeKey = (): Runtime => {
   const global = globalThis as any
 
   // check if the current runtime supports navigator.userAgent
-  const userAgentSupported =
-    typeof navigator !== 'undefined' && typeof navigator.userAgent === 'string'
+  const userAgentSupported = typeof navigator !== 'undefined' &&
+    typeof navigator.userAgent === 'string'
 
   // if supported, check the user agent
   if (userAgentSupported) {

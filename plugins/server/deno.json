@@ -1,0 +1,4 @@
+{
+  "name": "@plug/server",
+  "exports": "./mod.ts"
+}

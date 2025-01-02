@@ -7,17 +7,20 @@ import { raw } from '../../helper/html'
 import { DOM_RENDERER } from '../../jsx/constants'
 import { createCssJsxDomObjects } from '../../jsx/dom/css'
 import type { HtmlEscapedCallback, HtmlEscapedString } from '../../utils/html'
-import type { CssClassName as CssClassNameCommon, CssVariableType } from './common'
+import type {
+  CssClassName as CssClassNameCommon,
+  CssVariableType,
+} from './common'
 import {
   CLASS_NAME,
+  cssCommon,
+  cxCommon,
   DEFAULT_STYLE_ID,
+  keyframesCommon,
   PSEUDO_GLOBAL_SELECTOR,
   SELECTOR,
   SELECTORS,
   STYLE_STRING,
-  cssCommon,
-  cxCommon,
-  keyframesCommon,
   viewTransitionCommon,
 } from './common'
 export { rawCssString } from './common'
@@ -26,25 +29,35 @@ type CssClassName = HtmlEscapedString & CssClassNameCommon
 
 type usedClassNameData = [
   Record<string, string>, // class name to add
-  Record<string, true> // class name already added
+  Record<string, true>, // class name already added
 ]
 
 interface CssType {
-  (strings: TemplateStringsArray, ...values: CssVariableType[]): Promise<string>
+  (
+    strings: TemplateStringsArray,
+    ...values: CssVariableType[]
+  ): Promise<string>
 }
 
 interface CxType {
   (
-    ...args: (CssClassName | Promise<string> | string | boolean | null | undefined)[]
+    ...args:
+      (CssClassName | Promise<string> | string | boolean | null | undefined)[]
   ): Promise<string>
 }
 
 interface KeyframesType {
-  (strings: TemplateStringsArray, ...values: CssVariableType[]): CssClassNameCommon
+  (
+    strings: TemplateStringsArray,
+    ...values: CssVariableType[]
+  ): CssClassNameCommon
 }
 
 interface ViewTransitionType {
-  (strings: TemplateStringsArray, ...values: CssVariableType[]): Promise<string>
+  (
+    strings: TemplateStringsArray,
+    ...values: CssVariableType[]
+  ): Promise<string>
   (content: Promise<string>): Promise<string>
   (): Promise<string>
 }
@@ -58,16 +71,24 @@ interface StyleType {
  * `createCssContext` is an experimental feature.
  * The API might be changed.
  */
-export const createCssContext = ({ id }: { id: Readonly<string> }): DefaultContextType => {
+export const createCssContext = (
+  { id }: { id: Readonly<string> },
+): DefaultContextType => {
   const [cssJsxDomObject, StyleRenderToDom] = createCssJsxDomObjects({ id })
 
   const contextMap: WeakMap<object, usedClassNameData> = new WeakMap()
   const nonceMap: WeakMap<object, string | undefined> = new WeakMap()
 
-  const replaceStyleRe = new RegExp(`(<style id="${id}"(?: nonce="[^"]*")?>.*?)(</style>)`)
+  const replaceStyleRe = new RegExp(
+    `(<style id="${id}"(?: nonce="[^"]*")?>.*?)(</style>)`,
+  )
 
-  const newCssClassNameObject = (cssClassName: CssClassNameCommon): Promise<string> => {
-    const appendStyle: HtmlEscapedCallback = ({ buffer, context }): Promise<string> | undefined => {
+  const newCssClassNameObject = (
+    cssClassName: CssClassNameCommon,
+  ): Promise<string> => {
+    const appendStyle: HtmlEscapedCallback = (
+      { buffer, context },
+    ): Promise<string> | undefined => {
       const [toAdd, added] = contextMap.get(context) as usedClassNameData
       const names = Object.keys(toAdd)
 
@@ -80,19 +101,26 @@ export const createCssContext = ({ id }: { id: Readonly<string> }): DefaultConte
         added[className] = true
         stylesStr += className.startsWith(PSEUDO_GLOBAL_SELECTOR)
           ? toAdd[className]
-          : `${className[0] === '@' ? '' : '.'}${className}{${toAdd[className]}}`
+          : `${className[0] === '@' ? '' : '.'}${className}{${
+            toAdd[className]
+          }}`
       })
       contextMap.set(context, [{}, added])
 
       if (buffer && replaceStyleRe.test(buffer[0])) {
-        buffer[0] = buffer[0].replace(replaceStyleRe, (_, pre, post) => `${pre}${stylesStr}${post}`)
+        buffer[0] = buffer[0].replace(
+          replaceStyleRe,
+          (_, pre, post) => `${pre}${stylesStr}${post}`,
+        )
         return
       }
 
       const nonce = nonceMap.get(context)
       const appendStyleScript = `<script${
         nonce ? ` nonce="${nonce}"` : ''
-      }>document.querySelector('#${id}').textContent+=${JSON.stringify(stylesStr)}</script>`
+      }>document.querySelector('#${id}').textContent+=${
+        JSON.stringify(stylesStr)
+      }</script>`
 
       if (buffer) {
         buffer[0] = `${appendStyleScript}${buffer[0]}`
@@ -118,7 +146,7 @@ export const createCssContext = ({ id }: { id: Readonly<string> }): DefaultConte
             allAdded = false
             toAdd[className] = styleString
           }
-        }
+        },
       )
       if (allAdded) {
         return
@@ -169,10 +197,8 @@ export const createCssContext = ({ id }: { id: Readonly<string> }): DefaultConte
           nonceMap.set(context, nonce)
           return undefined
         },
-      ]
-    )
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ],
+    ) // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(Style as any)[DOM_RENDERER] = StyleRenderToDom
 
   return {

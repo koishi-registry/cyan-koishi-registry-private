@@ -4,7 +4,10 @@ import { createElement } from '.'
 describe('map', () => {
   it('should map children', () => {
     const element = createElement('div', null, 1, 2, 3)
-    const result = Children.map(element.children, (child) => (child as number) * 2)
+    const result = Children.map(
+      element.children,
+      (child) => (child as number) * 2,
+    )
     expect(result).toEqual([2, 4, 6])
   })
 })
@@ -38,7 +41,7 @@ describe('only', () => {
   it('should throw an error if there are multiple children', () => {
     const element = createElement('div', null, 1, 2)
     expect(() => Children.only(element.children)).toThrowError(
-      'Children.only() expects only one child'
+      'Children.only() expects only one child',
     )
   })
 })

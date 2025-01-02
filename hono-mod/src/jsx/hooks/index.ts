@@ -1,7 +1,13 @@
 import type { JSX } from '../base'
 import { DOM_STASH } from '../constants'
 import { buildDataStack, update } from '../dom/render'
-import type { Context, Node, NodeObject, PendingType, UpdateHook } from '../dom/render'
+import type {
+  Context,
+  Node,
+  NodeObject,
+  PendingType,
+  UpdateHook,
+} from '../dom/render'
 
 type UpdateStateFunction<T> = (newState: T | ((currentState: T) => T)) => void
 
@@ -16,7 +22,7 @@ export type EffectData = [
   (() => void | (() => void)) | undefined, // layout effect
   (() => void) | undefined, // cleanup
   (() => void) | undefined, // effect
-  (() => void) | undefined // insertion effect
+  (() => void) | undefined, // insertion effect
 ]
 
 const resolvedPromiseValueMap: WeakMap<Promise<unknown>, unknown> = new WeakMap<
@@ -26,7 +32,7 @@ const resolvedPromiseValueMap: WeakMap<Promise<unknown>, unknown> = new WeakMap<
 
 const isDepsChanged = (
   prevDeps: readonly unknown[] | undefined,
-  deps: readonly unknown[] | undefined
+  deps: readonly unknown[] | undefined,
 ): boolean =>
   !prevDeps ||
   !deps ||
@@ -35,12 +41,14 @@ const isDepsChanged = (
 
 let viewTransitionState:
   | [
-      boolean, // isUpdating
-      boolean // useViewTransition() is called
-    ]
+    boolean, // isUpdating
+    boolean, // useViewTransition() is called
+  ]
   | undefined = undefined
 
-const documentStartViewTransition: (cb: () => void) => { finished: Promise<void> } = (cb) => {
+const documentStartViewTransition: (
+  cb: () => void,
+) => { finished: Promise<void> } = (cb) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if ((document as any)?.startViewTransition) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,7 +63,7 @@ let updateHook: UpdateHook | undefined = undefined
 const viewTransitionHook = (
   context: Context,
   node: Node,
-  cb: (context: Context) => void
+  cb: (context: Context) => void,
 ): Promise<void> => {
   const state: [boolean, boolean] = [true, false]
   let lastVC = node.vC
@@ -86,7 +94,10 @@ export const startViewTransition = (callback: () => void): void => {
   }
 }
 
-export const useViewTransition = (): [boolean, (callback: () => void) => void] => {
+export const useViewTransition = (): [
+  boolean,
+  (callback: () => void) => void,
+] => {
   const buildData = buildDataStack.at(-1) as [Context, NodeObject]
   if (!buildData) {
     return [false, () => {}]
@@ -123,7 +134,10 @@ const startTransitionHook = (callback: () => void | Promise<void>): void => {
   runCallback(2, callback)
 }
 
-export const useTransition = (): [boolean, (callback: () => void | Promise<void>) => void] => {
+export const useTransition = (): [
+  boolean,
+  (callback: () => void | Promise<void>) => void,
+] => {
   const buildData = buildDataStack.at(-1) as [Context, NodeObject]
   if (!buildData) {
     return [false, () => {}]
@@ -147,7 +161,7 @@ export const useTransition = (): [boolean, (callback: () => void | Promise<void>
         return res
       })
     },
-    [state]
+    [state],
   )
 
   const [context] = buildData
@@ -155,9 +169,12 @@ export const useTransition = (): [boolean, (callback: () => void | Promise<void>
 }
 
 type UseDeferredValue = <T>(value: T, initialValue?: T) => T
-export const useDeferredValue: UseDeferredValue = <T>(value: T, ...rest: [T | undefined]): T => {
+export const useDeferredValue: UseDeferredValue = <T>(
+  value: T,
+  ...rest: [T | undefined]
+): T => {
   const [values, setValues] = useState<[T, T]>(
-    (rest.length ? [rest[0], rest[0]] : [value, value]) as [T, T]
+    (rest.length ? [rest[0], rest[0]] : [value, value]) as [T, T],
   )
   if (Object.is(values[1], value)) {
     return values[1]
@@ -180,10 +197,12 @@ type UseStateType = {
   <T = undefined>(): [T | undefined, UpdateStateFunction<T | undefined>]
 }
 export const useState: UseStateType = <T>(
-  initialState?: T | (() => T)
+  initialState?: T | (() => T),
 ): [T, UpdateStateFunction<T>] => {
   const resolveInitialState = () =>
-    typeof initialState === 'function' ? (initialState as () => T)() : (initialState as T)
+    typeof initialState === 'function'
+      ? (initialState as () => T)()
+      : (initialState as T)
 
   const buildData = buildDataStack.at(-1) as [unknown, NodeObject]
   if (!buildData) {
@@ -208,12 +227,13 @@ export const useState: UseStateType = <T>(
         if (pendingStack.length) {
           const [pendingType, pendingPromise] = pendingStack.at(-1) as [
             PendingType | 3,
-            Promise<void>
+            Promise<void>,
           ]
           Promise.all([
-            pendingType === 3
-              ? node
-              : update([pendingType, false, localUpdateHook as UpdateHook], node),
+            pendingType === 3 ? node : update(
+              [pendingType, false, localUpdateHook as UpdateHook],
+              node,
+            ),
             pendingPromise,
           ]).then(([node]) => {
             if (!node || !(pendingType === 2 || pendingType === 3)) {
@@ -228,7 +248,11 @@ export const useState: UseStateType = <T>(
                 if (lastVC !== node.vC) {
                   return
                 }
-                update([pendingType === 3 ? 1 : 0, false, localUpdateHook as UpdateHook], node)
+                update([
+                  pendingType === 3 ? 1 : 0,
+                  false,
+                  localUpdateHook as UpdateHook,
+                ], node)
               })
             }
 
@@ -245,22 +269,24 @@ export const useState: UseStateType = <T>(
 export const useReducer = <T, A>(
   reducer: (state: T, action: A) => T,
   initialArg: T,
-  init?: (initialState: T) => T
+  init?: (initialState: T) => T,
 ): [T, (action: A) => void] => {
   const handler = useCallback(
     (action: A) => {
       setState((state) => reducer(state, action))
     },
-    [reducer]
+    [reducer],
   )
-  const [state, setState] = useState(() => (init ? init(initialArg) : initialArg))
+  const [state, setState] = useState(
+    () => (init ? init(initialArg) : initialArg),
+  )
   return [state, handler]
 }
 
 const useEffectCommon = (
   index: number,
   effect: () => void | (() => void),
-  deps?: readonly unknown[]
+  deps?: readonly unknown[],
 ): void => {
   const buildData = buildDataStack.at(-1) as [unknown, NodeObject]
   if (!buildData) {
@@ -285,18 +311,23 @@ const useEffectCommon = (
     effectDepsArray[hookIndex] = data
   }
 }
-export const useEffect = (effect: () => void | (() => void), deps?: readonly unknown[]): void =>
-  useEffectCommon(3, effect, deps)
+export const useEffect = (
+  effect: () => void | (() => void),
+  deps?: readonly unknown[],
+): void => useEffectCommon(3, effect, deps)
 export const useLayoutEffect = (
   effect: () => void | (() => void),
-  deps?: readonly unknown[]
+  deps?: readonly unknown[],
 ): void => useEffectCommon(1, effect, deps)
 export const useInsertionEffect = (
   effect: () => void | (() => void),
-  deps?: readonly unknown[]
+  deps?: readonly unknown[],
 ): void => useEffectCommon(4, effect, deps)
 
-export const useCallback = <T extends Function>(callback: T, deps: readonly unknown[]): T => {
+export const useCallback = <T extends Function>(
+  callback: T,
+  deps: readonly unknown[],
+): T => {
   const buildData = buildDataStack.at(-1) as [unknown, NodeObject]
   if (!buildData) {
     return callback
@@ -330,7 +361,10 @@ export const useRef = <T>(initialValue: T | null): RefObject<T> => {
 }
 
 export const use = <T>(promise: Promise<T>): T => {
-  const cachedRes = resolvedPromiseValueMap.get(promise) as [T] | [undefined, unknown] | undefined
+  const cachedRes = resolvedPromiseValueMap.get(promise) as [T] | [
+    undefined,
+    unknown,
+  ] | undefined
   if (cachedRes) {
     if (cachedRes.length === 2) {
       throw cachedRes[1]
@@ -339,7 +373,7 @@ export const use = <T>(promise: Promise<T>): T => {
   }
   promise.then(
     (res) => resolvedPromiseValueMap.set(promise, [res]),
-    (e) => resolvedPromiseValueMap.set(promise, [undefined, e])
+    (e) => resolvedPromiseValueMap.set(promise, [undefined, e]),
   )
 
   throw promise
@@ -363,19 +397,23 @@ export const useMemo = <T>(factory: () => T, deps: readonly unknown[]): T => {
 }
 
 let idCounter = 0
-export const useId = (): string => useMemo(() => `:r${(idCounter++).toString(32)}:`, [])
+export const useId = (): string =>
+  useMemo(() => `:r${(idCounter++).toString(32)}:`, [])
 
 // Define to avoid errors. This hook currently does nothing.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const useDebugValue = (_value: unknown, _formatter?: (value: unknown) => string): void => {}
+export const useDebugValue = (
+  _value: unknown,
+  _formatter?: (value: unknown) => string,
+): void => {}
 
 export const createRef = <T>(): RefObject<T> => {
   return { current: null }
 }
 
 export const forwardRef = <T, P = {}>(
-  Component: (props: P, ref?: RefObject<T>) => JSX.Element
-): ((props: P & { ref?: RefObject<T> }) => JSX.Element) => {
+  Component: (props: P, ref?: RefObject<T>) => JSX.Element,
+): (props: P & { ref?: RefObject<T> }) => JSX.Element => {
   return (props) => {
     const { ref, ...rest } = props
     return Component(rest as P, ref)
@@ -385,7 +423,7 @@ export const forwardRef = <T, P = {}>(
 export const useImperativeHandle = <T>(
   ref: RefObject<T>,
   createHandle: () => T,
-  deps: readonly unknown[]
+  deps: readonly unknown[],
 ): void => {
   useEffect(() => {
     ref.current = createHandle()
@@ -398,18 +436,22 @@ export const useImperativeHandle = <T>(
 export const useSyncExternalStore = <T>(
   subscribe: (callback: () => void) => () => void,
   getSnapshot: () => T,
-  getServerSnapshot?: () => T
+  getServerSnapshot?: () => T,
 ): T => {
   const buildData = buildDataStack.at(-1) as [Context, unknown]
   if (!buildData) {
     // now a stringify process, maybe in server side
     if (!getServerSnapshot) {
-      throw new Error('getServerSnapshot is required for server side rendering')
+      throw new Error(
+        'getServerSnapshot is required for server side rendering',
+      )
     }
     return getServerSnapshot()
   }
 
-  const [serverSnapshotIsUsed] = useState<boolean>(!!(buildData[0][4] && getServerSnapshot))
+  const [serverSnapshotIsUsed] = useState<boolean>(
+    !!(buildData[0][4] && getServerSnapshot),
+  )
   const [state, setState] = useState(() =>
     serverSnapshotIsUsed ? (getServerSnapshot as () => T)() : getSnapshot()
   )

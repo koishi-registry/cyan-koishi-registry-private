@@ -1,9 +1,12 @@
 /** @jsxImportSource ../../src/jsx */
 import { assertEquals } from '@std/assert'
-import { Style, css } from '../../src/helper/css/index.ts'
-import { Suspense, renderToReadableStream } from '../../src/jsx/streaming.ts'
+import { css, Style } from '../../src/helper/css/index.ts'
+import { renderToReadableStream, Suspense } from '../../src/jsx/streaming.ts'
 import type { HtmlEscapedString } from '../../src/utils/html.ts'
-import { HtmlEscapedCallbackPhase, resolveCallback } from '../../src/utils/html.ts'
+import {
+  HtmlEscapedCallbackPhase,
+  resolveCallback,
+} from '../../src/utils/html.ts'
 
 Deno.test('JSX', () => {
   const Component = ({ name }: { name: string }) => <span>{name}</span>
@@ -15,7 +18,10 @@ Deno.test('JSX', () => {
     </div>
   )
 
-  assertEquals(html.toString(), '<div><h1 id="&lt;Hello&gt;"><span>&lt;Hono&gt;</span></h1></div>')
+  assertEquals(
+    html.toString(),
+    '<div><h1 id="&lt;Hello&gt;"><span>&lt;Hono&gt;</span></h1></div>',
+  )
 })
 
 Deno.test('JSX: Fragment', () => {
@@ -36,11 +42,13 @@ Deno.test('JSX: Empty Fragment', () => {
 
 Deno.test('JSX: Async Component', async () => {
   const Component = async ({ name }: { name: string }) =>
-    new Promise<HtmlEscapedString>((resolve) => setTimeout(() => resolve(<span>{name}</span>), 10))
+    new Promise<HtmlEscapedString>((resolve) =>
+      setTimeout(() => resolve(<span>{name}</span>), 10)
+    )
   const stream = renderToReadableStream(
     <div>
       <Component name={'<Hono>'} />
-    </div>
+    </div>,
   )
 
   const chunks: string[] = []
@@ -64,7 +72,7 @@ Deno.test('JSX: Suspense', async () => {
   const stream = renderToReadableStream(
     <Suspense fallback={<p>Loading...</p>}>
       <Content />
-    </Suspense>
+    </Suspense>,
   )
 
   const chunks: string[] = []
@@ -104,10 +112,17 @@ Deno.test('JSX: css', async () => {
   )
 
   const awaitedHtml = await html
-  const htmlEscapedString = 'callbacks' in awaitedHtml ? awaitedHtml : await awaitedHtml.toString()
+  const htmlEscapedString = 'callbacks' in awaitedHtml
+    ? awaitedHtml
+    : await awaitedHtml.toString()
   assertEquals(
-    await resolveCallback(htmlEscapedString, HtmlEscapedCallbackPhase.Stringify, false, {}),
-    '<html><head><style id="hono-css">.css-3142110215{color:red}</style></head><body><div class="css-3142110215"></div></body></html>'
+    await resolveCallback(
+      htmlEscapedString,
+      HtmlEscapedCallbackPhase.Stringify,
+      false,
+      {},
+    ),
+    '<html><head><style id="hono-css">.css-3142110215{color:red}</style></head><body><div class="css-3142110215"></div></body></html>',
   )
 })
 
@@ -127,10 +142,17 @@ Deno.test('JSX: css with CSP nonce', async () => {
   )
 
   const awaitedHtml = await html
-  const htmlEscapedString = 'callbacks' in awaitedHtml ? awaitedHtml : await awaitedHtml.toString()
+  const htmlEscapedString = 'callbacks' in awaitedHtml
+    ? awaitedHtml
+    : await awaitedHtml.toString()
   assertEquals(
-    await resolveCallback(htmlEscapedString, HtmlEscapedCallbackPhase.Stringify, false, {}),
-    '<html><head><style id="hono-css" nonce="1234">.css-3142110215{color:red}</style></head><body><div class="css-3142110215"></div></body></html>'
+    await resolveCallback(
+      htmlEscapedString,
+      HtmlEscapedCallbackPhase.Stringify,
+      false,
+      {},
+    ),
+    '<html><head><style id="hono-css" nonce="1234">.css-3142110215{color:red}</style></head><body><div class="css-3142110215"></div></body></html>',
   )
 })
 

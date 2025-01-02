@@ -1,7 +1,7 @@
 export const validateExports = (
   source: Record<string, unknown>,
   target: Record<string, unknown>,
-  fileName: string
+  fileName: string,
 ) => {
   const isEntryInTarget = (entry: string): boolean => {
     if (entry in target) {
@@ -13,7 +13,8 @@ export const validateExports = (
     if (entry.endsWith('/*')) {
       return Object.keys(target).some(
         (targetEntry) =>
-          targetEntry.startsWith(wildcardPrefix + '/') && targetEntry !== wildcardPrefix
+          targetEntry.startsWith(wildcardPrefix + '/') &&
+          targetEntry !== wildcardPrefix,
       )
     }
 

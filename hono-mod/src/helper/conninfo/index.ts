@@ -3,4 +3,4 @@
  * ConnInfo Helper for Hono.
  */
 
-export type { AddressType, NetAddrInfo, ConnInfo, GetConnInfo } from './types'
+export type { AddressType, ConnInfo, GetConnInfo, NetAddrInfo } from './types'

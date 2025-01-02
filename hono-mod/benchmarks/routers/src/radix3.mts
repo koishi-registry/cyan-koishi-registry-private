@@ -1,6 +1,6 @@
 import { createRouter } from 'radix3'
 import type { RouterInterface } from './tool.mts'
-import { routes, handler } from './tool.mts'
+import { handler, routes } from './tool.mts'
 
 const name = 'radix3'
 const router = createRouter()

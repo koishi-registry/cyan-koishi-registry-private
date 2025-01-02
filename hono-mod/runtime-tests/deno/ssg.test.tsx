@@ -16,7 +16,7 @@ Deno.test('toSSG function', async () => {
           <body>
             <p>{content}</p>
           </body>
-        </html>
+        </html>,
       )
     })
     await next()

@@ -45,7 +45,7 @@ describe('ServeStatic Middleware', () => {
       root: './assets',
       rewriteRequestPath: (path) => path.replace(/^\/dot-static/, '/.static'),
       manifest,
-    })
+    }),
   )
 
   beforeEach(() => onNotFound.mockClear())
@@ -69,7 +69,10 @@ describe('ServeStatic Middleware', () => {
   it('Should return 404 response', async () => {
     const res = await app.request('http://localhost/static/not-found.html')
     expect(res.status).toBe(404)
-    expect(onNotFound).toHaveBeenCalledWith('assets/static/not-found.html', expect.anything())
+    expect(onNotFound).toHaveBeenCalledWith(
+      'assets/static/not-found.html',
+      expect.anything(),
+    )
   })
 
   it('Should return plan.txt', async () => {
@@ -112,8 +115,14 @@ describe('With options', () => {
 
 describe('With `file` options', () => {
   const app = new Hono()
-  app.get('/foo/*', serveStatic({ path: './assets/static/hono.html', manifest }))
-  app.get('/bar/*', serveStatic({ path: './static/hono.html', root: './assets', manifest }))
+  app.get(
+    '/foo/*',
+    serveStatic({ path: './assets/static/hono.html', manifest }),
+  )
+  app.get(
+    '/bar/*',
+    serveStatic({ path: './static/hono.html', root: './assets', manifest }),
+  )
 
   it('Should return hono.html', async () => {
     const res = await app.request('http://localhost/foo/fallback')
@@ -134,26 +143,37 @@ describe('With `mimes` options', () => {
     ts: 'video/mp2t',
   }
   const manifest = {
-    'assets/static/video/morning-routine.m3u8': 'assets/static/video/morning-routine.abcdef.m3u8',
-    'assets/static/video/morning-routine1.ts': 'assets/static/video/morning-routine1.abcdef.ts',
-    'assets/static/video/introduction.mp4': 'assets/static/video/introduction.abcdef.mp4',
+    'assets/static/video/morning-routine.m3u8':
+      'assets/static/video/morning-routine.abcdef.m3u8',
+    'assets/static/video/morning-routine1.ts':
+      'assets/static/video/morning-routine1.abcdef.ts',
+    'assets/static/video/introduction.mp4':
+      'assets/static/video/introduction.abcdef.mp4',
   }
 
   const app = new Hono()
   app.use('/static/*', serveStatic({ root: './assets', mimes, manifest }))
 
   it('Should return content-type of m3u8', async () => {
-    const res = await app.request('http://localhost/static/video/morning-routine.m3u8')
+    const res = await app.request(
+      'http://localhost/static/video/morning-routine.m3u8',
+    )
     expect(res.status).toBe(200)
-    expect(res.headers.get('Content-Type')).toBe('application/vnd.apple.mpegurl')
+    expect(res.headers.get('Content-Type')).toBe(
+      'application/vnd.apple.mpegurl',
+    )
   })
   it('Should return content-type of ts', async () => {
-    const res = await app.request('http://localhost/static/video/morning-routine1.ts')
+    const res = await app.request(
+      'http://localhost/static/video/morning-routine1.ts',
+    )
     expect(res.status).toBe(200)
     expect(res.headers.get('Content-Type')).toBe('video/mp2t')
   })
   it('Should return content-type of default on Hono', async () => {
-    const res = await app.request('http://localhost/static/video/introduction.mp4')
+    const res = await app.request(
+      'http://localhost/static/video/introduction.mp4',
+    )
     expect(res.status).toBe(200)
     expect(res.headers.get('Content-Type')).toBe('video/mp4')
   })
@@ -214,7 +234,7 @@ describe('Types of middleware', () => {
           expectTypeOf(c.env).toEqualTypeOf<Env['Bindings']>()
         },
         manifest,
-      })
+      }),
     )
   })
 })

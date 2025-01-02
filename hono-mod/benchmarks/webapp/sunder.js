@@ -1,4 +1,4 @@
-import { Sunder, Router } from 'sunder'
+import { Router, Sunder } from 'sunder'
 
 const sunderRouter = new Router()
 sunderRouter.get('/user', (ctx) => {

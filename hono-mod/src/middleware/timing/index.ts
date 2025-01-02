@@ -1,6 +1,6 @@
 import type { TimingVariables } from './timing'
 export { TimingVariables }
-export { timing, setMetric, startTime, endTime } from './timing'
+export { endTime, setMetric, startTime, timing } from './timing'
 
 declare module '../..' {
   interface ContextVariableMap extends TimingVariables {}

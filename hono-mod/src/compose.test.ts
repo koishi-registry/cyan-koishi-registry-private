@@ -350,7 +350,7 @@ describe('Compose', function () {
         arr.push(1)
         await next()
         arr.push(6)
-      })
+      }),
     )
 
     stack.push(
@@ -360,7 +360,7 @@ describe('Compose', function () {
         arr.push(2)
         await next()
         arr.push(5)
-      })
+      }),
     )
 
     stack.push(
@@ -370,7 +370,7 @@ describe('Compose', function () {
         arr.push(3)
         await next()
         arr.push(4)
-      })
+      }),
     )
 
     await compose(stack)({ res: null, finalized: false })
@@ -390,14 +390,14 @@ describe('Compose', function () {
         arr.push(1)
         await next()
         arr.push(6)
-      })
+      }),
     )
 
     stack.push(
       buildMiddlewareTuple(async () => {
         called.push(true)
         arr.push(2)
-      })
+      }),
     )
 
     stack.push(
@@ -407,7 +407,7 @@ describe('Compose', function () {
         arr.push(3)
         await next()
         arr.push(4)
-      })
+      }),
     )
 
     await compose(stack)({ res: null, finalized: false })
@@ -426,7 +426,7 @@ describe('Compose', function () {
         context.arr.push(1)
         await next()
         context.arr.push(6)
-      })
+      }),
     )
 
     stack.push(
@@ -434,7 +434,7 @@ describe('Compose', function () {
         context.arr.push(2)
         await next()
         context.arr.push(5)
-      })
+      }),
     )
 
     stack.push(
@@ -442,7 +442,7 @@ describe('Compose', function () {
         context.arr.push(3)
         await next()
         context.arr.push(4)
-      })
+      }),
     )
 
     const fn = compose(stack)
@@ -465,7 +465,7 @@ describe('Compose', function () {
       stack.push(
         buildMiddlewareTuple((_context: C, next: Function) => {
           arr.push(next())
-        })
+        }),
       )
     }
 
@@ -489,7 +489,7 @@ describe('Compose', function () {
       buildMiddlewareTuple(async (_ctx: C, next: Function) => {
         await next()
         called = true
-      })
+      }),
     )
 
     await compose(stack)({ res: null, finalized: false })
@@ -502,7 +502,7 @@ describe('Compose', function () {
     stack.push(
       buildMiddlewareTuple(() => {
         throw new ExpectedError()
-      })
+      }),
     )
 
     try {
@@ -522,21 +522,21 @@ describe('Compose', function () {
       buildMiddlewareTuple(async (ctx2: C, next: Function) => {
         await next()
         expect(ctx2).toEqual(ctx)
-      })
+      }),
     )
 
     stack.push(
       buildMiddlewareTuple(async (ctx2: C, next: Function) => {
         await next()
         expect(ctx2).toEqual(ctx)
-      })
+      }),
     )
 
     stack.push(
       buildMiddlewareTuple(async (ctx2: C, next: Function) => {
         await next()
         expect(ctx2).toEqual(ctx)
-      })
+      }),
     )
 
     await compose(stack)(ctx)
@@ -557,14 +557,14 @@ describe('Compose', function () {
           arr.push(2)
         }
         arr.push(3)
-      })
+      }),
     )
 
     stack.push(
       buildMiddlewareTuple(async () => {
         arr.push(4)
         throw new Error()
-      })
+      }),
     )
 
     await compose(stack)({ res: null, finalized: false })
@@ -586,7 +586,7 @@ describe('Compose', function () {
     stack.push(
       buildMiddlewareTuple(function () {
         throw new ExpectedError()
-      })
+      }),
     )
 
     try {
@@ -612,7 +612,7 @@ describe('Compose', function () {
             called.push(2)
             return next()
           }),
-        ])
+        ]),
       ),
       buildMiddlewareTuple((_ctx: C, next: Function) => {
         called.push(3)
@@ -633,7 +633,9 @@ describe('Compose', function () {
       ])({ res: null, finalized: false })
       throw new Error('boom')
     } catch (err) {
-      expect(err instanceof Error && /multiple times/.test(err.message)).toBe(true)
+      expect(err instanceof Error && /multiple times/.test(err.message)).toBe(
+        true,
+      )
     }
   })
 
@@ -650,7 +652,7 @@ describe('Compose', function () {
             val++
             return next()
           }),
-        ])
+        ]),
       ),
       buildMiddlewareTuple((_ctx: C, next: Function) => {
         val++
@@ -674,7 +676,7 @@ describe('Compose', function () {
         await next()
         expect(ctx.val).toEqual(2)
         ctx.val = 1
-      })
+      }),
     )
 
     stack.push(
@@ -682,10 +684,14 @@ describe('Compose', function () {
         ctx.val = 2
         await next()
         expect(ctx.val).toEqual(2)
-      })
+      }),
     )
 
-    const res = await compose<C>(stack)({ val: 0, res: null, finalized: false })
+    const res = await compose<C>(stack)({
+      val: 0,
+      res: null,
+      finalized: false,
+    })
     expect(res.val).toEqual(1)
   })
 

@@ -12,14 +12,16 @@ export type { JSX } from './base'
 export function jsxDEV(
   tag: string | Function,
   props: Record<string, unknown>,
-  key?: string
+  key?: string,
 ): JSXNode {
   let node: JSXNode
   if (!props || !('children' in props)) {
     node = jsxFn(tag, props, [])
   } else {
     const children = props.children as string | HtmlEscapedString
-    node = Array.isArray(children) ? jsxFn(tag, props, children) : jsxFn(tag, props, [children])
+    node = Array.isArray(children)
+      ? jsxFn(tag, props, children)
+      : jsxFn(tag, props, [children])
   }
   node.key = key
   return node

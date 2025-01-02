@@ -10,9 +10,12 @@ type StreamifyResponseHandler = (
   handlerFunc: (
     event: APIGatewayProxyEvent | APIGatewayProxyEventV2,
     responseStream: Writable,
-    context: LambdaContext
-  ) => Promise<void>
-) => (event: APIGatewayProxyEvent, context: LambdaContext) => Promise<NodeJS.WritableStream>
+    context: LambdaContext,
+  ) => Promise<void>,
+) => (
+  event: APIGatewayProxyEvent,
+  context: LambdaContext,
+) => Promise<NodeJS.WritableStream>
 
 const mockStreamifyResponse: StreamifyResponseHandler = (handlerFunc) => {
   return async (event, context) => {

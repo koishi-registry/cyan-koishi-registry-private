@@ -1,7 +1,12 @@
 import type { Context } from '../context'
 import { getCookie } from '../helper/cookie'
 import { HTTPException } from '../http-exception'
-import type { Env, MiddlewareHandler, TypedResponse, ValidationTargets } from '../types'
+import type {
+  Env,
+  MiddlewareHandler,
+  TypedResponse,
+  ValidationTargets,
+} from '../types'
 import type { BodyData } from '../utils/body'
 import { bufferToFormData } from '../utils/buffer'
 
@@ -14,18 +19,22 @@ export type ValidationFunction<
   InputType,
   OutputType,
   E extends Env = {},
-  P extends string = string
+  P extends string = string,
 > = (
   value: InputType,
-  c: Context<E, P>
+  c: Context<E, P>,
 ) => OutputType | Response | Promise<OutputType> | Promise<Response>
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ExcludeResponseType<T> = T extends Response & TypedResponse<any> ? never : T
+type ExcludeResponseType<T> = T extends Response & TypedResponse<any> ? never
+  : T
 
-const jsonRegex = /^application\/([a-z-\.]+\+)?json(;\s*[a-zA-Z0-9\-]+\=([^;]+))*$/
-const multipartRegex = /^multipart\/form-data(;\s?boundary=[a-zA-Z0-9'"()+_,\-./:=?]+)?$/
-const urlencodedRegex = /^application\/x-www-form-urlencoded(;\s*[a-zA-Z0-9\-]+\=([^;]+))*$/
+const jsonRegex =
+  /^application\/([a-z-\.]+\+)?json(;\s*[a-zA-Z0-9\-]+\=([^;]+))*$/
+const multipartRegex =
+  /^multipart\/form-data(;\s?boundary=[a-zA-Z0-9'"()+_,\-./:=?]+)?$/
+const urlencodedRegex =
+  /^application\/x-www-form-urlencoded(;\s*[a-zA-Z0-9\-]+\=([^;]+))*$/
 
 export const validator = <
   InputType,
@@ -38,24 +47,26 @@ export const validator = <
   V extends {
     in: {
       [K in U]: K extends 'json'
-        ? unknown extends InputType
-          ? OutputTypeExcludeResponseType
-          : InputType
-        : { [K2 in keyof OutputTypeExcludeResponseType]: ValidationTargets[K][K2] }
+        ? unknown extends InputType ? OutputTypeExcludeResponseType
+        : InputType
+        : {
+          [K2 in keyof OutputTypeExcludeResponseType]: ValidationTargets[K][K2]
+        }
     }
     out: { [K in U]: OutputTypeExcludeResponseType }
   } = {
     in: {
       [K in U]: K extends 'json'
-        ? unknown extends InputType
-          ? OutputTypeExcludeResponseType
-          : InputType
-        : { [K2 in keyof OutputTypeExcludeResponseType]: ValidationTargets[K][K2] }
+        ? unknown extends InputType ? OutputTypeExcludeResponseType
+        : InputType
+        : {
+          [K2 in keyof OutputTypeExcludeResponseType]: ValidationTargets[K][K2]
+        }
     }
     out: { [K in U]: OutputTypeExcludeResponseType }
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  E extends Env = any
+  E extends Env = any,
 >(
   target: U,
   validationFunc: ValidationFunction<
@@ -63,7 +74,7 @@ export const validator = <
     OutputType,
     E,
     P2
-  >
+  >,
 ): MiddlewareHandler<E, P, V> => {
   return async (c, next) => {
     let value = {}
@@ -84,7 +95,8 @@ export const validator = <
       case 'form': {
         if (
           !contentType ||
-          !(multipartRegex.test(contentType) || urlencodedRegex.test(contentType))
+          !(multipartRegex.test(contentType) ||
+            urlencodedRegex.test(contentType))
         ) {
           break
         }
@@ -124,7 +136,7 @@ export const validator = <
         value = Object.fromEntries(
           Object.entries(c.req.queries()).map(([k, v]) => {
             return v.length === 1 ? [k, v[0]] : [k, v]
-          })
+          }),
         )
         break
       case 'param':

@@ -6,8 +6,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Context, PropsForRenderer } from '../../context'
 import { html, raw } from '../../helper/html'
-import { Fragment, createContext, jsx, useContext } from '../../jsx'
-import type { FC, Context as JSXContext, JSXNode, PropsWithChildren } from '../../jsx'
+import { createContext, Fragment, jsx, useContext } from '../../jsx'
+import type {
+  Context as JSXContext,
+  FC,
+  JSXNode,
+  PropsWithChildren,
+} from '../../jsx'
 import { renderToReadableStream } from '../../jsx/streaming'
 import type { Env, Input, MiddlewareHandler } from '../../types'
 import type { HtmlEscapedString } from '../../utils/html'
@@ -22,40 +27,41 @@ type RendererOptions = {
 
 type Component = (
   props: PropsForRenderer & { Layout: FC },
-  c: Context
+  c: Context,
 ) => HtmlEscapedString | Promise<HtmlEscapedString>
 
 type ComponentWithChildren = (
   props: PropsWithChildren<PropsForRenderer & { Layout: FC }>,
-  c: Context
+  c: Context,
 ) => HtmlEscapedString | Promise<HtmlEscapedString>
 
 const createRenderer =
   (c: Context, Layout: FC, component?: Component, options?: RendererOptions) =>
   (children: JSXNode, props: PropsForRenderer) => {
-    const docType =
-      typeof options?.docType === 'string'
-        ? options.docType
-        : options?.docType === false
-        ? ''
-        : '<!DOCTYPE html>'
+    const docType = typeof options?.docType === 'string'
+      ? options.docType
+      : options?.docType === false
+      ? ''
+      : '<!DOCTYPE html>'
 
     const currentLayout = component
       ? jsx(
-          (props: any) => component(props, c),
-          {
-            Layout,
-            ...(props as any),
-          },
-          children as any
-        )
+        (props: any) => component(props, c),
+        {
+          Layout,
+          ...(props as any),
+        },
+        children as any,
+      )
       : children
 
-    const body = html`${raw(docType)}${jsx(
-      RequestContext.Provider,
-      { value: c },
-      currentLayout as any
-    )}`
+    const body = html`${raw(docType)}${
+      jsx(
+        RequestContext.Provider,
+        { value: c },
+        currentLayout as any,
+      )
+    }`
 
     if (options?.stream) {
       if (options.stream === true) {
@@ -109,7 +115,7 @@ const createRenderer =
  */
 export const jsxRenderer = (
   component?: ComponentWithChildren,
-  options?: RendererOptions
+  options?: RendererOptions,
 ): MiddlewareHandler =>
   function jsxRenderer(c, next) {
     const Layout = (c.getLayout() ?? Fragment) as FC
@@ -149,7 +155,7 @@ export const jsxRenderer = (
 export const useRequestContext = <
   E extends Env = any,
   P extends string = any,
-  I extends Input = {}
+  I extends Input = {},
 >(): Context<E, P, I> => {
   const c = useContext(RequestContext)
   if (!c) {

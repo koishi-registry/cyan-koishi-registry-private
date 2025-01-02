@@ -1,4 +1,7 @@
-const mergeBuffers = (buffer1: ArrayBuffer | undefined, buffer2: Uint8Array): Uint8Array => {
+const mergeBuffers = (
+  buffer1: ArrayBuffer | undefined,
+  buffer2: Uint8Array,
+): Uint8Array => {
   if (!buffer1) {
     return buffer2
   }
@@ -9,7 +12,7 @@ const mergeBuffers = (buffer1: ArrayBuffer | undefined, buffer2: Uint8Array): Ui
 }
 
 export const generateDigest = async (
-  stream: ReadableStream<Uint8Array> | null
+  stream: ReadableStream<Uint8Array> | null,
 ): Promise<string | null> => {
   if (!stream || !crypto || !crypto.subtle) {
     return null
@@ -28,7 +31,7 @@ export const generateDigest = async (
       {
         name: 'SHA-1',
       },
-      mergeBuffers(result, value)
+      mergeBuffers(result, value),
     )
   }
 

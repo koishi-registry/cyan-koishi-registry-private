@@ -42,9 +42,14 @@ export const parseAccept = (acceptHeader: string): Accept[] => {
   })
 }
 
-export const defaultMatch = (accepts: Accept[], config: acceptsConfig): string => {
+export const defaultMatch = (
+  accepts: Accept[],
+  config: acceptsConfig,
+): string => {
   const { supports, default: defaultSupport } = config
-  const accept = accepts.sort((a, b) => b.q - a.q).find((accept) => supports.includes(accept.type))
+  const accept = accepts.sort((a, b) => b.q - a.q).find((accept) =>
+    supports.includes(accept.type)
+  )
   return accept ? accept.type : defaultSupport
 }
 

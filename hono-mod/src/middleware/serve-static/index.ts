@@ -6,7 +6,10 @@
 import type { Context, Data } from '../../context'
 import type { Env, MiddlewareHandler } from '../../types'
 import { COMPRESSIBLE_CONTENT_TYPE_REGEX } from '../../utils/compress'
-import { getFilePath, getFilePathWithoutDefaultDocument } from '../../utils/filepath'
+import {
+  getFilePath,
+  getFilePathWithoutDefaultDocument,
+} from '../../utils/filepath'
 import { getMimeType } from '../../utils/mime'
 
 export type ServeStaticOptions<E extends Env = Env> = {
@@ -24,7 +27,9 @@ const ENCODINGS = {
   zstd: '.zst',
   gzip: '.gz',
 } as const
-const ENCODINGS_ORDERED_KEYS = Object.keys(ENCODINGS) as (keyof typeof ENCODINGS)[]
+const ENCODINGS_ORDERED_KEYS = Object.keys(
+  ENCODINGS,
+) as (keyof typeof ENCODINGS)[]
 
 const DEFAULT_DOCUMENT = 'index.html'
 const defaultPathResolve = (path: string) => path
@@ -34,10 +39,15 @@ const defaultPathResolve = (path: string) => path
  */
 export const serveStatic = <E extends Env = Env>(
   options: ServeStaticOptions<E> & {
-    getContent: (path: string, c: Context<E>) => Promise<Data | Response | null>
+    getContent: (
+      path: string,
+      c: Context<E>,
+    ) => Promise<Data | Response | null>
     pathResolve?: (path: string) => string
-    isDir?: (path: string) => boolean | undefined | Promise<boolean | undefined>
-  }
+    isDir?: (
+      path: string,
+    ) => boolean | undefined | Promise<boolean | undefined>
+  },
 ): MiddlewareHandler => {
   let isAbsoluteRoot = false
   let root: string
@@ -59,7 +69,9 @@ export const serveStatic = <E extends Env = Env>(
     }
 
     let filename = options.path ?? decodeURI(c.req.path)
-    filename = options.rewriteRequestPath ? options.rewriteRequestPath(filename) : filename
+    filename = options.rewriteRequestPath
+      ? options.rewriteRequestPath(filename)
+      : filename
 
     // If it was Directory, force `/` on the end.
     if (!filename.endsWith('/') && options.isDir) {
@@ -114,22 +126,27 @@ export const serveStatic = <E extends Env = Env>(
     }
 
     if (content) {
-      const mimeType = (options.mimes && getMimeType(path, options.mimes)) || getMimeType(path)
+      const mimeType = (options.mimes && getMimeType(path, options.mimes)) ||
+        getMimeType(path)
       c.header('Content-Type', mimeType || 'application/octet-stream')
 
-      if (options.precompressed && (!mimeType || COMPRESSIBLE_CONTENT_TYPE_REGEX.test(mimeType))) {
+      if (
+        options.precompressed &&
+        (!mimeType || COMPRESSIBLE_CONTENT_TYPE_REGEX.test(mimeType))
+      ) {
         const acceptEncodingSet = new Set(
           c.req
             .header('Accept-Encoding')
             ?.split(',')
-            .map((encoding) => encoding.trim())
+            .map((encoding) => encoding.trim()),
         )
 
         for (const encoding of ENCODINGS_ORDERED_KEYS) {
           if (!acceptEncodingSet.has(encoding)) {
             continue
           }
-          const compressedContent = (await getContent(path + ENCODINGS[encoding], c)) as Data | null
+          const compressedContent =
+            (await getContent(path + ENCODINGS[encoding], c)) as Data | null
 
           if (compressedContent) {
             content = compressedContent
