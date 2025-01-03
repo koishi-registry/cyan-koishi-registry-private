@@ -4,7 +4,7 @@ import type * as cp from 'node:child_process'
 
 export class ChildProcessCommunicator extends Base {
   constructor(protected ctx: Context, protected cp: cp.ChildProcess) {
-    super();
+    super()
   }
 
   override get open(): boolean {

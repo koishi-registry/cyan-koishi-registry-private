@@ -37,7 +37,7 @@ export let useStorage = function useStorage<T extends object>(
   fallback?: () => T,
 ): RemovableRef<T> {
   const initial = fallback ? fallback() : {} as T
-  (initial as { __version__?: number })['__version__'] = version
+  ;(initial as { __version__?: number })['__version__'] = version
   const storage = useLocalStorage('cordis.webui.' + key, initial)
   if ((storage as { __version__?: number })['__version__'] !== version) {
     storage.value = initial

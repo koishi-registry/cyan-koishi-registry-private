@@ -16,10 +16,10 @@
     "noImplicitAny": false,
     "types": [
       "node",
-      "yml-register/types",
-    ],
+      "yml-register/types"
+    ]
   },
   "include": [
-    "src",
+    "src"
   ]
 }

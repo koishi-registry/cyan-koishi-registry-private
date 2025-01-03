@@ -1,6 +1,7 @@
-import { Context } from '@p/core'
-import { KoishiMarket } from '@plug/k-registry/types'
+import type { Context } from '@p/core'
+import type {} from '@plug/koishi'
 import type { Features } from '@plug/k-registry'
+import type { KoishiMarket } from '@plug/k-registry/types'
 
 export const inject = [
   'hono',

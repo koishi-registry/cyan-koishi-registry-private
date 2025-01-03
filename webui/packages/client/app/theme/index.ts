@@ -22,9 +22,9 @@ export default function (ctx: Context) {
   })
 
   ctx.menu('theme.activity', [{
-  //   id: '.settings',
-  //   label: '活动栏设置',
-  // }, {
+    //   id: '.settings',
+    //   label: '活动栏设置',
+    // }, {
     id: '.reset',
     label: '重置活动栏',
   }])

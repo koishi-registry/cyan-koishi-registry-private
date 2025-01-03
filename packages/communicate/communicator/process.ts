@@ -3,8 +3,11 @@ import Base, { type Handler } from './base.ts'
 import * as proc from 'node:process'
 
 export class ProcessCommunicator extends Base {
-  constructor(protected ctx: Context, protected p: NodeJS.Process = proc.getBuiltinModule('node:process')) {
-    super();
+  constructor(
+    protected ctx: Context,
+    protected p: NodeJS.Process = proc.getBuiltinModule('node:process'),
+  ) {
+    super()
   }
 
   override get open(): boolean {

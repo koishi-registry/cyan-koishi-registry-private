@@ -1,4 +1,4 @@
-import { markRaw, onScopeDispose, getCurrentScope } from 'vue'
+import { getCurrentScope, markRaw, onScopeDispose } from 'vue'
 import * as cordis from 'cordis'
 import { Context } from './context'
 

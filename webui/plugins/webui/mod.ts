@@ -11,7 +11,7 @@ import { open } from 'https://deno.land/x/open@v1.0.0/index.ts'
 import mime from 'mime-types'
 import * as http from 'node:http'
 import type { StatusCode } from 'hono/utils/http-status'
-import { fileURLToPath } from "node:url";
+import { fileURLToPath } from 'node:url'
 
 declare module 'cordis' {
   interface EnvData {
@@ -241,8 +241,13 @@ class DenoWebUI extends WebUI {
       server: {
         fs: {
           strict: dev?.fs?.strict ?? true,
-          allow: dev?.fs.allow ?? [fileURLToPath(new URL('../', import.meta.resolve('@web/client/lib')))],
-          deny: (dev?.fs?.deny ?? []).map(path => resolve(this.ctx.info.baseDir, path))
+          allow: dev?.fs.allow ??
+            [fileURLToPath(
+              new URL('../', import.meta.resolve('@web/client/lib')),
+            )],
+          deny: (dev?.fs?.deny ?? []).map((path) =>
+            resolve(this.ctx.info.baseDir, path)
+          ),
         },
       },
       plugins: [{

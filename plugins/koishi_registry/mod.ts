@@ -22,7 +22,7 @@ import {
 // import { BSON } from 'bson'
 // import { Buffer } from "node:buffer";
 
-export type { Feature, Features } from '../koishi_analyzer'
+export type { Feature, Features } from '@plug/k-analyzer'
 
 export function aligned(s: string, pad = 35): string {
   if (s.length > pad) {
@@ -49,7 +49,7 @@ declare module './types.ts' {
   }
 }
 
-declare module 'cordis' {
+declare module '@p/core' {
   export interface Context {
     'koishi.generator': RegistryGenerator
     'koishi.meta': KoishiMeta

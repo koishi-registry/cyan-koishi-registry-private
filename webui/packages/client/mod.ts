@@ -9,7 +9,7 @@ import vue from '@vitejs/plugin-vue'
 import yaml from '@maikolib/vite-plugin-yaml'
 // import { fileURLToPath, pathToFileURL } from 'node:url'
 import { fileURLToPath } from 'node:url'
-import deno from "@deno/vite-plugin";
+import deno from '@deno/vite-plugin'
 
 // declare module 'yakumo' {
 //   interface PackageConfig {

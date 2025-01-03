@@ -23,5 +23,3 @@ export const version_mapped1 = shortnames1.map((name) => versions2[name])
 export const version_mapped2 = shortnames2.map((name) => versions1[name])
 
 export const VERSIONS_EQUAL = _l.isEqual(version_mapped1, version_mapped2)
-
-

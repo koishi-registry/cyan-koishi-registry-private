@@ -12,7 +12,7 @@ import LoggerService from '@cordisjs/plugin-logger'
 import * as LogPersist from '@plug/logger'
 import { dirname, fromFileUrl } from '@std/path'
 import meta from './deno.json' with { type: 'json' }
-import { CommunicationService } from "@p/communicate";
+import { CommunicationService } from '@p/communicate'
 
 export interface Events<in C extends Context = Context>
   extends cordis.Events<C> {
@@ -21,7 +21,8 @@ export interface Events<in C extends Context = Context>
   'exit'(signal?: Deno.Signal): void
 }
 
-export interface Intercept<in C extends Context = Context> extends cordis.Intercept<C> {}
+export interface Intercept<in C extends Context = Context>
+  extends cordis.Intercept<C> {}
 
 export function registerSignalHandler(
   signal: Deno.Signal,
@@ -36,7 +37,6 @@ export interface Context {
 }
 
 export class Context extends cordis.Context {
-
   declare baseDir: string
 
   info: AppInfo
@@ -99,7 +99,7 @@ export class AppInfo {
   constructor(protected ctx: Context) {
     ctx.mixin('info', ['baseDir'])
 
-    this.checkTask = new Promise(resolve => {
+    this.checkTask = new Promise((resolve) => {
       ctx.inject(['storage'], (ctx) => {
         resolve(this.check(ctx))
       })

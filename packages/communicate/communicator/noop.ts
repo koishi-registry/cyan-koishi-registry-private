@@ -2,11 +2,11 @@ import Base, { type Handler } from './base.ts'
 
 export class NoopCommunicator extends Base {
   constructor() {
-    super();
+    super()
   }
 
   override get name(): string {
-    return "noop"
+    return 'noop'
   }
 
   override getInner(): unknown {

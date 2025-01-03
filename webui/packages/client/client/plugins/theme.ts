@@ -1,7 +1,15 @@
 import { Dict } from 'cosmokit'
 import { Schema } from '@web/components'
 import { Context } from '../context'
-import { ref, Ref, Component, computed, markRaw, reactive, watchEffect } from 'vue'
+import {
+  Component,
+  computed,
+  markRaw,
+  reactive,
+  Ref,
+  ref,
+  watchEffect,
+} from 'vue'
 import { useConfig } from './setting'
 import { Service, tryOnScopeDispose } from '../utils'
 import { usePreferredDark } from '@vueuse/core'

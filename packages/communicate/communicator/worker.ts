@@ -1,10 +1,10 @@
 import type { Context } from 'cordis'
 import Base, { type Handler } from './base.ts'
-import { symbols, type OnMessage } from './worker_base.ts'
+import { type OnMessage, symbols } from './worker_base.ts'
 
 export class WorkerCommunicator extends Base {
   constructor(protected ctx: Context, protected worker: Worker) {
-    super();
+    super()
   }
 
   override get open(): boolean {
@@ -21,13 +21,18 @@ export class WorkerCommunicator extends Base {
   }
 
   override on(type: 'message', handler: Handler) {
-    if (type !== 'message') throw new Error("non message")
+    if (type !== 'message') throw new Error('non message')
     return this.ctx.effect(() => {
       const onmessage = ((event: MessageEvent) => {
         try {
-          onmessage[symbols.original]?.(event);
+          onmessage[symbols.original]?.(event)
         } finally {
-          onmessage[symbols.handler]?.(event.data, Array.isArray(event.ports) && event.ports.length ? event.ports[0] : undefined)
+          onmessage[symbols.handler]?.(
+            event.data,
+            Array.isArray(event.ports) && event.ports.length
+              ? event.ports[0]
+              : undefined,
+          )
         }
       }) as OnMessage
       onmessage[symbols.handler] = handler
@@ -39,7 +44,7 @@ export class WorkerCommunicator extends Base {
   }
 
   override off(type: 'message', handler: Handler): void {
-    if (type !== 'message') throw new Error("non message")
+    if (type !== 'message') throw new Error('non message')
     let onmessage: OnMessage | undefined = this.worker.onmessage as OnMessage
     while (onmessage) {
       if (onmessage[symbols.handler] === handler) {

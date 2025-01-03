@@ -23,23 +23,23 @@ export class StorageRemoteStorage extends Storage {
   }
 
   override has(key: string): Promise<boolean> {
-    return this.ctx.$communicate.call('storage/has', key);
+    return this.ctx.$communicate.call('storage/has', key)
   }
 
   override getRaw(_key: string): string | null {
-    throw new Error("Not implemented")
+    throw new Error('Not implemented')
   }
 
   override setRaw(_key: string, value: string): void {
-    throw new Error("Not implemented")
+    throw new Error('Not implemented')
   }
 
   override async remove(key: string): void {
-    await this.ctx.$communicate.call('storage/remove', key);
+    await this.ctx.$communicate.call('storage/remove', key)
   }
 
   protected override async _clear(): Promise<void> {
-    await this.ctx.$communicate.call('storage/_internal/clear');
+    await this.ctx.$communicate.call('storage/_internal/clear')
   }
 }
 

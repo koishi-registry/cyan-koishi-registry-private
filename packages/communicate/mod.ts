@@ -2,23 +2,25 @@ import { type Context, Service } from 'cordis'
 import Schema from 'schemastery'
 import Random from 'inaba'
 import pTry from 'p-try'
-import { remove, noop } from 'cosmokit'
-import type { Dict, Awaitable, Promisify } from 'cosmokit'
-import type Communicator from "./communicator/base.ts";
+import { noop, remove } from 'cosmokit'
+import type { Awaitable, Dict, Promisify } from 'cosmokit'
+import type Communicator from './communicator/base.ts'
 import * as cp from 'node:child_process'
 import process from 'node:process'
-import { InWorkerCommunicator } from "./communicator/in_worker.ts";
-import { ChildProcessCommunicator } from "./communicator/child_process.ts";
-import { ProcessCommunicator } from "./communicator/process.ts";
-import { NoopCommunicator } from "./communicator/noop.ts";
-import { WorkerCommunicator } from "./communicator/worker.ts";
-import { fromFileUrl } from "@std/path";
+import { InWorkerCommunicator } from './communicator/in_worker.ts'
+import { ChildProcessCommunicator } from './communicator/child_process.ts'
+import { ProcessCommunicator } from './communicator/process.ts'
+import { NoopCommunicator } from './communicator/noop.ts'
+import { WorkerCommunicator } from './communicator/worker.ts'
+import { fromFileUrl } from '@std/path'
 
 declare module 'cordis' {
   interface Context {
     [Context.CommunicateProtocol]: Context.CommunicateProtocol<this>
-    [kProtocol]: { Server: Packages, Client: Packages }
-    $communicate: CommunicationService<this[typeof kProtocol] & this[typeof Context.CommunicateProtocol]>
+    [kProtocol]: { Server: Packages; Client: Packages }
+    $communicate: CommunicationService<
+      this[typeof kProtocol] & this[typeof Context.CommunicateProtocol]
+    >
   }
 
   namespace Context {
@@ -34,7 +36,7 @@ export const kProtocol: unique symbol = Symbol.for('communicate.protocol')
 export type MessageType = 'event' | 'request' | 'response'
 
 interface Message {
-  type: string,
+  type: string
   // deno-lint-ignore no-explicit-any
   body: any
 }
@@ -44,7 +46,7 @@ export interface Requests {
 }
 
 export interface Events {
-  'disposed': {},
+  'disposed': {}
   'ready': {}
   'error': {
     message: string
@@ -56,11 +58,10 @@ export interface S2CRequests extends Requests {}
 export interface C2SEvents extends Events {}
 export interface S2CEvents extends Events {}
 
-
 // deno-lint-ignore no-explicit-any
 export type EventBodyOf<T extends Record<string, any>> = {
   [K in keyof T]: {
-    name: K,
+    name: K
     data: T[K]
   }
 }
@@ -68,36 +69,40 @@ export type EventBodyOf<T extends Record<string, any>> = {
 type Stringify<T> = T extends string ? T : never
 
 // deno-lint-ignore no-explicit-any
-export type RequestBodyOf<T extends Record<K, any>, K extends string = Stringify<keyof T>> = {
+export type RequestBodyOf<
+  T extends Record<K, any>,
+  K extends string = Stringify<keyof T>,
+> = {
   [K in keyof T]: {
-    id: string,
-    name: K,
+    id: string
+    name: K
     args: Parameters<T[K]>
   }
 }
 
 // deno-lint-ignore no-explicit-any
-export type ResponseBodyOf<T extends Record<K, any>, K extends string = Stringify<keyof T>> = {
+export type ResponseBodyOf<
+  T extends Record<K, any>,
+  K extends string = Stringify<keyof T>,
+> = {
   [K in keyof T]: {
-    id: string,
-    error?: string,
+    id: string
+    error?: string
     value: ReturnType<T[K]>
   }
 }
 
 export interface AllPackagesOf<E extends Events, R extends Requests> {
-  event: E,
-  request: R,
+  event: E
+  request: R
   response: R
 }
 
-export type BodyOf<K extends keyof P, P extends Packages> =
-  K extends 'event' ?
-    EventBodyOf<P['event']>
-    : K extends 'request' ?
-      RequestBodyOf<P['request']> :
-      K extends 'response' ?
-        ResponseBodyOf<P['response']> : never
+export type BodyOf<K extends keyof P, P extends Packages> = K extends 'event'
+  ? EventBodyOf<P['event']>
+  : K extends 'request' ? RequestBodyOf<P['request']>
+  : K extends 'response' ? ResponseBodyOf<P['response']>
+  : never
 
 // deno-lint-ignore no-explicit-any
 export type MessagesOf<Packages extends Record<MessageType, any>> = {
@@ -123,23 +128,32 @@ export type RequestsOf<P extends Packages> = Stringify<keyof P['request']>
 export type ResponsesOf<P extends Packages> = Stringify<keyof P['response']>
 
 // deno-lint-ignore no-explicit-any
-export type Handler = <T extends any[], R>(...args: T) => void | R | Awaitable<void | R>
+export type Handler = <T extends any[], R>(
+  ...args: T
+) => void | R | Awaitable<void | R>
 export type Listener<T> = (data: T) => Awaitable<void>
 
 export function detect(): CommunicationService.Type {
   // deno-lint-ignore ban-ts-comment
   // @ts-ignore
-  if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
+  if (
+    typeof WorkerGlobalScope !== 'undefined' &&
+    self instanceof WorkerGlobalScope
+  ) {
     return 'worker'
-  if (process.channel)
+  }
+  if (process.channel) {
     return 'process'
+  }
   return undefined
 }
 
-export class CommunicationService<Protocol extends { Server: S2CPackages, Client: C2SPackages } = {
-  Server: Packages,
-  Client: Packages
-}> extends Service {
+export class CommunicationService<
+  Protocol extends { Server: S2CPackages; Client: C2SPackages } = {
+    Server: Packages
+    Client: Packages
+  },
+> extends Service {
   declare S: Protocol['Server']
   declare C: Protocol['Client']
 
@@ -151,20 +165,23 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
   #children: Dict<CommunicationService[]> = Object.create(null)
   #workers: Dict<CommunicationService[]> = Object.create(null)
 
-  constructor(protected override ctx: Context, type: CommunicationService.Type = detect()) {
-    super(ctx, '$communicate');
+  constructor(
+    protected override ctx: Context,
+    type: CommunicationService.Type = detect(),
+  ) {
+    super(ctx, '$communicate')
 
     switch (type) {
       case 'worker':
         this.conn = new InWorkerCommunicator(ctx)
-        break;
+        break
       case 'process':
         this.conn = new ProcessCommunicator(ctx)
-        break;
+        break
       case undefined:
       case null:
         this.conn = new NoopCommunicator()
-        break;
+        break
       default:
         this.conn = type ?? new NoopCommunicator()
     }
@@ -173,21 +190,24 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
     // FIXME: deno type check doesn't work here somehow
     // deno-lint-ignore ban-ts-comment
     // @ts-ignore
-    if (this.isWorker) ctx.logger.debug("running in worker")
+    if (this.isWorker) ctx.logger.debug('running in worker')
 
     this._self.register('ping', noop)
-    this._self.receive('error', error => {
-      ctx.get('logger')?.(`remote:${this.conn.name}`)?.warn('error:', error.message)
+    this._self.receive('error', (error) => {
+      ctx.get('logger')?.(`remote:${this.conn.name}`)?.warn(
+        'error:',
+        error.message,
+      )
     })
 
     ctx.mixin('$communicate', {
       send: 'send',
-      post: 'post'
+      post: 'post',
     })
   }
 
   get _self(): CommunicationService {
-    return <CommunicationService><unknown>this
+    return <CommunicationService> <unknown> this
   }
 
   _workers = () => {
@@ -204,32 +224,42 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
     return extended
   }
 
-  fork(modulePath: string | URL = fromFileUrl(import.meta.resolve('@p/cp-rt')), options?: cp.ForkOptions) {
+  fork(
+    modulePath: string | URL = fromFileUrl(import.meta.resolve('@p/cp-rt')),
+    options?: cp.ForkOptions,
+  ) {
     const child = cp.fork(modulePath, options)
     const communicator = this[Service.extend]({
-      conn: new ChildProcessCommunicator(this.ctx, child)
-    });
-    (this._children()[modulePath.toString()] ??= []).push(communicator)
+      conn: new ChildProcessCommunicator(this.ctx, child),
+    })
+    ;(this._children()[modulePath.toString()] ??= []).push(communicator)
     return communicator as CommunicationService
   }
 
-  worker(specifier: string | URL = fromFileUrl(import.meta.resolve('@p/worker-rt')), options?: WorkerOptions) {
+  worker(
+    specifier: string | URL = fromFileUrl(import.meta.resolve('@p/worker-rt')),
+    options?: WorkerOptions,
+  ) {
     const worker = new Worker(specifier, options)
     const communicator = this[Service.extend]({
-      conn: new WorkerCommunicator(this.ctx, worker)
-    });
-    (this._workers()[specifier.toString()] ??= []).push(communicator)
+      conn: new WorkerCommunicator(this.ctx, worker),
+    })
+    ;(this._workers()[specifier.toString()] ??= []).push(communicator)
     return communicator as CommunicationService
   }
 
   registerHandler() {
     this.conn.on('message', async (message) => {
       try {
-        if (!await this.handler(message))
-          this.ctx.get('logger')?.debug('not implemented: ', Deno.inspect(message))
+        if (!await this.handler(message)) {
+          this.ctx.get('logger')?.debug(
+            'not implemented: ',
+            Deno.inspect(message),
+          )
+        }
       } catch (e) {
         await this._self.post('error' as const, {
-          message: e instanceof Error ? e.message : 'error handling message'
+          message: e instanceof Error ? e.message : 'error handling message',
         })
       }
     })
@@ -241,7 +271,10 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
     await this._self.post('ready', {})
   }
 
-  public receive<K extends Stringify<keyof this['S']['event']>>(name: K, handler: Listener<this['S']['event'][K]>) {
+  public receive<K extends Stringify<keyof this['S']['event']>>(
+    name: K,
+    handler: Listener<this['S']['event'][K]>,
+  ) {
     this.listeners[name] ??= []
 
     return this.ctx.effect(() => {
@@ -250,8 +283,12 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
     })
   }
 
-  public register<K extends Stringify<keyof this['S']['request']>, H extends this['S']['request'][K] extends Handler ? this['S']['request'][K] : never>(name: K, handler: H) {
-    if (name in this.handlers) throw new Error("handler already exists")
+  public register<
+    K extends Stringify<keyof this['S']['request']>,
+    H extends this['S']['request'][K] extends Handler ? this['S']['request'][K]
+      : never,
+  >(name: K, handler: H) {
+    if (name in this.handlers) throw new Error('handler already exists')
 
     return this.ctx.effect(() => {
       this.handlers[name] = handler
@@ -259,7 +296,11 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
     })
   }
 
-  public async call<K extends Stringify<keyof this['C']['request']>, H extends this['C']['request'][K] extends Handler ? this['C']['request'][K] : never>(name: K, ...args: Parameters<H>): Promisify<ReturnType<H>> {
+  public async call<
+    K extends Stringify<keyof this['C']['request']>,
+    H extends this['C']['request'][K] extends Handler ? this['C']['request'][K]
+      : never,
+  >(name: K, ...args: Parameters<H>): Promisify<ReturnType<H>> {
     const id = name + '-' + Random.id()
 
     const promise = new Promise<Promisify<ReturnType<H>>>((resolve, reject) => {
@@ -269,28 +310,40 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
       })
     })
 
-    this.sendHost("request", {
-      id,
-      name,
-      args
-    } satisfies MessagesOf<this['C']>['request'][K])
+    this.sendHost(
+      'request',
+      {
+        id,
+        name,
+        args,
+      } satisfies MessagesOf<this['C']>['request'][K],
+    )
 
     return await promise
   }
 
-  public async post<K extends Stringify<keyof this['C']['event']>>(name: K, data: this['C']['event'][K]) {
-    this.sendHost('event', {
-      name,
-      data
-    } as MessagesOf<this['C']>['event'][K])
+  public async post<K extends Stringify<keyof this['C']['event']>>(
+    name: K,
+    data: this['C']['event'][K],
+  ) {
+    this.sendHost(
+      'event',
+      {
+        name,
+        data,
+      } as MessagesOf<this['C']>['event'][K],
+    )
   }
 
-  public sendHost<T extends MessageType>(type: T, body: BodyOf<T, this['C']>[keyof BodyOf<T, this['C']>]) {
-    if (!this.conn.open) throw new Error("send on a closed channel")
+  public sendHost<T extends MessageType>(
+    type: T,
+    body: BodyOf<T, this['C']>[keyof BodyOf<T, this['C']>],
+  ) {
+    if (!this.conn.open) throw new Error('send on a closed channel')
 
     this.conn.send({
       type,
-      body
+      body,
     })
   }
 
@@ -298,7 +351,7 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
     const verify = Schema.object({
       id: Schema.string().required(),
       name: Schema.string().required(),
-      args: Schema.array(Object).required()
+      args: Schema.array(Object).required(),
     })
     const { id, name, args } = verify(body)
 
@@ -306,24 +359,24 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
     if (!handler) {
       this.sendHost('response', {
         id,
-        error: name + ": not implemented",
+        error: name + ': not implemented',
         // deno-lint-ignore no-explicit-any
-        value: undefined as any
+        value: undefined as any,
       })
       return
     }
 
     this.sendHost('response', {
       id,
-      value: await pTry(handler, ...args).catch(error => {
+      value: await pTry(handler, ...args).catch((error) => {
         this.sendHost('response', {
           id,
           error: String(error),
           // deno-lint-ignore no-explicit-any
-          value: undefined as any
+          value: undefined as any,
         })
         // deno-lint-ignore no-explicit-any
-      }) as any
+      }) as any,
     })
     return true
   }
@@ -332,7 +385,7 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
     const verify = Schema.object({
       id: Schema.string().required(),
       error: Schema.string(),
-      value: Schema.any()
+      value: Schema.any(),
     })
     const { id, error, value } = verify(body)
 
@@ -349,21 +402,23 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
   protected async onEvent(body: BodyOf<'response', this['S']>) {
     const verify = Schema.object({
       name: Schema.string().required(),
-      data: Schema.any()
+      data: Schema.any(),
     })
     const { name, data } = verify(body)
     const listeners = this.listeners[name] ?? []
     const tasks = []
     for (const listener of listeners) {
-      tasks.push((async () => await listener(data))().catch(reason => {
-        // FIXME: deno type check doesn't work here somehow
-        // deno-lint-ignore ban-ts-comment
-        // @ts-ignore
-        this.ctx.logger.warn('error executing listener %c', listener)
-        // deno-lint-ignore ban-ts-comment
-        // @ts-ignore
-        this.ctx.logger.warn(reason)
-      }))
+      tasks.push(
+        (async () => await listener(data))().catch((reason) => {
+          // FIXME: deno type check doesn't work here somehow
+          // deno-lint-ignore ban-ts-comment
+          // @ts-ignore
+          this.ctx.logger.warn('error executing listener %c', listener)
+          // deno-lint-ignore ban-ts-comment
+          // @ts-ignore
+          this.ctx.logger.warn(reason)
+        }),
+      )
     }
     await Promise.all(tasks)
     return true
@@ -372,7 +427,7 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
   protected async handler(data: unknown) {
     const verify = Schema.object({
       type: Schema.string(),
-      body: Schema.any()
+      body: Schema.any(),
     })
     // deno-lint-ignore no-explicit-any
     const { type, body } = verify(data as any)
@@ -384,7 +439,7 @@ export class CommunicationService<Protocol extends { Server: S2CPackages, Client
       case 'response':
         return await this.onResponse(body)
     }
-    return false;
+    return false
   }
 }
 
@@ -400,9 +455,9 @@ export namespace CommunicationService {
       send: Schema.function().required(),
       getInner: Schema.function().required(),
       name: Schema.string().required(),
-      open: Schema.boolean().required()
+      open: Schema.boolean().required(),
     }),
-    Schema.const(undefined)
+    Schema.const(undefined),
   ])
 
   const noop = new NoopCommunicator()
@@ -416,6 +471,3 @@ export namespace CommunicationService {
     }
   }
 }
-
-
-
