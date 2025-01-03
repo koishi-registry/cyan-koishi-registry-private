@@ -101,7 +101,7 @@ export class NpmSynchronizer extends Service {
     if (
       !satisfies(
         this.ctx.info.previous ?? parse('0.0.1'),
-        parseRange('^0.4.0'),
+        parseRange('^0.4.0-rc.0'),
       )
     ) {
       this.ctx.storage.remove('npm.seq')

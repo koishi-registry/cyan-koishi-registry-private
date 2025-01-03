@@ -12,7 +12,7 @@ import LoggerService from '@cordisjs/plugin-logger'
 import * as LogPersist from '@plug/logger'
 import { dirname, fromFileUrl } from '@std/path'
 import meta from './deno.json' with { type: 'json' }
-import { WorkerService } from "@p/worker";
+import { CommunicationService } from "@p/communicate";
 
 export interface Events<in C extends Context = Context>
   extends cordis.Events<C> {
@@ -53,7 +53,7 @@ export class Context extends cordis.Context {
     this.plugin(TimerService)
     this.plugin(HttpService)
     this.plugin(Server, config.server)
-    this.plugin(WorkerService)
+    this.plugin(CommunicationService)
     this.plugin(StorageService)
     this.plugin(CacheService)
 

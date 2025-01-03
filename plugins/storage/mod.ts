@@ -19,7 +19,7 @@ export class StorageService extends Service {
   }
 
   override [symbols.setup]() {
-    this.serviceName = this.ctx.$worker.isWorker ? 'remote' : 'localstorage'
+    this.serviceName = this.ctx.$communicate.conn.name === 'worker' ? 'remote' : 'localstorage'
 
     return new Promise<void>(resolve => {
       this.ctx.inject([`storage.${this.serviceName}`], () => resolve())

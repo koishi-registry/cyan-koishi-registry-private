@@ -1,5 +1,5 @@
 {
-  "name": "@p/child-rt",
+  "name": "@p/cp-rt",
   "version": "0.1.0",
   "exports": "./main.ts"
 }

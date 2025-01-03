@@ -1,15 +1,15 @@
-import { Context } from '@p/core'
+import type { Context } from '@p/core'
 import { Storage } from '@p/storage'
 
 declare module '@p/storage' {
   export namespace Storage {
-    export interface Services {
+    interface Services {
       remote: StorageRemoteStorage
     }
   }
 }
 
-declare module '@p/worker' {
+declare module '@p/communicate' {
   export interface ClientRequests {
     'storage/has'(key: string): boolean
     'storage/remove'(key: string): boolean
