@@ -1,5 +1,9 @@
 {
   "name": "@plug/storage",
-  "version": "0.1.0",
-  "exports": "./mod.ts"
+  "version": "0.1.1",
+  "exports": {
+    ".": "./mod.ts",
+    "./localstorage": "./localstorage.ts",
+    "./remote": "./remote.ts"
+  }
 }

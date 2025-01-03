@@ -1,4 +1,4 @@
-import { type Context, Service, symbols } from 'cordis'
+import { type Context, Service } from 'cordis'
 import Schema from 'schemastery'
 import Random from 'inaba'
 import pTry from 'p-try'
@@ -15,10 +15,21 @@ import { WorkerCommunicator } from "./communicator/worker.ts";
 import { fromFileUrl } from "@std/path";
 
 declare module 'cordis' {
-  export interface Context {
-    $communicate: CommunicationService
+  interface Context {
+    [Context.CommunicateProtocol]: Context.CommunicateProtocol<this>
+    [kProtocol]: { Server: Packages, Client: Packages }
+    $communicate: CommunicationService<this[typeof kProtocol] & this[typeof Context.CommunicateProtocol]>
+  }
+
+  namespace Context {
+    const CommunicateProtocol: unique symbol
+    interface CommunicateProtocol<C extends Context = Context> {
+      Server: S2CPackages
+      Client: C2SPackages
+    }
   }
 }
+export const kProtocol: unique symbol = Symbol.for('communicate.protocol')
 
 export type MessageType = 'event' | 'request' | 'response'
 
@@ -39,6 +50,12 @@ export interface Events {
     message: string
   }
 }
+
+export interface C2SRequests extends Requests {}
+export interface S2CRequests extends Requests {}
+export interface C2SEvents extends Events {}
+export interface S2CEvents extends Events {}
+
 
 // deno-lint-ignore no-explicit-any
 export type EventBodyOf<T extends Record<string, any>> = {
@@ -98,6 +115,8 @@ export type PackageStructOf<Packages extends Record<MessageType, any>> = {
 }
 
 export interface Packages extends AllPackagesOf<Events, Requests> {}
+export interface C2SPackages extends AllPackagesOf<C2SEvents, C2SRequests> {}
+export interface S2CPackages extends AllPackagesOf<S2CEvents, S2CRequests> {}
 
 export type EventsOf<P extends Packages> = Stringify<keyof P['event']>
 export type RequestsOf<P extends Packages> = Stringify<keyof P['request']>
@@ -117,7 +136,7 @@ export function detect(): CommunicationService.Type {
   return undefined
 }
 
-export class CommunicationService<Protocol extends { Server: Packages, Client: Packages } = {
+export class CommunicationService<Protocol extends { Server: S2CPackages, Client: C2SPackages } = {
   Server: Packages,
   Client: Packages
 }> extends Service {
@@ -216,7 +235,7 @@ export class CommunicationService<Protocol extends { Server: Packages, Client: P
     })
   }
 
-  override async [symbols.setup]() {
+  override async [Service.setup]() {
     this.registerHandler()
 
     await this._self.post('ready', {})

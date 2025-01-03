@@ -10,7 +10,7 @@ declare module '@p/storage' {
 }
 
 declare module '@p/communicate' {
-  export interface ClientRequests {
+  export interface C2SRequests {
     'storage/has'(key: string): boolean
     'storage/remove'(key: string): boolean
     'storage/_internal/clear'(): void
@@ -23,23 +23,23 @@ export class StorageRemoteStorage extends Storage {
   }
 
   override has(key: string): Promise<boolean> {
-    return this.ctx.$worker.call('storage/has', key);
+    return this.ctx.$communicate.call('storage/has', key);
   }
 
-  override getRaw(key: string): string | null {
+  override getRaw(_key: string): string | null {
     throw new Error("Not implemented")
   }
 
-  override setRaw(key: string, value: string): void {
+  override setRaw(_key: string, value: string): void {
     throw new Error("Not implemented")
   }
 
   override async remove(key: string): void {
-    await this.ctx.$worker.call('storage/remove', key);
+    await this.ctx.$communicate.call('storage/remove', key);
   }
 
   protected override async _clear(): Promise<void> {
-    await this.ctx.$worker.call('storage/_internal/clear');
+    await this.ctx.$communicate.call('storage/_internal/clear');
   }
 }
 
