@@ -1,7 +1,13 @@
 import { Context } from '../../context'
 import type { Hono } from '../../hono'
 import { HTTPException } from '../../http-exception'
-import type { BlankSchema, Env, Input, MiddlewareHandler, Schema } from '../../types'
+import type {
+  BlankSchema,
+  Env,
+  Input,
+  MiddlewareHandler,
+  Schema,
+} from '../../types'
 
 // Ref: https://github.com/cloudflare/workerd/blob/main/types/defines/pages.d.ts
 
@@ -9,7 +15,11 @@ import type { BlankSchema, Env, Input, MiddlewareHandler, Schema } from '../../t
 type Params<P extends string = any> = Record<P, string | string[]>
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type EventContext<Env = {}, P extends string = any, Data = Record<string, unknown>> = {
+export type EventContext<
+  Env = {},
+  P extends string = any,
+  Data = Record<string, unknown>,
+> = {
   request: Request
   functionPath: string
   waitUntil: (promise: Promise<unknown>) => void
@@ -24,26 +34,33 @@ declare type PagesFunction<
   Env = unknown,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Params extends string = any,
-  Data extends Record<string, unknown> = Record<string, unknown>
+  Data extends Record<string, unknown> = Record<string, unknown>,
 > = (context: EventContext<Env, Params, Data>) => Response | Promise<Response>
 
-export const handle =
-  <E extends Env = Env, S extends Schema = BlankSchema, BasePath extends string = '/'>(
-    app: Hono<E, S, BasePath>
-  ): PagesFunction<E['Bindings']> =>
-  (eventContext) => {
-    return app.fetch(
-      eventContext.request,
-      { ...eventContext.env, eventContext },
-      {
-        waitUntil: eventContext.waitUntil,
-        passThroughOnException: eventContext.passThroughOnException,
-      }
-    )
-  }
+export const handle = <
+  E extends Env = Env,
+  S extends Schema = BlankSchema,
+  BasePath extends string = '/',
+>(
+  app: Hono<E, S, BasePath>,
+): PagesFunction<E['Bindings']> =>
+(eventContext) => {
+  return app.fetch(
+    eventContext.request,
+    { ...eventContext.env, eventContext },
+    {
+      waitUntil: eventContext.waitUntil,
+      passThroughOnException: eventContext.passThroughOnException,
+    },
+  )
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function handleMiddleware<E extends Env = {}, P extends string = any, I extends Input = {}>(
+export function handleMiddleware<
+  E extends Env = {},
+  P extends string = any,
+  I extends Input = {},
+>(
   middleware: MiddlewareHandler<
     E & {
       Bindings: {
@@ -52,7 +69,7 @@ export function handleMiddleware<E extends Env = {}, P extends string = any, I e
     },
     P,
     I
-  >
+  >,
 ): PagesFunction<E['Bindings']> {
   return async (executionCtx) => {
     const context = new Context(executionCtx.request, {
@@ -103,10 +120,8 @@ declare abstract class FetcherLike {
 }
 
 /**
- *
  * @description `serveStatic()` is for advanced mode:
  * https://developers.cloudflare.com/pages/platform/functions/advanced-mode/#set-up-a-function
- *
  */
 export const serveStatic = (): MiddlewareHandler => {
   return async (c) => {

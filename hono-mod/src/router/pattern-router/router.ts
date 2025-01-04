@@ -17,16 +17,18 @@ export class PatternRouter<T> implements Router<T> {
       this.add(method, path.replace(/\/[^/]+$/, ''), handler)
     }
 
-    const parts = (path.match(/\/?(:\w+(?:{(?:(?:{[\d,]+})|[^}])+})?)|\/?[^\/\?]+/g) || []).map(
-      (part) => {
-        const match = part.match(/^\/:([^{]+)(?:{(.*)})?/)
-        return match
-          ? `/(?<${match[1]}>${match[2] || '[^/]+'})`
-          : part === '/*'
-          ? '/[^/]+'
-          : part.replace(/[.\\+*[^\]$()]/g, '\\$&')
-      }
-    )
+    const parts =
+      (path.match(/\/?(:\w+(?:{(?:(?:{[\d,]+})|[^}])+})?)|\/?[^\/\?]+/g) || [])
+        .map(
+          (part) => {
+            const match = part.match(/^\/:([^{]+)(?:{(.*)})?/)
+            return match
+              ? `/(?<${match[1]}>${match[2] || '[^/]+'})`
+              : part === '/*'
+              ? '/[^/]+'
+              : part.replace(/[.\\+*[^\]$()]/g, '\\$&')
+          },
+        )
 
     let re
     try {

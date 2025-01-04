@@ -4,7 +4,15 @@
  */
 
 import { isValidElement, reactAPICompatVersion, shallowEqual } from '../base'
-import type { Child, DOMAttributes, JSX, JSXNode, Props, FC, MemorableFC } from '../base'
+import type {
+  Child,
+  DOMAttributes,
+  FC,
+  JSX,
+  JSXNode,
+  MemorableFC,
+  Props,
+} from '../base'
 import { Children } from '../children'
 import { DOM_MEMO } from '../constants'
 import { useContext } from '../context'
@@ -67,15 +75,18 @@ const cloneElement = <T extends JSXNode | JSX.Element>(
     {
       ...(element as JSXNode).props,
       ...props,
-      children: children.length ? children : (element as JSXNode).props.children,
+      children: children.length
+        ? children
+        : (element as JSXNode).props.children,
     },
-    (element as JSXNode).key
+    (element as JSXNode).key,
   ) as T
 }
 
 const memo = <T>(
   component: FC<T>,
-  propsAreEqual: (prevProps: Readonly<T>, nextProps: Readonly<T>) => boolean = shallowEqual
+  propsAreEqual: (prevProps: Readonly<T>, nextProps: Readonly<T>) => boolean =
+    shallowEqual,
 ): FC<T> => {
   const wrapper = ((props: T) => component(props)) as MemorableFC<T>
   wrapper[DOM_MEMO] = propsAreEqual
@@ -83,45 +94,45 @@ const memo = <T>(
 }
 
 export {
-  reactAPICompatVersion as version,
-  createElement as jsx,
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  use,
-  startTransition,
-  useTransition,
-  useDeferredValue,
-  startViewTransition,
-  useViewTransition,
-  useMemo,
-  useLayoutEffect,
-  useInsertionEffect,
-  useReducer,
-  useId,
-  useDebugValue,
-  createRef,
-  forwardRef,
-  useImperativeHandle,
-  useSyncExternalStore,
-  useFormStatus,
-  useActionState,
-  useOptimistic,
-  Suspense,
-  ErrorBoundary,
-  createContext,
-  useContext,
-  memo,
-  isValidElement,
-  createElement,
-  cloneElement,
   Children,
+  cloneElement,
+  createContext,
+  createElement,
+  createElement as jsx,
+  createPortal,
+  createRef,
+  DOMAttributes,
+  ErrorBoundary,
+  flushSync,
+  forwardRef,
   Fragment,
   Fragment as StrictMode,
-  DOMAttributes,
-  flushSync,
-  createPortal,
+  isValidElement,
+  memo,
+  reactAPICompatVersion as version,
+  startTransition,
+  startViewTransition,
+  Suspense,
+  use,
+  useActionState,
+  useCallback,
+  useContext,
+  useDebugValue,
+  useDeferredValue,
+  useEffect,
+  useFormStatus,
+  useId,
+  useImperativeHandle,
+  useInsertionEffect,
+  useLayoutEffect,
+  useMemo,
+  useOptimistic,
+  useReducer,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+  useViewTransition,
 }
 
 export default {

@@ -221,7 +221,10 @@ describe('except', () => {
     const middleware1 = vi.fn(nextMiddleware)
     const middleware2 = vi.fn(nextMiddleware)
 
-    app.use('*', except(['/maintenance', '/public/users/:id'], middleware1, middleware2))
+    app.use(
+      '*',
+      except(['/maintenance', '/public/users/:id'], middleware1, middleware2),
+    )
     app.get('/maintenance', (c) => {
       return c.text('Hello Maintenance')
     })
@@ -260,7 +263,11 @@ describe('except', () => {
 
     app.use(
       '*',
-      except(['/maintenance', (c) => !!c.req.path.match(/public/)], middleware1, middleware2)
+      except(
+        ['/maintenance', (c) => !!c.req.path.match(/public/)],
+        middleware1,
+        middleware2,
+      ),
     )
     app.get('/maintenance', (c) => {
       return c.text('Hello Maintenance')

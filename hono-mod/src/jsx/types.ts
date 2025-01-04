@@ -4,11 +4,13 @@
 import type { Child, JSXNode } from './base'
 import type { JSX } from './intrinsic-elements'
 
-export type { Child, JSXNode, FC } from './base'
+export type { Child, FC, JSXNode } from './base'
 export type { RefObject } from './hooks'
 export type { Context } from './context'
 
-export type PropsWithChildren<P = unknown> = P & { children?: Child | undefined }
+export type PropsWithChildren<P = unknown> = P & {
+  children?: Child | undefined
+}
 export type CSSProperties = JSX.CSSProperties
 
 /**
@@ -25,7 +27,7 @@ type ReactNode = ReactElement | string | number | boolean | null | undefined
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ComponentClass<P = {}, S = {}> = unknown
 
-export type { ReactElement, ReactNode, ComponentClass }
+export type { ComponentClass, ReactElement, ReactNode }
 
 export type Event = globalThis.Event
 export type MouseEvent = globalThis.MouseEvent

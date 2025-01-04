@@ -49,7 +49,11 @@ export const jwt = (options: {
   secret: SignatureKey
   cookie?:
     | string
-    | { key: string; secret?: string | BufferSource; prefixOptions?: CookiePrefixOptions }
+    | {
+      key: string
+      secret?: string | BufferSource
+      prefixOptions?: CookiePrefixOptions
+    }
   alg?: SignatureAlgorithm
 }): MiddlewareHandler => {
   if (!options || !options.secret) {
@@ -57,7 +61,9 @@ export const jwt = (options: {
   }
 
   if (!crypto.subtle || !crypto.subtle.importKey) {
-    throw new Error('`crypto.subtle.importKey` is undefined. JWT auth middleware requires it.')
+    throw new Error(
+      '`crypto.subtle.importKey` is undefined. JWT auth middleware requires it.',
+    )
   }
 
   return async function jwt(ctx, next) {
@@ -87,14 +93,22 @@ export const jwt = (options: {
             ctx,
             options.cookie.secret,
             options.cookie.key,
-            options.cookie.prefixOptions
+            options.cookie.prefixOptions,
           )
         } else {
-          token = await getSignedCookie(ctx, options.cookie.secret, options.cookie.key)
+          token = await getSignedCookie(
+            ctx,
+            options.cookie.secret,
+            options.cookie.key,
+          )
         }
       } else {
         if (options.cookie.prefixOptions) {
-          token = getCookie(ctx, options.cookie.key, options.cookie.prefixOptions)
+          token = getCookie(
+            ctx,
+            options.cookie.key,
+            options.cookie.prefixOptions,
+          )
         } else {
           token = getCookie(ctx, options.cookie.key)
         }
@@ -149,7 +163,8 @@ function unauthorizedResponse(opts: {
     status: 401,
     statusText: opts.statusText,
     headers: {
-      'WWW-Authenticate': `Bearer realm="${opts.ctx.req.url}",error="${opts.error}",error_description="${opts.errDescription}"`,
+      'WWW-Authenticate':
+        `Bearer realm="${opts.ctx.req.url}",error="${opts.error}",error_description="${opts.errDescription}"`,
     },
   })
 }

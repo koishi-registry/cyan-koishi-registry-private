@@ -40,13 +40,12 @@ describe('JSON pretty by Middleware', () => {
       '*',
       prettyJSON({
         query: targetQuery,
-      })
+      }),
     )
     app.get('/', (c) =>
       c.json({
         message: 'Hono!',
-      })
-    )
+      }))
 
     const prettyText = await (await app.request(`?${targetQuery}`)).text()
     expect(prettyText).toBe(`{

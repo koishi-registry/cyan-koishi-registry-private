@@ -24,8 +24,11 @@ const mockExports3 = {
 
 describe('validateExports', () => {
   it('Works', async () => {
-    expect(() => validateExports(mockExports1, mockExports1, 'package.json')).not.toThrowError()
-    expect(() => validateExports(mockExports1, mockExports2, 'jsr.json')).not.toThrowError()
-    expect(() => validateExports(mockExports1, mockExports3, 'package.json')).toThrowError()
+    expect(() => validateExports(mockExports1, mockExports1, 'package.json'))
+      .not.toThrowError()
+    expect(() => validateExports(mockExports1, mockExports2, 'jsr.json')).not
+      .toThrowError()
+    expect(() => validateExports(mockExports1, mockExports3, 'package.json'))
+      .toThrowError()
   })
 })

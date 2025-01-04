@@ -2,20 +2,22 @@ import type { Context } from '../../context'
 
 export type AddressType = 'IPv6' | 'IPv4' | undefined
 
-export type NetAddrInfo = {
-  /**
-   * Transport protocol type
-   */
-  transport?: 'tcp' | 'udp'
-  /**
-   * Transport port number
-   */
-  port?: number
+export type NetAddrInfo =
+  & {
+    /**
+     * Transport protocol type
+     */
+    transport?: 'tcp' | 'udp'
+    /**
+     * Transport port number
+     */
+    port?: number
 
-  address?: string
-  addressType?: AddressType
-} & (
-  | {
+    address?: string
+    addressType?: AddressType
+  }
+  & (
+    | {
       /**
        * Host name such as IP Addr
        */
@@ -26,8 +28,8 @@ export type NetAddrInfo = {
        */
       addressType: AddressType
     }
-  | {}
-)
+    | {}
+  )
 
 /**
  * HTTP Connection information

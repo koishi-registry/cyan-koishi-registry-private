@@ -20,10 +20,10 @@ const zodValidator = <
   T extends ZodSchema,
   E extends {},
   P extends string,
-  Target extends keyof ValidationTargets
+  Target extends keyof ValidationTargets,
 >(
   target: Target,
-  schema: T
+  schema: T,
 ): MiddlewareHandler<
   E,
   P,
@@ -47,14 +47,16 @@ describe('Basic', () => {
       await next()
     },
     validator('query', (value, c) => {
-      type verify = Expect<Equal<Record<string, string | string[]>, typeof value>>
+      type verify = Expect<
+        Equal<Record<string, string | string[]>, typeof value>
+      >
       if (!value) {
         return c.text('Invalid!', 400)
       }
     }),
     (c) => {
       return c.text('Valid!')
-    }
+    },
   )
 
   type Expected = {
@@ -99,7 +101,7 @@ describe('JSON', () => {
     validator('json', (value) => value),
     (c) => {
       return c.json(c.req.valid('json'))
-    }
+    },
   )
 
   it('Should return 200 response with a valid JSON data', async () => {
@@ -193,7 +195,7 @@ describe('Malformed JSON', () => {
     validator('json', (value) => value),
     (c) => {
       return c.json(c.req.valid('json'))
-    }
+    },
   )
 
   it('Should return 400 response if the body data is not a valid JSON', async () => {
@@ -217,7 +219,7 @@ describe('FormData', () => {
     validator('form', (value) => value),
     (c) => {
       return c.json(c.req.valid('form'))
-    }
+    },
   )
 
   it('Should return 200 response with a valid form data', async () => {
@@ -300,7 +302,7 @@ describe('Malformed FormData request', () => {
     validator('form', (value) => value),
     (c) => {
       return c.json(c.req.valid('form'))
-    }
+    },
   )
   app.onError(onErrorHandler)
 
@@ -332,7 +334,7 @@ describe('JSON and FormData', () => {
         json: jsonData,
         form: formData,
       })
-    }
+    },
   )
 
   it('Should validate a JSON request', async () => {
@@ -383,7 +385,7 @@ describe('Cached contents', () => {
         async (c) => {
           const data = await c.req.json()
           return c.json(data, 200)
-        }
+        },
       )
     }
 
@@ -423,7 +425,7 @@ describe('Cached contents', () => {
         }),
         async (c) => {
           return c.json({ message: 'OK' }, 200)
-        }
+        },
       )
     }
 
@@ -446,22 +448,27 @@ describe('Cached contents', () => {
 describe('Validator middleware with a custom validation function', () => {
   const app = new Hono()
 
-  const validationFunction: ValidationFunction<{ id: string }, { id: number }> = (v) => {
-    return {
-      id: Number(v.id),
+  const validationFunction: ValidationFunction<{ id: string }, { id: number }> =
+    (v) => {
+      return {
+        id: Number(v.id),
+      }
     }
-  }
 
-  const route = app.post('/post', validator('json', validationFunction), (c) => {
-    const post = c.req.valid('json')
-    type Expected = {
-      id: number
-    }
-    type verify = Expect<Equal<Expected, typeof post>>
-    return c.json({
-      post,
-    })
-  })
+  const route = app.post(
+    '/post',
+    validator('json', validationFunction),
+    (c) => {
+      const post = c.req.valid('json')
+      type Expected = {
+        id: number
+      }
+      type verify = Expect<Equal<Expected, typeof post>>
+      return c.json({
+        post,
+      })
+    },
+  )
 
   type Expected = {
     '/post': {
@@ -649,7 +656,9 @@ describe('Validator middleware with Zod validates query params', () => {
   })
 
   it('Should validate query params and return 200 response', async () => {
-    const res = await app.request('http://localhost/search?page=123&tag=a&tag=b')
+    const res = await app.request(
+      'http://localhost/search?page=123&tag=a&tag=b',
+    )
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({
       page: 123,
@@ -791,13 +800,13 @@ describe('Validator middleware with Zod multiple validators', () => {
           .transform((v) => {
             return Number(v)
           }),
-      })
+      }),
     ),
     zodValidator(
       'form',
       z.object({
         title: z.string(),
-      })
+      }),
     ),
     (c) => {
       const id = c.get('id')
@@ -807,7 +816,7 @@ describe('Validator middleware with Zod multiple validators', () => {
       const { page } = c.req.valid('query')
       const { title } = c.req.valid('form')
       return c.json({ page, title })
-    }
+    },
   )
 
   type Actual = ExtractSchema<typeof route>
@@ -876,7 +885,7 @@ it('With path parameters', () => {
     }),
     (c) => {
       return c.text('Valid!')
-    }
+    },
   )
 
   type Expected = {
@@ -922,7 +931,7 @@ it('`on`', () => {
       return c.json({
         success: true,
       })
-    }
+    },
   )
 
   type Expected = {
@@ -969,7 +978,7 @@ it('`app.on`', () => {
             },
           ],
         })
-      }
+      },
     )
     .post(
       validator('json', () => {
@@ -986,7 +995,7 @@ it('`app.on`', () => {
         return c.json({
           success: true,
         })
-      }
+      },
     )
 
   type Actual = ExtractSchema<typeof route>
@@ -1013,7 +1022,7 @@ describe('Clone Request object', () => {
         // `c.req.blob()` should not throw the error
         await c.req.blob()
         return c.text('foo')
-      }
+      },
     )
 
     it('Should not throw the error with c.req.json()', async () => {
@@ -1048,7 +1057,7 @@ describe('Clone Request object', () => {
         // `c.req.blob()` should not throw the error
         await c.req.blob()
         return c.text('foo')
-      }
+      },
     )
 
     app.post(
@@ -1066,7 +1075,7 @@ describe('Clone Request object', () => {
       (c) => {
         const v = c.req.valid('form')
         return c.json(v)
-      }
+      },
     )
 
     it('Should not throw the error with c.req.parseBody()', async () => {
@@ -1107,7 +1116,7 @@ describe('Async validator function', () => {
     (c) => {
       const { page } = c.req.valid('query')
       return c.json({ page })
-    }
+    },
   )
 
   it('Should get the values from the async function', async () => {
@@ -1144,9 +1153,9 @@ describe('Validator with using Zod directly', () => {
           {
             message: 'Created!',
           },
-          201
+          201,
         )
-      }
+      },
     )
 
     expectTypeOf<ExtractSchema<typeof route>>().toEqualTypeOf<{
@@ -1183,7 +1192,7 @@ describe('Transform', () => {
         const { page } = c.req.valid('query')
         expectTypeOf(page).toEqualTypeOf<number>()
         return c.json({ page })
-      }
+      },
     )
 
     type Expected = {

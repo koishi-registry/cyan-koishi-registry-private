@@ -37,13 +37,15 @@ const defaultTimeoutException = new HTTPException(504, {
  */
 export const timeout = (
   duration: number,
-  exception: HTTPExceptionFunction | HTTPException = defaultTimeoutException
+  exception: HTTPExceptionFunction | HTTPException = defaultTimeoutException,
 ): MiddlewareHandler => {
   return async function timeout(context, next) {
     let timer: number | undefined
     const timeoutPromise = new Promise<void>((_, reject) => {
       timer = setTimeout(() => {
-        reject(typeof exception === 'function' ? exception(context) : exception)
+        reject(
+          typeof exception === 'function' ? exception(context) : exception,
+        )
       }, duration) as unknown as number
     })
 

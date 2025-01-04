@@ -8,7 +8,7 @@ describe('WebSockets', () => {
   const app = new Hono()
     .get(
       '/ws',
-      upgradeWebSocket(() => ({}))
+      upgradeWebSocket(() => ({})),
     )
     .get('/', (c) => c.json({}))
   const client = hc<typeof app>('/')

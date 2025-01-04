@@ -10,9 +10,13 @@ app.get('/event/:id/comments', () => {})
 app.post('/event/:id/comments', () => {})
 app.post('/status', () => {})
 app.get('/very/deeply/nested/route/hello/there', () => {})
-app.get('/user/lookup/username/:username', res('json'), async (ctx: any, next: any) => {
-  ctx.res.body = { message: `Hello ${ctx.params.username}` }
-  await next()
-})
+app.get(
+  '/user/lookup/username/:username',
+  res('json'),
+  async (ctx: any, next: any) => {
+    ctx.res.body = { message: `Hello ${ctx.params.username}` }
+    await next()
+  },
+)
 
 await app.listen({ port: 8000 })

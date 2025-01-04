@@ -1,14 +1,22 @@
 import { raw } from '../helper/html'
-import { escapeToBuffer, resolveCallbackSync, stringBufferToString } from '../utils/html'
-import type { HtmlEscaped, HtmlEscapedString, StringBufferWithCallbacks } from '../utils/html'
-import { DOM_RENDERER, DOM_MEMO } from './constants'
+import {
+  escapeToBuffer,
+  resolveCallbackSync,
+  stringBufferToString,
+} from '../utils/html'
+import type {
+  HtmlEscaped,
+  HtmlEscapedString,
+  StringBufferWithCallbacks,
+} from '../utils/html'
+import { DOM_MEMO, DOM_RENDERER } from './constants'
 import type { Context } from './context'
 import { createContext, globalContexts, useContext } from './context'
 import { domRenderers } from './intrinsic-element/common'
 import * as intrinsicElementTags from './intrinsic-element/components'
 import type {
-  JSX as HonoJSX,
   IntrinsicElements as IntrinsicElementsDefined,
+  JSX as HonoJSX,
 } from './intrinsic-elements'
 import { normalizeIntrinsicElementKey, styleObjectForEach } from './utils'
 
@@ -40,11 +48,11 @@ export const getNameSpaceContext = () => nameSpaceContext
 
 const toSVGAttributeName = (key: string): string =>
   /[A-Z]/.test(key) &&
-  // Presentation attributes are findable in style object. "clip-path", "font-size", "stroke-width", etc.
-  // Or other un-deprecated kebab-case attributes. "overline-position", "paint-order", "strikethrough-position", etc.
-  key.match(
-    /^(?:al|basel|clip(?:Path|Rule)$|co|do|fill|fl|fo|gl|let|lig|i|marker[EMS]|o|pai|pointe|sh|st[or]|text[^L]|tr|u|ve|w)/
-  )
+    // Presentation attributes are findable in style object. "clip-path", "font-size", "stroke-width", etc.
+    // Or other un-deprecated kebab-case attributes. "overline-position", "paint-order", "strikethrough-position", etc.
+    key.match(
+      /^(?:al|basel|clip(?:Path|Rule)$|co|do|fill|fl|fo|gl|let|lig|i|marker[EMS]|o|pai|pointe|sh|st[or]|text[^L]|tr|u|ve|w)/,
+    )
     ? key.replace(/([A-Z])/g, '-$1').toLowerCase()
     : key
 
@@ -94,12 +102,17 @@ export const booleanAttributes = [
   'selected',
 ]
 
-const childrenToStringToBuffer = (children: Child[], buffer: StringBufferWithCallbacks): void => {
+const childrenToStringToBuffer = (
+  children: Child[],
+  buffer: StringBufferWithCallbacks,
+): void => {
   for (let i = 0, len = children.length; i < len; i++) {
     const child = children[i]
     if (typeof child === 'string') {
       escapeToBuffer(child, buffer)
-    } else if (typeof child === 'boolean' || child === null || child === undefined) {
+    } else if (
+      typeof child === 'boolean' || child === null || child === undefined
+    ) {
       continue
     } else if (child instanceof JSXNode) {
       child.toStringToBuffer(buffer)
@@ -258,7 +271,9 @@ class JSXFunctionNode extends JSXNode {
         buffer.unshift('', res)
       } else {
         // save current contexts for resuming
-        const currentContexts: LocalContexts = globalContexts.map((c) => [c, c.values.at(-1)])
+        const currentContexts: LocalContexts = globalContexts.map((
+          c,
+        ) => [c, c.values.at(-1)])
         buffer.unshift(
           '',
           res.then((childRes) => {
@@ -266,7 +281,7 @@ class JSXFunctionNode extends JSXNode {
               childRes.localContexts = currentContexts
             }
             return childRes
-          })
+          }),
         )
       }
     } else if (res instanceof JSXNode) {
@@ -311,13 +326,14 @@ let initDomRenderer = false
 export const jsxFn = (
   tag: string | Function,
   props: Props,
-  children: (string | number | HtmlEscapedString)[]
+  children: (string | number | HtmlEscapedString)[],
 ): JSXNode => {
   if (!initDomRenderer) {
     for (const k in domRenderers) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(intrinsicElementTags[k as keyof typeof intrinsicElementTags] as any)[DOM_RENDERER] =
-        domRenderers[k]
+      ;(intrinsicElementTags[k as keyof typeof intrinsicElementTags] as any)[
+        DOM_RENDERER
+      ] = domRenderers[k]
     }
     initDomRenderer = true
   }
@@ -328,7 +344,7 @@ export const jsxFn = (
     return new JSXFunctionNode(
       intrinsicElementTags[tag as keyof typeof intrinsicElementTags],
       props,
-      children
+      children,
     )
   } else if (tag === 'svg' || tag === 'head') {
     nameSpaceContext ||= createContext('')
@@ -338,7 +354,7 @@ export const jsxFn = (
         {
           value: tag,
         },
-        children
+        children,
       ),
     ])
   } else {
@@ -378,7 +394,8 @@ export type MemorableFC<T> = FC<T> & {
 }
 export const memo = <T>(
   component: FC<T>,
-  propsAreEqual: (prevProps: Readonly<T>, nextProps: Readonly<T>) => boolean = shallowEqual
+  propsAreEqual: (prevProps: Readonly<T>, nextProps: Readonly<T>) => boolean =
+    shallowEqual,
 ): FC<T> => {
   let computed: ReturnType<FC<T>> = null
   let prevProps: T | undefined = undefined
@@ -392,8 +409,7 @@ export const memo = <T>(
 
   // This function is for toString(), but it can also be used for DOM renderer.
   // So, set DOM_MEMO and DOM_RENDERER for DOM renderer.
-  wrapper[DOM_MEMO] = propsAreEqual
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  wrapper[DOM_MEMO] = propsAreEqual // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(wrapper as any)[DOM_RENDERER] = component
 
   return wrapper as FC<T>
@@ -410,12 +426,13 @@ export const Fragment = ({
     {
       children,
     },
-    Array.isArray(children) ? children : children ? [children] : []
+    Array.isArray(children) ? children : children ? [children] : [],
   ) as never
 }
 
 export const isValidElement = (element: unknown): element is JSXNode => {
-  return !!(element && typeof element === 'object' && 'tag' in element && 'props' in element)
+  return !!(element && typeof element === 'object' && 'tag' in element &&
+    'props' in element)
 }
 
 export const cloneElement = <T extends JSXNode | JSX.Element>(
@@ -426,7 +443,7 @@ export const cloneElement = <T extends JSXNode | JSX.Element>(
   return jsx(
     (element as JSXNode).tag,
     { ...(element as JSXNode).props, ...props },
-    ...(children as (string | number | HtmlEscapedString)[])
+    ...(children as (string | number | HtmlEscapedString)[]),
   ) as T
 }
 

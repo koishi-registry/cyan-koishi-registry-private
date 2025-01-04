@@ -30,7 +30,10 @@ declare namespace Deno {
    * @param options Options for creating a directory.
    * @returns A promise that resolves when the directory is created.
    */
-  export function mkdir(path: string, options?: { recursive?: boolean }): Promise<void>
+  export function mkdir(
+    path: string,
+    options?: { recursive?: boolean },
+  ): Promise<void>
 
   /**
    * Write a new file, with the specified path and data.
@@ -48,7 +51,7 @@ declare namespace Deno {
 
   export function upgradeWebSocket(
     req: Request,
-    options: UpgradeWebSocketOptions
+    options: UpgradeWebSocketOptions,
   ): {
     response: Response
     socket: WebSocket

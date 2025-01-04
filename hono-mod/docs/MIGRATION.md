@@ -4,7 +4,8 @@
 
 ### `deno.land/x` to JSR
 
-There is no braking change, but we no longer publish the module from `deno.land/x`. If you want to use Hono on Deno, use JSR instead of it.
+There is no braking change, but we no longer publish the module from
+`deno.land/x`. If you want to use Hono on Deno, use JSR instead of it.
 
 If you migrate, replace the path `deno.land/x` with JSR's.
 
@@ -24,21 +25,31 @@ There are some breaking changes.
 
 ### Removal of deprecated features
 
-- AWS Lambda Adapter - `LambdaFunctionUrlRequestContext` is obsolete. Use `ApiGatewayRequestContextV2` instead.
+- AWS Lambda Adapter - `LambdaFunctionUrlRequestContext` is obsolete. Use
+  `ApiGatewayRequestContextV2` instead.
 - Next.js Adapter - `hono/nextjs` is obsolete. Use `hono/vercel` instead.
 - Context - `c.jsonT()` is obsolete. Use `c.json()` instead.
-- Context - `c.stream()` and `c.streamText()` are obsolete. Use `stream()` and `streamText()` in `hono/streaming` instead.
-- Context - `c.env()` is obsolete. Use `getRuntimeKey()` in `hono/adapter` instead.
-- Hono - `app.showRoutes()` is obsolete. Use `showRoutes()` in `hono/dev` instead.
-- Hono - `app.routerName` is obsolete. Use `getRouterName()` in `hono/dev` instead.
-- Hono - `app.head()` is no longer used. `app.get()` implicitly handles the HEAD method.
+- Context - `c.stream()` and `c.streamText()` are obsolete. Use `stream()` and
+  `streamText()` in `hono/streaming` instead.
+- Context - `c.env()` is obsolete. Use `getRuntimeKey()` in `hono/adapter`
+  instead.
+- Hono - `app.showRoutes()` is obsolete. Use `showRoutes()` in `hono/dev`
+  instead.
+- Hono - `app.routerName` is obsolete. Use `getRouterName()` in `hono/dev`
+  instead.
+- Hono - `app.head()` is no longer used. `app.get()` implicitly handles the HEAD
+  method.
 - Hono - `app.handleEvent()` is obsolete. Use `app.fetch()` instead.
-- HonoRequest - `req.cookie()` is obsolete. Use `getCookie()` in `hono/cookie` instead.
-- HonoRequest - `headers()`, `body()`, `bodyUsed()`, `integrity()`, `keepalive()`, `referrer()`, and `signal()` are obsolete. Use the methods in `req.raw` such as `req.raw.headers()`.
+- HonoRequest - `req.cookie()` is obsolete. Use `getCookie()` in `hono/cookie`
+  instead.
+- HonoRequest - `headers()`, `body()`, `bodyUsed()`, `integrity()`,
+  `keepalive()`, `referrer()`, and `signal()` are obsolete. Use the methods in
+  `req.raw` such as `req.raw.headers()`.
 
 ### `serveStatic` in Cloudflare Workers Adapter requires `manifest`
 
-If you use the Cloudflare Workers adapter's `serve-static`, you should specify the `manifest` option.
+If you use the Cloudflare Workers adapter's `serve-static`, you should specify
+the `manifest` option.
 
 ```ts
 import manifest from '__STATIC_CONTENT_MANIFEST'
@@ -50,21 +61,23 @@ app.use('/static/*', serveStatic({ root: './assets', manifest }))
 
 ### Others
 
-- The default value of `docType` option in JSX Renderer Middleware is now `true`.
+- The default value of `docType` option in JSX Renderer Middleware is now
+  `true`.
 - `FC` in `hono/jsx` does not pass `children`. Use `PropsWithChildren`.
 - Some Mime Types are removed https://github.com/honojs/hono/pull/2119.
-- Types for chaining routes with middleware matter: https://github.com/honojs/hono/pull/2046.
+- Types for chaining routes with middleware matter:
+  https://github.com/honojs/hono/pull/2046.
 - Types for the validator matter: https://github.com/honojs/hono/pull/2130.
 
 ## v2.7.8 to v3.0.0
 
-There are some breaking changes.
-In addition to the following, type mismatches may occur.
+There are some breaking changes. In addition to the following, type mismatches
+may occur.
 
 ### `c.req` is now `HonoRequest`
 
-`c.req` becomes `HonoRequest`, not `Request`.
-Although APIs are almost same, but if you want to access `Request`, use `c.req.raw`.
+`c.req` becomes `HonoRequest`, not `Request`. Although APIs are almost same, but
+if you want to access `Request`, use `c.req.raw`.
 
 ```ts
 app.post('/', async (c) => {
@@ -79,9 +92,8 @@ You can't use `StaticRouter`.
 
 ### Validator is changed
 
-Previous Validator Middleware is obsolete.
-You can still use `hono/validator`, but the API has been changed.
-See [the document](https://hono.dev).
+Previous Validator Middleware is obsolete. You can still use `hono/validator`,
+but the API has been changed. See [the document](https://hono.dev).
 
 ### `serveStatic` is provided from Adapter
 
@@ -106,12 +118,13 @@ app.get('/static/*', serveStatic({ root: './' }))
 
 For Cloudflare Workers, the `serveStatic` is obsolete in Service Worker mode.
 
-Note: Service Worker mode is that using `app.fire()`.
-We recommend use "Module Worker" mode with `export default app`.
+Note: Service Worker mode is that using `app.fire()`. We recommend use "Module
+Worker" mode with `export default app`.
 
 ### Use `type` to define the Generics for `new Hono`
 
-You must use `type` to define the Generics for `new Hono`. Do not use `interface`.
+You must use `type` to define the Generics for `new Hono`. Do not use
+`interface`.
 
 ```ts
 // Should use `type`
@@ -126,7 +139,10 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 ### Current Validator Middleware is deprecated
 
-At the next major version, Validator Middleware will be changed with "breaking changes". Therefore, the current Validator Middleware will be deprecated; please use 3rd-party Validator libraries such as [Zod](https://zod.dev) or [TypeBox](https://github.com/sinclairzx81/typebox).
+At the next major version, Validator Middleware will be changed with "breaking
+changes". Therefore, the current Validator Middleware will be deprecated; please
+use 3rd-party Validator libraries such as [Zod](https://zod.dev) or
+[TypeBox](https://github.com/sinclairzx81/typebox).
 
 ```ts
 import { z } from 'zod'
@@ -153,11 +169,15 @@ There is a breaking change associated to the security update.
 
 ### Basic Auth Middleware and Bearer Auth Middleware
 
-If you are using Basic Auth and Bearer Auth in your Handler (nested), change as follows:
+If you are using Basic Auth and Bearer Auth in your Handler (nested), change as
+follows:
 
 ```ts
 app.use('/auth/*', async (c, next) => {
-  const auth = basicAuth({ username: c.env.USERNAME, password: c.env.PASSWORD })
+  const auth = basicAuth({
+    username: c.env.USERNAME,
+    password: c.env.PASSWORD,
+  })
   return auth(c, next) // Older: `await auth(c, next)`
 })
 ```
@@ -168,9 +188,12 @@ There are two BREAKING CHANGES.
 
 ### `c.req.parseBody` does not parse JSON, text, and ArrayBuffer
 
-**DO NOT** use `c.req.parseBody` for parsing **JSON**, **text**, or **ArrayBuffer**.
+**DO NOT** use `c.req.parseBody` for parsing **JSON**, **text**, or
+**ArrayBuffer**.
 
-`c.req.parseBody` now only parses FormData with content type `multipart/form` or `application/x-www-form-urlencoded`. If you want to parse JSON, text, or ArrayBuffer, use `c.req.json()`, `c.req.text()`, or `c.req.arrayBuffer()`.
+`c.req.parseBody` now only parses FormData with content type `multipart/form` or
+`application/x-www-form-urlencoded`. If you want to parse JSON, text, or
+ArrayBuffer, use `c.req.json()`, `c.req.text()`, or `c.req.arrayBuffer()`.
 
 ```ts
 // `multipart/form` or `application/x-www-form-urlencoded`
@@ -183,8 +206,9 @@ const arrayBuffer = await c.req.arrayBuffer() // for ArrayBuffer
 
 ### The arguments of Generics for `new Hono` have been changed
 
-Now, the constructor of "Hono" receives `Variables` and `Bindings`.
-"Bindings" is for types of environment variables for Cloudflare Workers. "Variables" is for types of `c.set`/`c.get`
+Now, the constructor of "Hono" receives `Variables` and `Bindings`. "Bindings"
+is for types of environment variables for Cloudflare Workers. "Variables" is for
+types of `c.set`/`c.get`
 
 ```ts
 type Bindings = {
@@ -222,12 +246,12 @@ There are many BREAKING CHANGES. Please follow instructions below.
 import { Hono, poweredBy } from 'https://deno.land/x/hono/mod.ts' // <--- NG
 ```
 
-`hono/mod.ts` does not export middleware.
-To import middleware, use `hono/middleware.ts`:
+`hono/mod.ts` does not export middleware. To import middleware, use
+`hono/middleware.ts`:
 
 ```ts
 import { Hono } from 'https://deno.land/x/hono/mod.ts'
-import { poweredBy, basicAuth } from 'https://deno.land/x/hono/middleware.ts'
+import { basicAuth, poweredBy } from 'https://deno.land/x/hono/middleware.ts'
 ```
 
 ### Cookie middleware is obsolete
@@ -238,8 +262,8 @@ import { poweredBy, basicAuth } from 'https://deno.land/x/hono/middleware.ts'
 import { cookie } from 'hono/cookie' // <--- Obsolete!
 ```
 
-You do not have to use Cookie middleware to parse or set cookies.
-They become default functions:
+You do not have to use Cookie middleware to parse or set cookies. They become
+default functions:
 
 ```ts
 // Parse cookie
@@ -264,7 +288,8 @@ app.get('/', (c) => {
 import { bodyParse } from 'hono/body-parse' // <--- Obsolete!
 ```
 
-You do not have to use Body parse middleware to parse request body. Use `c.req.parseBody()` method instead.
+You do not have to use Body parse middleware to parse request body. Use
+`c.req.parseBody()` method instead.
 
 ```ts
 // Parse Request body

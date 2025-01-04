@@ -22,7 +22,8 @@ import { utf8Decoder, utf8Encoder } from './utf8'
 
 const encodeJwtPart = (part: unknown): string =>
   encodeBase64Url(utf8Encoder.encode(JSON.stringify(part))).replace(/=/g, '')
-const encodeSignaturePart = (buf: ArrayBufferLike): string => encodeBase64Url(buf).replace(/=/g, '')
+const encodeSignaturePart = (buf: ArrayBufferLike): string =>
+  encodeBase64Url(buf).replace(/=/g, '')
 
 const decodeJwtPart = (part: string): TokenHeader | JWTPayload | undefined =>
   JSON.parse(utf8Decoder.decode(decodeBase64Url(part)))
@@ -37,7 +38,9 @@ export function isTokenHeader(obj: unknown): obj is TokenHeader {
     const objWithAlg = obj as { [key: string]: unknown }
     return (
       'alg' in objWithAlg &&
-      Object.values(AlgorithmTypes).includes(objWithAlg.alg as AlgorithmTypes) &&
+      Object.values(AlgorithmTypes).includes(
+        objWithAlg.alg as AlgorithmTypes,
+      ) &&
       (!('typ' in objWithAlg) || objWithAlg.typ === 'JWT')
     )
   }
@@ -47,14 +50,20 @@ export function isTokenHeader(obj: unknown): obj is TokenHeader {
 export const sign = async (
   payload: JWTPayload,
   privateKey: SignatureKey,
-  alg: SignatureAlgorithm = 'HS256'
+  alg: SignatureAlgorithm = 'HS256',
 ): Promise<string> => {
   const encodedPayload = encodeJwtPart(payload)
-  const encodedHeader = encodeJwtPart({ alg, typ: 'JWT' } satisfies TokenHeader)
+  const encodedHeader = encodeJwtPart(
+    { alg, typ: 'JWT' } satisfies TokenHeader,
+  )
 
   const partialToken = `${encodedHeader}.${encodedPayload}`
 
-  const signaturePart = await signing(privateKey, alg, utf8Encoder.encode(partialToken))
+  const signaturePart = await signing(
+    privateKey,
+    alg,
+    utf8Encoder.encode(partialToken),
+  )
   const signature = encodeSignaturePart(signaturePart)
 
   return `${partialToken}.${signature}`
@@ -63,7 +72,7 @@ export const sign = async (
 export const verify = async (
   token: string,
   publicKey: SignatureKey,
-  alg: SignatureAlgorithm = 'HS256'
+  alg: SignatureAlgorithm = 'HS256',
 ): Promise<JWTPayload> => {
   const tokenParts = token.split('.')
   if (tokenParts.length !== 3) {
@@ -90,7 +99,7 @@ export const verify = async (
     publicKey,
     alg,
     decodeBase64Url(tokenParts[2]),
-    utf8Encoder.encode(headerPayload)
+    utf8Encoder.encode(headerPayload),
   )
   if (!verified) {
     throw new JwtTokenSignatureMismatched(token)
@@ -99,7 +108,9 @@ export const verify = async (
   return payload
 }
 
-export const decode = (token: string): { header: TokenHeader; payload: JWTPayload } => {
+export const decode = (
+  token: string,
+): { header: TokenHeader; payload: JWTPayload } => {
   try {
     const [h, p] = token.split('.')
     const header = decodeJwtPart(h) as TokenHeader

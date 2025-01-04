@@ -29,7 +29,7 @@ export const createPool = ({
   const run = async <T>(
     fn: () => T,
     promise?: Promise<T>,
-    resolve?: (result: T) => void
+    resolve?: (result: T) => void,
   ): Promise<T> => {
     if (pool.size >= (concurrency as number)) {
       promise ||= new Promise<T>((r) => (resolve = r))

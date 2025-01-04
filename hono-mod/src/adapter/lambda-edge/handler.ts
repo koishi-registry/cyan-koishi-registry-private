@@ -112,17 +112,20 @@ const convertHeaders = (headers: Headers): CloudFrontHeaders => {
 
 export const handle = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  app: Hono<any>
-): ((
+  app: Hono<any>,
+): (
   event: CloudFrontEdgeEvent,
   context?: CloudFrontContext,
-  callback?: Callback
-) => Promise<CloudFrontResult>) => {
+  callback?: Callback,
+) => Promise<CloudFrontResult> => {
   return async (event, context?, callback?) => {
     const res = await app.fetch(createRequest(event), {
       event,
       context,
-      callback: (err: Error | null, result?: CloudFrontResult | CloudFrontRequest) => {
+      callback: (
+        err: Error | null,
+        result?: CloudFrontResult | CloudFrontRequest,
+      ) => {
         callback?.(err, result)
       },
       config: event.Records[0].cf.config,
@@ -134,8 +137,12 @@ export const handle = (
 }
 
 const createResult = async (res: Response): Promise<CloudFrontResult> => {
-  const isBase64Encoded = isContentTypeBinary(res.headers.get('content-type') || '')
-  const body = isBase64Encoded ? encodeBase64(await res.arrayBuffer()) : await res.text()
+  const isBase64Encoded = isContentTypeBinary(
+    res.headers.get('content-type') || '',
+  )
+  const body = isBase64Encoded
+    ? encodeBase64(await res.arrayBuffer())
+    : await res.text()
 
   return {
     status: res.status.toString(),
@@ -147,7 +154,9 @@ const createResult = async (res: Response): Promise<CloudFrontResult> => {
 
 const createRequest = (event: CloudFrontEdgeEvent): Request => {
   const queryString = event.Records[0].cf.request.querystring
-  const urlPath = `https://${event.Records[0].cf.config.distributionDomainName}${event.Records[0].cf.request.uri}`
+  const urlPath = `https://${
+    event.Records[0].cf.config.distributionDomainName
+  }${event.Records[0].cf.request.uri}`
   const url = queryString ? `${urlPath}?${queryString}` : urlPath
 
   const headers = new Headers()
@@ -168,7 +177,7 @@ const createRequest = (event: CloudFrontEdgeEvent): Request => {
 
 export const createBody = (
   method: string,
-  requestBody: CloudFrontRequest['body']
+  requestBody: CloudFrontRequest['body'],
 ): string | Uint8Array | undefined => {
   if (!requestBody || !requestBody.data) {
     return undefined
@@ -183,7 +192,8 @@ export const createBody = (
 }
 
 export const isContentTypeBinary = (contentType: string): boolean => {
-  return !/^(text\/(plain|html|css|javascript|csv).*|application\/(.*json|.*xml).*|image\/svg\+xml.*)$/.test(
-    contentType
-  )
+  return !/^(text\/(plain|html|css|javascript|csv).*|application\/(.*json|.*xml).*|image\/svg\+xml.*)$/
+    .test(
+      contentType,
+    )
 }

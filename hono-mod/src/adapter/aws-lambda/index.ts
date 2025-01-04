@@ -6,8 +6,8 @@
 export { handle, streamHandle } from './handler'
 export type { APIGatewayProxyResult, LambdaEvent } from './handler'
 export type {
+  ALBRequestContext,
   ApiGatewayRequestContext,
   ApiGatewayRequestContextV2,
-  ALBRequestContext,
   LambdaContext,
 } from './types'

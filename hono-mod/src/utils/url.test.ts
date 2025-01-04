@@ -46,7 +46,11 @@ describe('url', () => {
     expect(ps).toStrictEqual(['users', ':@name{[0-9a-zA-Z_-]{3,10}}'])
 
     ps = splitRoutingPath('/users/:dept{\\d+}/:@name{[0-9a-zA-Z_-]{3,10}}')
-    expect(ps).toStrictEqual(['users', ':dept{\\d+}', ':@name{[0-9a-zA-Z_-]{3,10}}'])
+    expect(ps).toStrictEqual([
+      'users',
+      ':dept{\\d+}',
+      ':@name{[0-9a-zA-Z_-]{3,10}}',
+    ])
   })
 
   it('getPattern', () => {
@@ -73,7 +77,9 @@ describe('url', () => {
       expect(path).toBe('/hello/hey')
       path = getPath(new Request('https://example.com/hello?name=foo'))
       expect(path).toBe('/hello')
-      path = getPath(new Request('https://example.com/hello/hey?name=foo&name=bar'))
+      path = getPath(
+        new Request('https://example.com/hello/hey?name=foo&name=bar'),
+      )
       expect(path).toBe('/hello/hey')
     })
 
@@ -87,14 +93,18 @@ describe('url', () => {
 
   describe('getQueryStrings', () => {
     it('getQueryStrings', () => {
-      let qs = getQueryStrings('https://example.com/hello?name=foo&name=bar&age=20')
+      let qs = getQueryStrings(
+        'https://example.com/hello?name=foo&name=bar&age=20',
+      )
       expect(qs).toBe('?name=foo&name=bar&age=20')
       qs = getQueryStrings('https://example.com/hello?')
       expect(qs).toBe('?')
       qs = getQueryStrings('https://example.com/hello')
       expect(qs).toBe('')
       // Allows to contain hash
-      qs = getQueryStrings('https://example.com/hello?name=foo&name=bar&age=20#hash')
+      qs = getQueryStrings(
+        'https://example.com/hello?name=foo&name=bar&age=20#hash',
+      )
       expect(qs).toBe('?name=foo&name=bar&age=20#hash')
     })
   })
@@ -153,12 +163,16 @@ describe('url', () => {
       expect(checkOptionalParameter('/api/animals')).toBeNull()
       expect(checkOptionalParameter('/api/:animals?/type')).toBeNull()
       expect(checkOptionalParameter('/api/animals/:type?/')).toBeNull()
-      expect(checkOptionalParameter('/:optional?')).toEqual(['/', '/:optional'])
-      expect(checkOptionalParameter('/v1/leaderboard/:version?/:platform?')).toEqual([
-        '/v1/leaderboard',
-        '/v1/leaderboard/:version',
-        '/v1/leaderboard/:version/:platform',
+      expect(checkOptionalParameter('/:optional?')).toEqual([
+        '/',
+        '/:optional',
       ])
+      expect(checkOptionalParameter('/v1/leaderboard/:version?/:platform?'))
+        .toEqual([
+          '/v1/leaderboard',
+          '/v1/leaderboard/:version',
+          '/v1/leaderboard/:version/:platform',
+        ])
       expect(checkOptionalParameter('/api/:version/animal/:type?')).toEqual([
         '/api/:version/animal',
         '/api/:version/animal/:type',
@@ -169,40 +183,56 @@ describe('url', () => {
   describe('getQueryParam', () => {
     it('Parse URL query strings', () => {
       expect(getQueryParam('http://example.com/?name=hey', 'name')).toBe('hey')
-      expect(getQueryParam('http://example.com/?name=hey#fragment', 'name')).toBe('hey#fragment')
-      expect(getQueryParam('http://example.com/?name=hey&age=20&tall=170', 'age')).toBe('20')
-      expect(getQueryParam('http://example.com/?Hono+is=a+web+framework', 'Hono is')).toBe(
-        'a web framework'
+      expect(getQueryParam('http://example.com/?name=hey#fragment', 'name'))
+        .toBe('hey#fragment')
+      expect(
+        getQueryParam('http://example.com/?name=hey&age=20&tall=170', 'age'),
+      ).toBe('20')
+      expect(
+        getQueryParam('http://example.com/?Hono+is=a+web+framework', 'Hono is'),
+      ).toBe(
+        'a web framework',
       )
 
-      expect(getQueryParam('http://example.com/?name0=sam&name1=tom', 'name0')).toBe('sam')
-      expect(getQueryParam('http://example.com/?name0=sam&name1=tom', 'name1')).toBe('tom')
-      expect(getQueryParam('http://example.com/?name0=sam&name1=tom', 'name')).toBe(undefined)
+      expect(getQueryParam('http://example.com/?name0=sam&name1=tom', 'name0'))
+        .toBe('sam')
+      expect(getQueryParam('http://example.com/?name0=sam&name1=tom', 'name1'))
+        .toBe('tom')
+      expect(getQueryParam('http://example.com/?name0=sam&name1=tom', 'name'))
+        .toBe(undefined)
 
       let searchParams = new URLSearchParams({ name: '炎' })
-      expect(getQueryParam(`http://example.com/?${searchParams.toString()}`, 'name')).toBe('炎')
+      expect(
+        getQueryParam(`http://example.com/?${searchParams.toString()}`, 'name'),
+      ).toBe('炎')
       searchParams = new URLSearchParams({ '炎 is': 'a web framework' })
       expect(
         getQueryParam(
           `http://example.com/?${searchParams.toString()}`,
-          searchParams.keys().next().value
-        )
+          searchParams.keys().next().value,
+        ),
       ).toBe('a web framework')
-      expect(getQueryParam('http://example.com/?name=hey&age=20&tall=170', 'weight')).toBe(
-        undefined
+      expect(
+        getQueryParam('http://example.com/?name=hey&age=20&tall=170', 'weight'),
+      ).toBe(
+        undefined,
       )
-      expect(getQueryParam('http://example.com/?name=hey&age=20&tall=170')).toEqual({
-        name: 'hey',
-        age: '20',
-        tall: '170',
-      })
+      expect(getQueryParam('http://example.com/?name=hey&age=20&tall=170'))
+        .toEqual({
+          name: 'hey',
+          age: '20',
+          tall: '170',
+        })
       expect(getQueryParam('http://example.com/?pretty&&&&q=1%2b1=2')).toEqual({
         pretty: '',
         q: '1+1=2',
       })
       expect(getQueryParam('http://example.com/?pretty', 'pretty')).toBe('')
-      expect(getQueryParam('http://example.com/?pretty', 'prtt')).toBe(undefined)
-      expect(getQueryParam('http://example.com/?name=sam&name=tom', 'name')).toBe('sam')
+      expect(getQueryParam('http://example.com/?pretty', 'prtt')).toBe(
+        undefined,
+      )
+      expect(getQueryParam('http://example.com/?name=sam&name=tom', 'name'))
+        .toBe('sam')
       expect(getQueryParam('http://example.com/?name=sam&name=tom')).toEqual({
         name: 'sam',
       })
@@ -213,25 +243,41 @@ describe('url', () => {
 
   describe('getQueryParams', () => {
     it('Parse URL query strings', () => {
-      expect(getQueryParams('http://example.com/?name=hey', 'name')).toEqual(['hey'])
-      expect(getQueryParams('http://example.com/?name=hey#fragment', 'name')).toEqual([
-        'hey#fragment',
-      ])
-      expect(getQueryParams('http://example.com/?name=hey&name=foo', 'name')).toEqual([
+      expect(getQueryParams('http://example.com/?name=hey', 'name')).toEqual([
         'hey',
-        'foo',
       ])
-      expect(getQueryParams('http://example.com/?name=hey&age=20&tall=170', 'age')).toEqual(['20'])
+      expect(getQueryParams('http://example.com/?name=hey#fragment', 'name'))
+        .toEqual([
+          'hey#fragment',
+        ])
+      expect(getQueryParams('http://example.com/?name=hey&name=foo', 'name'))
+        .toEqual([
+          'hey',
+          'foo',
+        ])
       expect(
-        getQueryParams('http://example.com/?name=hey&age=20&tall=170&name=foo&age=30', 'age')
+        getQueryParams('http://example.com/?name=hey&age=20&tall=170', 'age'),
+      ).toEqual(['20'])
+      expect(
+        getQueryParams(
+          'http://example.com/?name=hey&age=20&tall=170&name=foo&age=30',
+          'age',
+        ),
       ).toEqual(['20', '30'])
-      expect(getQueryParams('http://example.com/?Hono+is=a+web+framework', 'Hono is')).toEqual([
+      expect(
+        getQueryParams(
+          'http://example.com/?Hono+is=a+web+framework',
+          'Hono is',
+        ),
+      ).toEqual([
         'a web framework',
       ])
       let searchParams = new URLSearchParams()
       searchParams.append('tag', '炎')
       searchParams.append('tag', 'ほのお')
-      expect(getQueryParams(`http://example.com/?${searchParams.toString()}`, 'tag')).toEqual([
+      expect(
+        getQueryParams(`http://example.com/?${searchParams.toString()}`, 'tag'),
+      ).toEqual([
         '炎',
         'ほのお',
       ])
@@ -241,25 +287,38 @@ describe('url', () => {
       expect(
         getQueryParams(
           `http://example.com/?${searchParams.toString()}`,
-          searchParams.keys().next().value
-        )
+          searchParams.keys().next().value,
+        ),
       ).toEqual(['Cloudflare Workers', 'Fastly Compute'])
-      expect(getQueryParams('http://example.com/?name=hey&age=20&tall=170', 'weight')).toEqual(
-        undefined
+      expect(
+        getQueryParams(
+          'http://example.com/?name=hey&age=20&tall=170',
+          'weight',
+        ),
+      ).toEqual(
+        undefined,
       )
       expect(
-        getQueryParams('http://example.com/?name=hey&age=20&tall=170&name=foo&age=30&tall=180')
+        getQueryParams(
+          'http://example.com/?name=hey&age=20&tall=170&name=foo&age=30&tall=180',
+        ),
       ).toEqual({
         name: ['hey', 'foo'],
         age: ['20', '30'],
         tall: ['170', '180'],
       })
-      expect(getQueryParams('http://example.com/?pretty&&&&q=1%2b1=2&q=2%2b2=4')).toEqual({
+      expect(
+        getQueryParams('http://example.com/?pretty&&&&q=1%2b1=2&q=2%2b2=4'),
+      ).toEqual({
         pretty: [''],
         q: ['1+1=2', '2+2=4'],
       })
-      expect(getQueryParams('http://example.com/?pretty', 'pretty')).toEqual([''])
-      expect(getQueryParams('http://example.com/?pretty', 'prtt')).toBe(undefined)
+      expect(getQueryParams('http://example.com/?pretty', 'pretty')).toEqual([
+        '',
+      ])
+      expect(getQueryParams('http://example.com/?pretty', 'prtt')).toBe(
+        undefined,
+      )
       expect(getQueryParams('http://example.com/?toString')).toEqual({
         toString: [''],
       })

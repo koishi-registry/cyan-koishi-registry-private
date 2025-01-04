@@ -35,7 +35,9 @@ describe('Logger by Middleware', () => {
       const res = new Response('', { status: 511 })
       if (c.req.query('status')) {
         // test status code not yet supported by runtime `Response` object
-        Object.defineProperty(res, 'status', { value: parseInt(c.req.query('status') as string) })
+        Object.defineProperty(res, 'status', {
+          value: parseInt(c.req.query('status') as string),
+        })
       }
       return res
     })
@@ -97,7 +99,9 @@ describe('Logger by Middleware', () => {
     const res = await app.request('http://localhost/server-error')
     expect(res).not.toBeNull()
     expect(res.status).toBe(511)
-    expect(log.startsWith('--> GET /server-error \x1b[31m511\x1b[0m')).toBe(true)
+    expect(log.startsWith('--> GET /server-error \x1b[31m511\x1b[0m')).toBe(
+      true,
+    )
     expect(log).toMatch(/m?s$/)
   })
 

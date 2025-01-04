@@ -5,7 +5,10 @@ describe('Method Override Middleware', () => {
   describe('Form', () => {
     const app = new Hono()
     app.use('/posts/*', methodOverride({ app }))
-    app.use('/posts-custom/*', methodOverride({ app, form: 'custom-input-name' }))
+    app.use(
+      '/posts-custom/*',
+      methodOverride({ app, form: 'custom-input-name' }),
+    )
     app.on(['post', 'delete'], ['/posts', '/posts-custom'], async (c) => {
       const form = await c.req.formData()
       return c.json({

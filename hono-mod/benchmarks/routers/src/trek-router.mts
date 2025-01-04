@@ -1,6 +1,6 @@
 import TrekRouter from 'trek-router'
 import type { RouterInterface } from './tool.mts'
-import { routes, handler } from './tool.mts'
+import { handler, routes } from './tool.mts'
 
 const name = 'trek-router'
 

@@ -28,7 +28,9 @@ function compareKey(a: string, b: string): number {
   // wildcard
   if (a === ONLY_WILDCARD_REG_EXP_STR || a === TAIL_WILDCARD_REG_EXP_STR) {
     return 1
-  } else if (b === ONLY_WILDCARD_REG_EXP_STR || b === TAIL_WILDCARD_REG_EXP_STR) {
+  } else if (
+    b === ONLY_WILDCARD_REG_EXP_STR || b === TAIL_WILDCARD_REG_EXP_STR
+  ) {
     return -1
   }
 
@@ -52,7 +54,7 @@ export class Node {
     index: number,
     paramMap: ParamAssocArray,
     context: Context,
-    pathErrorCheckOnly: boolean
+    pathErrorCheckOnly: boolean,
   ): void {
     if (tokens.length === 0) {
       if (this.#index !== undefined) {
@@ -67,14 +69,13 @@ export class Node {
     }
 
     const [token, ...restTokens] = tokens
-    const pattern =
-      token === '*'
-        ? restTokens.length === 0
-          ? ['', '', ONLY_WILDCARD_REG_EXP_STR] // '*' matches to all the trailing paths
-          : ['', '', LABEL_REG_EXP_STR]
-        : token === '/*'
-        ? ['', '', TAIL_WILDCARD_REG_EXP_STR] // '/path/to/*' is /\/path\/to(?:|/.*)$
-        : token.match(/^\:([^\{\}]+)(?:\{(.+)\})?$/)
+    const pattern = token === '*'
+      ? restTokens.length === 0
+        ? ['', '', ONLY_WILDCARD_REG_EXP_STR] // '*' matches to all the trailing paths
+        : ['', '', LABEL_REG_EXP_STR]
+      : token === '/*'
+      ? ['', '', TAIL_WILDCARD_REG_EXP_STR] // '/path/to/*' is /\/path\/to(?:|/.*)$
+      : token.match(/^\:([^\{\}]+)(?:\{(.+)\})?$/)
 
     let node
     if (pattern) {
@@ -92,7 +93,9 @@ export class Node {
       if (!node) {
         if (
           Object.keys(this.#children).some(
-            (k) => k !== ONLY_WILDCARD_REG_EXP_STR && k !== TAIL_WILDCARD_REG_EXP_STR
+            (k) =>
+              k !== ONLY_WILDCARD_REG_EXP_STR &&
+              k !== TAIL_WILDCARD_REG_EXP_STR,
           )
         ) {
           throw PATH_ERROR
@@ -114,7 +117,8 @@ export class Node {
         if (
           Object.keys(this.#children).some(
             (k) =>
-              k.length > 1 && k !== ONLY_WILDCARD_REG_EXP_STR && k !== TAIL_WILDCARD_REG_EXP_STR
+              k.length > 1 && k !== ONLY_WILDCARD_REG_EXP_STR &&
+              k !== TAIL_WILDCARD_REG_EXP_STR,
           )
         ) {
           throw PATH_ERROR

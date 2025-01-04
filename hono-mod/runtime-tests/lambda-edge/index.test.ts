@@ -91,7 +91,8 @@ describe('Lambda@Edge Adapter for Hono', () => {
               distributionDomainName: 'd111111abcdef8.cloudfront.net',
               distributionId: 'EDFDVBD6EXAMPLE',
               eventType: 'viewer-request',
-              requestId: '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
+              requestId:
+                '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
             },
             request: {
               clientIp: '203.0.113.178',
@@ -142,7 +143,8 @@ describe('Lambda@Edge Adapter for Hono', () => {
               distributionDomainName: 'd111111abcdef8.cloudfront.net',
               distributionId: 'EDFDVBD6EXAMPLE',
               eventType: 'origin-request',
-              requestId: '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
+              requestId:
+                '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
             },
             request: {
               clientIp: '203.0.113.178',
@@ -162,7 +164,8 @@ describe('Lambda@Edge Adapter for Hono', () => {
                 via: [
                   {
                     key: 'Via',
-                    value: '2.0 2afae0d44e2540f472c0635ab62c232b.cloudfront.net (CloudFront)',
+                    value:
+                      '2.0 2afae0d44e2540f472c0635ab62c232b.cloudfront.net (CloudFront)',
                   },
                 ],
                 host: [
@@ -217,7 +220,8 @@ describe('Lambda@Edge Adapter for Hono', () => {
               distributionDomainName: 'd111111abcdef8.cloudfront.net',
               distributionId: 'EDFDVBD6EXAMPLE',
               eventType: 'viewer-response',
-              requestId: '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
+              requestId:
+                '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
             },
             request: {
               clientIp: '203.0.113.178',
@@ -340,7 +344,8 @@ describe('Lambda@Edge Adapter for Hono', () => {
               distributionDomainName: 'd111111abcdef8.cloudfront.net',
               distributionId: 'EDFDVBD6EXAMPLE',
               eventType: 'origin-response',
-              requestId: '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
+              requestId:
+                '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
             },
             request: {
               clientIp: '203.0.113.178',
@@ -360,7 +365,8 @@ describe('Lambda@Edge Adapter for Hono', () => {
                 via: [
                   {
                     key: 'Via',
-                    value: '2.0 8f22423015641505b8c857a37450d6c0.cloudfront.net (CloudFront)',
+                    value:
+                      '2.0 8f22423015641505b8c857a37450d6c0.cloudfront.net (CloudFront)',
                   },
                 ],
                 host: [
@@ -776,7 +782,8 @@ describe('Lambda@Edge Adapter for Hono', () => {
               distributionDomainName: 'example.com',
               distributionId: 'EDFDVBD6EXAMPLE',
               eventType: 'viewer-response',
-              requestId: '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
+              requestId:
+                '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
             },
             request: {
               clientIp: '203.0.113.178',
@@ -886,7 +893,7 @@ describe('Lambda@Edge Adapter for Hono', () => {
         {
           key: string
           value: string
-        }
+        },
       ]
     }
     let called = false
@@ -922,7 +929,8 @@ describe('Lambda@Edge Adapter for Hono', () => {
               distributionDomainName: 'example.com',
               distributionId: 'EDFDVBD6EXAMPLE',
               eventType: 'viewer-response',
-              requestId: '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
+              requestId:
+                '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
             },
             request: {
               clientIp: '203.0.113.178',
@@ -1032,7 +1040,7 @@ describe('Lambda@Edge Adapter for Hono', () => {
         {
           key: string
           value: string
-        }
+        },
       ]
     }
     let called = false
@@ -1068,7 +1076,8 @@ describe('Lambda@Edge Adapter for Hono', () => {
               distributionDomainName: 'example.com',
               distributionId: 'EDFDVBD6EXAMPLE',
               eventType: 'viewer-response',
-              requestId: '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
+              requestId:
+                '4TyzHTaYWb1GX1qTfsHhEqV6HUDd_BzoBZnwfnvQc_1oF26ClkoUSEQ==',
             },
             request: {
               clientIp: '203.0.113.178',

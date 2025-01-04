@@ -19,7 +19,11 @@ describe('useSyncExternalStore', () => {
     const getSnapshot = vi.fn()
     const getServerSnapshot = vi.fn(() => 100)
     const App = () => {
-      const count = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+      const count = useSyncExternalStore(
+        subscribe,
+        getSnapshot,
+        getServerSnapshot,
+      )
       return <div>{count}</div>
     }
     const template = <App />

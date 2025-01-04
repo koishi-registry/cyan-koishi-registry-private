@@ -1,6 +1,6 @@
 import { Context } from '../../context'
-import type { BunWebSocketData, BunServerWebSocket } from './websocket'
-import { createWSContext, createBunWebSocket } from './websocket'
+import type { BunServerWebSocket, BunWebSocketData } from './websocket'
+import { createBunWebSocket, createWSContext } from './websocket'
 
 describe('createWSContext()', () => {
   it('Should send() and close() works', () => {
@@ -31,7 +31,7 @@ describe('upgradeWebSocket()', () => {
             server: null,
           },
         }),
-        () => Promise.resolve()
+        () => Promise.resolve(),
       )
 
     expect(run).rejects.toThrowError(/env has/)
@@ -44,7 +44,7 @@ describe('upgradeWebSocket()', () => {
           upgrade: () => true,
         },
       }),
-      () => Promise.resolve()
+      () => Promise.resolve(),
     )
     expect(upgraded).toBeTruthy()
   })
@@ -56,7 +56,7 @@ describe('upgradeWebSocket()', () => {
           upgrade: () => undefined,
         },
       }),
-      () => Promise.resolve()
+      () => Promise.resolve(),
     )
     expect(upgraded).toBeFalsy()
   })
@@ -108,7 +108,7 @@ describe('createBunWebSocket()', () => {
           },
         },
       }),
-      () => Promise.resolve()
+      () => Promise.resolve(),
     )
 
     websocket.open(ws)

@@ -7,11 +7,15 @@ export class Trie {
   #context: Context = { varIndex: 0 }
   #root: Node = new Node()
 
-  insert(path: string, index: number, pathErrorCheckOnly: boolean): ParamAssocArray {
+  insert(
+    path: string,
+    index: number,
+    pathErrorCheckOnly: boolean,
+  ): ParamAssocArray {
     const paramAssoc: ParamAssocArray = []
 
     const groups: [string, string][] = [] // [mark, original string]
-    for (let i = 0; ; ) {
+    for (let i = 0;;) {
       let replaced = false
       path = path.replace(/\{[^}]+\}/g, (m) => {
         const mark = `@\\${i}`
@@ -41,7 +45,13 @@ export class Trie {
       }
     }
 
-    this.#root.insert(tokens, index, paramAssoc, this.#context, pathErrorCheckOnly)
+    this.#root.insert(
+      tokens,
+      index,
+      paramAssoc,
+      this.#context,
+      pathErrorCheckOnly,
+    )
 
     return paramAssoc
   }
@@ -56,18 +66,21 @@ export class Trie {
     const indexReplacementMap: ReplacementMap = []
     const paramReplacementMap: ReplacementMap = []
 
-    regexp = regexp.replace(/#(\d+)|@(\d+)|\.\*\$/g, (_, handlerIndex, paramIndex) => {
-      if (handlerIndex !== undefined) {
-        indexReplacementMap[++captureIndex] = Number(handlerIndex)
-        return '$()'
-      }
-      if (paramIndex !== undefined) {
-        paramReplacementMap[Number(paramIndex)] = ++captureIndex
-        return ''
-      }
+    regexp = regexp.replace(
+      /#(\d+)|@(\d+)|\.\*\$/g,
+      (_, handlerIndex, paramIndex) => {
+        if (handlerIndex !== undefined) {
+          indexReplacementMap[++captureIndex] = Number(handlerIndex)
+          return '$()'
+        }
+        if (paramIndex !== undefined) {
+          paramReplacementMap[Number(paramIndex)] = ++captureIndex
+          return ''
+        }
 
-      return ''
-    })
+        return ''
+      },
+    )
 
     return [new RegExp(`^${regexp}`), indexReplacementMap, paramReplacementMap]
   }

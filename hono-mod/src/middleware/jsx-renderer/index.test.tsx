@@ -21,37 +21,39 @@ describe('JSX renderer', () => {
           <head>{title}</head>
           <body>{children}</body>
         </html>
-      ))
+      )),
     )
     app.get('/', (c) =>
       c.render(
         <h1>
           <RequestUrl />
         </h1>,
-        { title: 'Title' }
-      )
-    )
+        { title: 'Title' },
+      ))
 
     const app2 = new Hono()
     app2.use(
       '*',
-      jsxRenderer(({ children }) => <div class='nested'>{children}</div>)
+      jsxRenderer(({ children }) => <div class='nested'>{children}</div>),
     )
-    app2.get('/', (c) => c.render(<h1>http://localhost/nested</h1>, { title: 'Title' }))
+    app2.get(
+      '/',
+      (c) => c.render(<h1>http://localhost/nested</h1>, { title: 'Title' }),
+    )
     app.route('/nested', app2)
 
     let res = await app.request('http://localhost/')
     expect(res).not.toBeNull()
     expect(res.status).toBe(200)
     expect(await res.text()).toBe(
-      '<!DOCTYPE html><html><head>Title</head><body><h1>http://localhost/</h1></body></html>'
+      '<!DOCTYPE html><html><head>Title</head><body><h1>http://localhost/</h1></body></html>',
     )
 
     res = await app.request('http://localhost/nested')
     expect(res).not.toBeNull()
     expect(res.status).toBe(200)
     expect(await res.text()).toBe(
-      '<!DOCTYPE html><div class="nested"><h1>http://localhost/nested</h1></div>'
+      '<!DOCTYPE html><div class="nested"><h1>http://localhost/nested</h1></div>',
     )
   })
 
@@ -66,8 +68,8 @@ describe('JSX renderer', () => {
             </div>
           )
         },
-        { docType: false }
-      )
+        { docType: false },
+      ),
     )
     app.get('/hi', (c) => {
       return c.render('hi', { title: 'hi' })
@@ -89,7 +91,7 @@ describe('JSX renderer', () => {
             <body>{children}</body>
           </html>
         </Layout>
-      ))
+      )),
     )
 
     const app2 = new Hono()
@@ -99,9 +101,12 @@ describe('JSX renderer', () => {
         <Layout title={title}>
           <div class='nested'>{children}</div>
         </Layout>
-      ))
+      )),
     )
-    app2.get('/', (c) => c.render(<h1>http://localhost/nested</h1>, { title: 'Nested' }))
+    app2.get(
+      '/',
+      (c) => c.render(<h1>http://localhost/nested</h1>, { title: 'Nested' }),
+    )
 
     const app3 = new Hono()
     app3.use(
@@ -110,9 +115,12 @@ describe('JSX renderer', () => {
         <Layout title={title}>
           <div class='nested2'>{children}</div>
         </Layout>
-      ))
+      )),
     )
-    app3.get('/', (c) => c.render(<h1>http://localhost/nested</h1>, { title: 'Nested2' }))
+    app3.get(
+      '/',
+      (c) => c.render(<h1>http://localhost/nested</h1>, { title: 'Nested2' }),
+    )
     app2.route('/nested2', app3)
 
     app.route('/nested', app2)
@@ -121,14 +129,14 @@ describe('JSX renderer', () => {
     expect(res).not.toBeNull()
     expect(res.status).toBe(200)
     expect(await res.text()).toBe(
-      '<!DOCTYPE html><html><head>Nested</head><body><div class="nested"><h1>http://localhost/nested</h1></div></body></html>'
+      '<!DOCTYPE html><html><head>Nested</head><body><div class="nested"><h1>http://localhost/nested</h1></div></body></html>',
     )
 
     res = await app.request('http://localhost/nested/nested2')
     expect(res).not.toBeNull()
     expect(res.status).toBe(200)
     expect(await res.text()).toBe(
-      '<!DOCTYPE html><html><head>Nested2</head><body><div class="nested"><div class="nested2"><h1>http://localhost/nested</h1></div></div></body></html>'
+      '<!DOCTYPE html><html><head>Nested2</head><body><div class="nested"><div class="nested2"><h1>http://localhost/nested</h1></div></div></body></html>',
     )
   })
 
@@ -144,14 +152,16 @@ describe('JSX renderer', () => {
             </html>
           )
         },
-        { docType: true }
-      )
+        { docType: true },
+      ),
     )
     app.get('/', (c) => c.render(<h1>Hello</h1>, { title: 'Title' }))
     const res = await app.request('/')
     expect(res).not.toBeNull()
     expect(res.status).toBe(200)
-    expect(await res.text()).toBe('<!DOCTYPE html><html><body><h1>Hello</h1></body></html>')
+    expect(await res.text()).toBe(
+      '<!DOCTYPE html><html><body><h1>Hello</h1></body></html>',
+    )
   })
 
   it('Should return a non includes doctype', async () => {
@@ -166,8 +176,8 @@ describe('JSX renderer', () => {
             </html>
           )
         },
-        { docType: false }
-      )
+        { docType: false },
+      ),
     )
     app.get('/', (c) => c.render(<h1>Hello</h1>, { title: 'Title' }))
     const res = await app.request('/')
@@ -191,15 +201,15 @@ describe('JSX renderer', () => {
         {
           docType:
             '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">',
-        }
-      )
+        },
+      ),
     )
     app.get('/', (c) => c.render(<h1>Hello</h1>, { title: 'Title' }))
     const res = await app.request('/')
     expect(res).not.toBeNull()
     expect(res.status).toBe(200)
     expect(await res.text()).toBe(
-      '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html><body><h1>Hello</h1></body></html>'
+      '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html><body><h1>Hello</h1></body></html>',
     )
   })
 
@@ -218,8 +228,8 @@ describe('JSX renderer', () => {
         {
           docType: true,
           stream: true,
-        }
-      )
+        },
+      ),
     )
     const AsyncComponent = async () => {
       const c = useRequestContext()
@@ -230,9 +240,8 @@ describe('JSX renderer', () => {
         <Suspense fallback={<p>Loading...</p>}>
           <AsyncComponent />
         </Suspense>,
-        { title: 'Title' }
-      )
-    )
+        { title: 'Title' },
+      ))
     const res = await app.request('/?name=Hono')
     expect(res).not.toBeNull()
     expect(res.status).toBe(200)
@@ -288,8 +297,8 @@ d.replaceWith(c.content)
             'Transfer-Encoding': 'chunked',
             'Content-Type': 'text/html',
           },
-        }
-      )
+        },
+      ),
     )
     const AsyncComponent = async () => {
       const c = useRequestContext()
@@ -300,9 +309,8 @@ d.replaceWith(c.content)
         <Suspense fallback={<p>Loading...</p>}>
           <AsyncComponent />
         </Suspense>,
-        { title: 'Title' }
-      )
-    )
+        { title: 'Title' },
+      ))
     const res = await app.request('/?name=Hono')
     expect(res).not.toBeNull()
     expect(res.status).toBe(200)
@@ -339,7 +347,11 @@ d.replaceWith(c.content)
 
   it('Should return as streaming content with headers added in a handler', async () => {
     const app = new Hono()
-    app.use(jsxRenderer(async ({ children }) => <div>{children}</div>, { stream: true }))
+    app.use(
+      jsxRenderer(async ({ children }) => <div>{children}</div>, {
+        stream: true,
+      }),
+    )
     app.get('/', (c) => {
       c.header('X-Message-Set', 'Hello')
       c.header('X-Message-Append', 'Hello', { append: true })
@@ -389,13 +401,17 @@ d.replaceWith(c.content)
             <BindingsBar />
           </p>
         </>,
-        { title: 'Title' }
+        { title: 'Title' },
       )
     })
-    const res = await app.request('http://localhost/', undefined, { bar: 'barValue' })
+    const res = await app.request('http://localhost/', undefined, {
+      bar: 'barValue',
+    })
     expect(res).not.toBeNull()
     expect(res.status).toBe(200)
-    expect(await res.text()).toBe('<!DOCTYPE html><h1>fooValue</h1><p>barValue</p>')
+    expect(await res.text()).toBe(
+      '<!DOCTYPE html><h1>fooValue</h1><p>barValue</p>',
+    )
   })
 
   it('Should return a resolved content', async () => {
@@ -418,7 +434,7 @@ d.replaceWith(c.content)
               <body>{children}</body>
             </html>
           )
-        })
+        }),
       )
       app.get('/', (c) => {
         c.status(201)
@@ -427,7 +443,9 @@ d.replaceWith(c.content)
       const res = await app.request('/')
       expect(res).not.toBeNull()
       expect(res.status).toBe(201)
-      expect(await res.text()).toBe('<!DOCTYPE html><html><body><h1>Hello</h1></body></html>')
+      expect(await res.text()).toBe(
+        '<!DOCTYPE html><html><body><h1>Hello</h1></body></html>',
+      )
     })
 
     it('Should keep context status with stream option', async () => {
@@ -442,8 +460,8 @@ d.replaceWith(c.content)
               </html>
             )
           },
-          { stream: true }
-        )
+          { stream: true },
+        ),
       )
       app.get('/', (c) => {
         c.status(201)
@@ -452,7 +470,9 @@ d.replaceWith(c.content)
       const res = await app.request('/')
       expect(res).not.toBeNull()
       expect(res.status).toBe(201)
-      expect(await res.text()).toBe('<!DOCTYPE html><html><body><h1>Hello</h1></body></html>')
+      expect(await res.text()).toBe(
+        '<!DOCTYPE html><html><body><h1>Hello</h1></body></html>',
+      )
     })
   })
 })

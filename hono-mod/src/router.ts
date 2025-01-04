@@ -14,7 +14,14 @@ export const METHOD_NAME_ALL_LOWERCASE = 'all' as const
 /**
  * Array of supported HTTP methods.
  */
-export const METHODS = ['get', 'post', 'put', 'delete', 'options', 'patch'] as const
+export const METHODS = [
+  'get',
+  'post',
+  'put',
+  'delete',
+  'options',
+  'patch',
+] as const
 /**
  * Error message indicating that a route cannot be added because the matcher is already built.
  */

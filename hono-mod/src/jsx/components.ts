@@ -8,11 +8,18 @@ import type { Child, FC, PropsWithChildren } from './'
 
 let errorBoundaryCounter = 0
 
-export const childrenToString = async (children: Child[]): Promise<HtmlEscapedString[]> => {
+export const childrenToString = async (
+  children: Child[],
+): Promise<HtmlEscapedString[]> => {
   try {
     return children
       .flat()
-      .map((c) => (c == null || typeof c === 'boolean' ? '' : c.toString())) as HtmlEscapedString[]
+      .map((
+        c,
+      ) => (c == null || typeof c === 'boolean'
+        ? ''
+        : c.toString())
+      ) as HtmlEscapedString[]
   } catch (e) {
     if (e instanceof Promise) {
       await e
@@ -49,7 +56,8 @@ export const ErrorBoundary: FC<
   let fallbackStr: string | undefined
   const fallbackRes = (error: Error): HtmlEscapedString => {
     onError?.(error)
-    return (fallbackStr || fallbackRender?.(error) || '').toString() as HtmlEscapedString
+    return (fallbackStr || fallbackRender?.(error) || '')
+      .toString() as HtmlEscapedString
   }
   let resArray: HtmlEscapedString[] | Promise<HtmlEscapedString[]>[] = []
   try {
@@ -60,7 +68,9 @@ export const ErrorBoundary: FC<
     fallbackStr = await fallback?.toString()
     if (e instanceof Promise) {
       resArray = [
-        e.then(() => childrenToString(children as Child[])).catch((e) => fallbackRes(e)),
+        e.then(() => childrenToString(children as Child[])).catch((e) =>
+          fallbackRes(e)
+        ),
       ] as Promise<HtmlEscapedString[]>[]
     } else {
       resArray = [fallbackRes(e as Error)]
@@ -70,9 +80,13 @@ export const ErrorBoundary: FC<
   if (resArray.some((res) => (res as {}) instanceof Promise)) {
     fallbackStr ||= await fallback?.toString()
     const index = errorBoundaryCounter++
-    const replaceRe = RegExp(`(<template id="E:${index}"></template>.*?)(.*?)(<!--E:${index}-->)`)
+    const replaceRe = RegExp(
+      `(<template id="E:${index}"></template>.*?)(.*?)(<!--E:${index}-->)`,
+    )
     const caught = false
-    const catchCallback = ({ error, buffer }: { error: Error; buffer?: [string] }) => {
+    const catchCallback = (
+      { error, buffer }: { error: Error; buffer?: [string] },
+    ) => {
       if (caught) {
         return ''
       }
@@ -119,7 +133,11 @@ d.parentElement.insertBefore(c.content,d.nextSibling)
 })(document)
 </script>`
 
-            if (htmlArray.every((html) => !(html as HtmlEscapedString).callbacks?.length)) {
+            if (
+              htmlArray.every((html) =>
+                !(html as HtmlEscapedString).callbacks?.length
+              )
+            ) {
               if (buffer) {
                 buffer[0] = buffer[0].replace(replaceRe, content)
               }
@@ -129,7 +147,7 @@ d.parentElement.insertBefore(c.content,d.nextSibling)
             if (buffer) {
               buffer[0] = buffer[0].replace(
                 replaceRe,
-                (_all, pre, _, post) => `${pre}${content}${post}`
+                (_all, pre, _, post) => `${pre}${content}${post}`,
               )
             }
 
@@ -142,31 +160,31 @@ d.parentElement.insertBefore(c.content,d.nextSibling)
                 html,
                 HtmlEscapedCallbackPhase.BeforeStream,
                 true,
-                context
+                context,
               )
             }
 
             let resolvedCount = 0
             const promises = callbacks.map<HtmlEscapedCallback>(
-              (c) =>
-                (...args) =>
-                  c(...args)
-                    ?.then((content) => {
-                      resolvedCount++
+              (c) => (...args) =>
+                c(...args)
+                  ?.then((content) => {
+                    resolvedCount++
 
-                      if (buffer) {
-                        if (resolvedCount === callbacks.length) {
-                          buffer[0] = buffer[0].replace(replaceRe, (_all, _pre, content) => content)
-                        }
-                        buffer[0] += content
-                        return raw('', (content as HtmlEscapedString).callbacks)
+                    if (buffer) {
+                      if (resolvedCount === callbacks.length) {
+                        buffer[0] = buffer[0].replace(
+                          replaceRe,
+                          (_all, _pre, content) => content,
+                        )
                       }
+                      buffer[0] += content
+                      return raw('', (content as HtmlEscapedString).callbacks)
+                    }
 
-                      return raw(
-                        content +
-                          (resolvedCount !== callbacks.length
-                            ? ''
-                            : `<script>
+                    return raw(
+                      content +
+                        (resolvedCount !== callbacks.length ? '' : `<script>
 ((d,c,n) => {
 d=d.getElementById('E:${index}')
 if(!d)return
@@ -176,10 +194,10 @@ n.remove()
 d.remove()
 })(document)
 </script>`),
-                        (content as HtmlEscapedString).callbacks
-                      )
-                    })
-                    .catch((error) => catchCallback({ error, buffer }))
+                      (content as HtmlEscapedString).callbacks,
+                    )
+                  })
+                  .catch((error) => catchCallback({ error, buffer })),
             )
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

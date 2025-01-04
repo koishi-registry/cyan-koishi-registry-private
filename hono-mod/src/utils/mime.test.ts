@@ -17,7 +17,9 @@ describe('mime', () => {
   })
 
   it('getMimeType with custom mime', () => {
-    expect(getMimeType('morning-routine.m3u8', mime)).toBe('application/vnd.apple.mpegurl')
+    expect(getMimeType('morning-routine.m3u8', mime)).toBe(
+      'application/vnd.apple.mpegurl',
+    )
     expect(getMimeType('morning-routine1.ts', mime)).toBe('video/mp2t')
     expect(getMimeType('readme.txt', mime)).toBeUndefined()
   })

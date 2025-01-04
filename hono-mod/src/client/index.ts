@@ -5,10 +5,10 @@
 
 export { hc } from './client'
 export type {
-  InferResponseType,
-  InferRequestType,
-  Fetch,
-  ClientRequestOptions,
   ClientRequest,
+  ClientRequestOptions,
   ClientResponse,
+  Fetch,
+  InferRequestType,
+  InferResponseType,
 } from './types'

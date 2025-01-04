@@ -8,27 +8,29 @@ import type { Hono } from '../../hono'
 import type { MiddlewareHandler } from '../../types'
 import { parseBody } from '../../utils/body'
 
-type MethodOverrideOptions = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  app: Hono<any, any, any>
-} & (
-  | {
+type MethodOverrideOptions =
+  & {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    app: Hono<any, any, any>
+  }
+  & (
+    | {
       // Default is 'form' and the value is `_method`
       form?: string
       header?: never
       query?: never
     }
-  | {
+    | {
       form?: never
       header: string
       query?: never
     }
-  | {
+    | {
       form?: never
       header?: never
       query: string
     }
-)
+  )
 
 const DEFAULT_METHOD_FORM_NAME = '_method'
 
@@ -57,7 +59,9 @@ const DEFAULT_METHOD_FORM_NAME = '_method'
  * })
  * ```
  */
-export const methodOverride = (options: MethodOverrideOptions): MiddlewareHandler =>
+export const methodOverride = (
+  options: MethodOverrideOptions,
+): MiddlewareHandler =>
   async function methodOverride(c, next) {
     if (c.req.method === 'GET') {
       return await next()
@@ -102,8 +106,7 @@ export const methodOverride = (options: MethodOverrideOptions): MiddlewareHandle
           return app.fetch(request, c.env, getExecutionCtx(c))
         }
       }
-    }
-    // Method override by header
+    } // Method override by header
     else if (options.header) {
       const headerName = options.header
       const method = c.req.header(headerName)
@@ -116,8 +119,7 @@ export const methodOverride = (options: MethodOverrideOptions): MiddlewareHandle
         })
         return app.fetch(request, c.env, getExecutionCtx(c))
       }
-    }
-    // Method override by query
+    } // Method override by query
     else if (options.query) {
       const queryName = options.query
       const method = c.req.query(queryName)

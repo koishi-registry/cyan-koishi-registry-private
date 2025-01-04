@@ -1,14 +1,19 @@
 /** @jsxImportSource ../ */
 import { JSDOM } from 'jsdom'
 import {
-  Suspense,
   createContext as createContextCommon,
+  Suspense,
   use,
   useContext as useContextCommon,
 } from '..' // for common
 // run tests by old style jsx default
 // hono/jsx/jsx-runtime and hono/jsx/dom/jsx-runtime are tested in their respective settings
-import { createContext as createContextDom, render, useContext as useContextDom, useState } from '.' // for dom
+import {
+  createContext as createContextDom,
+  render,
+  useContext as useContextDom,
+  useState,
+} from '.' // for dom
 
 runner('Common', createContextCommon, useContextCommon)
 runner('DOM', createContextDom, useContextDom)
@@ -16,7 +21,7 @@ runner('DOM', createContextDom, useContextDom)
 function runner(
   name: string,
   createContext: typeof createContextCommon,
-  useContext: typeof useContextCommon
+  useContext: typeof useContextCommon,
 ) {
   describe(name, () => {
     beforeAll(() => {

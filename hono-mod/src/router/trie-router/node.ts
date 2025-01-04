@@ -21,7 +21,11 @@ export class Node<T> {
   #order: number = 0
   #params: Record<string, string> = Object.create(null)
 
-  constructor(method?: string, handler?: T, children?: Record<string, Node<T>>) {
+  constructor(
+    method?: string,
+    handler?: T,
+    children?: Record<string, Node<T>>,
+  ) {
     this.#children = children || Object.create(null)
     this.#methods = []
     if (method && handler) {
@@ -82,20 +86,23 @@ export class Node<T> {
     node: Node<T>,
     method: string,
     nodeParams: Record<string, string>,
-    params: Record<string, string>
+    params: Record<string, string>,
   ): HandlerParamsSet<T>[] {
     const handlerSets: HandlerParamsSet<T>[] = []
     for (let i = 0, len = node.#methods.length; i < len; i++) {
       const m = node.#methods[i]
-      const handlerSet = (m[method] || m[METHOD_NAME_ALL]) as HandlerParamsSet<T>
+      const handlerSet = (m[method] || m[METHOD_NAME_ALL]) as HandlerParamsSet<
+        T
+      >
       const processedSet: Record<number, boolean> = {}
       if (handlerSet !== undefined) {
         handlerSet.params = Object.create(null)
         for (let i = 0, len = handlerSet.possibleKeys.length; i < len; i++) {
           const key = handlerSet.possibleKeys[i]
           const processed = processedSet[handlerSet.score]
-          handlerSet.params[key] =
-            params[key] && !processed ? params[key] : nodeParams[key] ?? params[key]
+          handlerSet.params[key] = params[key] && !processed
+            ? params[key]
+            : nodeParams[key] ?? params[key]
           processedSet[handlerSet.score] = true
         }
 
@@ -113,40 +120,43 @@ export class Node<T> {
    * @returns true if the handler was removed, false otherwise
    */
   remove(method: string, path: string): boolean {
-    let removed = false;
+    let removed = false
     // deno-lint-ignore no-this-alias
-    let currentNode: Node<T> | null = this;
-    const parts = splitRoutingPath(path);
+    let currentNode: Node<T> | null = this
+    const parts = splitRoutingPath(path)
 
     // Traverse the trie based on path segments
     for (let i = 0; i < parts.length; i++) {
-      const part = parts[i];
-      const isLast = i === parts.length - 1;
+      const part = parts[i]
+      const isLast = i === parts.length - 1
 
       if (currentNode) {
-        currentNode = currentNode.#children[part];
+        currentNode = currentNode.#children[part]
 
         // If no child node exists for this path segment, stop traversal
         if (!currentNode) {
-          break;
+          break
         }
 
         // Check for wildcard match at this level
         if (isLast && currentNode.#children['*']) {
-          removed = this.#removeHandlerFromChildren(currentNode.#children['*'], method);
+          removed = this.#removeHandlerFromChildren(
+            currentNode.#children['*'],
+            method,
+          )
         }
 
         // Check for handler match for the current path segment and method
-        const methodHandlers = currentNode.#methods.find((m) => m[method]);
+        const methodHandlers = currentNode.#methods.find((m) => m[method])
         if (methodHandlers && isLast) {
-          removed = true;
-          const handlerIndex = currentNode.#methods.indexOf(methodHandlers);
-          currentNode.#methods.splice(handlerIndex, 1);
+          removed = true
+          const handlerIndex = currentNode.#methods.indexOf(methodHandlers)
+          currentNode.#methods.splice(handlerIndex, 1)
         }
       }
     }
 
-    return removed;
+    return removed
   }
 
   /**
@@ -157,26 +167,29 @@ export class Node<T> {
    * @returns true if a handler was removed, false otherwise
    */
   #removeHandlerFromChildren(node: Node<T>, method: string): boolean {
-    let removed = false;
+    let removed = false
     removed = removed || node.#methods.some((m, index) => {
       if (m[method]) {
-        node.#methods.splice(index, 1);
-        return true;
+        node.#methods.splice(index, 1)
+        return true
       }
-      return false;
-    });
+      return false
+    })
 
     // Recursively check children for removal
     for (const childName in node.#children) {
-      removed = removed || this.#removeHandlerFromChildren(node.#children[childName], method);
+      removed = removed ||
+        this.#removeHandlerFromChildren(node.#children[childName], method)
     }
 
     // Prune empty nodes after removal
-    if (node.#methods.length === 0 && Object.keys(node.#children).length === 0) {
-      delete this.#children[node.constructor.name];
+    if (
+      node.#methods.length === 0 && Object.keys(node.#children).length === 0
+    ) {
+      delete this.#children[node.constructor.name]
     }
 
-    return removed;
+    return removed
   }
 
   search(method: string, path: string): [[T, Params][]] {
@@ -207,12 +220,17 @@ export class Node<T> {
                   nextNode.#children['*'],
                   method,
                   node.#params,
-                  Object.create(null)
-                )
+                  Object.create(null),
+                ),
               )
             }
             handlerSets.push(
-              ...this.#getHandlerSets(nextNode, method, node.#params, Object.create(null))
+              ...this.#getHandlerSets(
+                nextNode,
+                method,
+                node.#params,
+                Object.create(null),
+              ),
             )
           } else {
             tempNodes.push(nextNode)
@@ -230,7 +248,12 @@ export class Node<T> {
             const astNode = node.#children['*']
             if (astNode) {
               handlerSets.push(
-                ...this.#getHandlerSets(astNode, method, node.#params, Object.create(null))
+                ...this.#getHandlerSets(
+                  astNode,
+                  method,
+                  node.#params,
+                  Object.create(null),
+                ),
               )
               tempNodes.push(astNode)
             }
@@ -249,17 +272,26 @@ export class Node<T> {
           const restPathString = parts.slice(i).join('/')
           if (matcher instanceof RegExp && matcher.test(restPathString)) {
             params[name] = restPathString
-            handlerSets.push(...this.#getHandlerSets(child, method, node.#params, params))
+            handlerSets.push(
+              ...this.#getHandlerSets(child, method, node.#params, params),
+            )
             continue
           }
 
           if (matcher === true || matcher.test(part)) {
             params[name] = part
             if (isLast) {
-              handlerSets.push(...this.#getHandlerSets(child, method, params, node.#params))
+              handlerSets.push(
+                ...this.#getHandlerSets(child, method, params, node.#params),
+              )
               if (child.#children['*']) {
                 handlerSets.push(
-                  ...this.#getHandlerSets(child.#children['*'], method, params, node.#params)
+                  ...this.#getHandlerSets(
+                    child.#children['*'],
+                    method,
+                    params,
+                    node.#params,
+                  ),
                 )
               }
             } else {
@@ -279,6 +311,10 @@ export class Node<T> {
       })
     }
 
-    return [handlerSets.map(({ handler, params }) => [handler, params] as [T, Params])]
+    return [
+      handlerSets.map(({ handler, params }) =>
+        [handler, params] as [T, Params]
+      ),
+    ]
   }
 }

@@ -2,8 +2,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { html } from '../helper/html'
 import { Hono } from '../hono'
-import { Suspense, renderToReadableStream } from './streaming'
-import DefaultExport, { Fragment, StrictMode, createContext, memo, useContext, version } from '.'
+import { renderToReadableStream, Suspense } from './streaming'
+import DefaultExport, {
+  createContext,
+  Fragment,
+  memo,
+  StrictMode,
+  useContext,
+  version,
+} from '.'
 import type { Context, FC, PropsWithChildren } from '.'
 
 interface SiteData {
@@ -29,7 +36,8 @@ describe('JSX middleware', () => {
   })
 
   it('Should be able to be used with html middleware', async () => {
-    const Layout = (props: SiteData) => html`<!DOCTYPE html>
+    const Layout = (props: SiteData) =>
+      html`<!DOCTYPE html>
       <html>
         <head>
           <title>${props.title}</title>
@@ -91,7 +99,7 @@ describe('JSX middleware', () => {
     expect(res.status).toBe(200)
     expect(res.headers.get('Content-Type')).toBe('text/html; charset=UTF-8')
     expect(await res.text()).toBe(
-      '<h1>Hello from async component<span>child async component</span></h1>'
+      '<h1>Hello from async component<span>child async component</span></h1>',
     )
   })
 
@@ -104,13 +112,15 @@ describe('JSX middleware', () => {
     app.get('/', (c) => {
       // prettier-ignore
       return c.html(
-        html`<html><body>${(<AsyncComponent />)}</body></html>`
+        html`<html><body>${<AsyncComponent />}</body></html>`,
       )
     })
     const res = await app.request('http://localhost/')
     expect(res.status).toBe(200)
     expect(res.headers.get('Content-Type')).toBe('text/html; charset=UTF-8')
-    expect(await res.text()).toBe('<html><body><h1>Hello from async component</h1></body></html>')
+    expect(await res.text()).toBe(
+      '<html><body><h1>Hello from async component</h1></body></html>',
+    )
   })
 
   it('Should handle async component error', async () => {
@@ -128,21 +138,26 @@ describe('JSX middleware', () => {
     let raisedError: any
     app.onError((e, c) => {
       raisedError = e
-      return c.html('<html><body><h1>Error from onError</h1></body></html>', 500)
+      return c.html(
+        '<html><body><h1>Error from onError</h1></body></html>',
+        500,
+      )
     })
     app.get('/', (c) => {
       return c.html(
         <>
           <AsyncComponent />
           <AsyncErrorComponent />
-        </>
+        </>,
       )
     })
 
     const res = await app.request('http://localhost/')
     expect(res.status).toBe(500)
     expect(res.headers.get('Content-Type')).toBe('text/html; charset=UTF-8')
-    expect(await res.text()).toBe('<html><body><h1>Error from onError</h1></body></html>')
+    expect(await res.text()).toBe(
+      '<html><body><h1>Error from onError</h1></body></html>',
+    )
     expect(raisedError).toBe(componentError)
   })
 })
@@ -181,13 +196,17 @@ describe('render to string', () => {
 
   describe('dangerouslySetInnerHTML', () => {
     it('Should render dangerouslySetInnerHTML', () => {
-      const template = <span dangerouslySetInnerHTML={{ __html: '" is allowed here' }}></span>
+      const template = (
+        <span dangerouslySetInnerHTML={{ __html: '" is allowed here' }}></span>
+      )
       expect(template.toString()).toBe('<span>" is allowed here</span>')
     })
 
     it('Should get an error if both dangerouslySetInnerHTML and children are specified', () => {
       expect(() =>
-        (<span dangerouslySetInnerHTML={{ __html: '" is allowed here' }}>Hello</span>).toString()
+        (<span dangerouslySetInnerHTML={{ __html: '" is allowed here' }}>
+          Hello
+        </span>).toString()
       ).toThrow()
     })
   })
@@ -265,7 +284,9 @@ describe('render to string', () => {
           Test
         </option>
       )
-      expect(template.toString()).toBe('<option value="test" selected="">Test</option>')
+      expect(template.toString()).toBe(
+        '<option value="test" selected="">Test</option>',
+      )
     })
 
     it('default prop value for selected={true}', () => {
@@ -274,7 +295,9 @@ describe('render to string', () => {
           Test
         </option>
       )
-      expect(template.toString()).toBe('<option value="test" selected="">Test</option>')
+      expect(template.toString()).toBe(
+        '<option value="test" selected="">Test</option>',
+      )
     })
 
     it('no prop for selected={false}', () => {
@@ -292,7 +315,9 @@ describe('render to string', () => {
           <option>test</option>
         </select>
       )
-      expect(template.toString()).toBe('<select multiple=""><option>test</option></select>')
+      expect(template.toString()).toBe(
+        '<select multiple=""><option>test</option></select>',
+      )
     })
 
     it('default prop value for select multiple={true}', () => {
@@ -301,7 +326,9 @@ describe('render to string', () => {
           <option>test</option>
         </select>
       )
-      expect(template.toString()).toBe('<select multiple=""><option>test</option></select>')
+      expect(template.toString()).toBe(
+        '<select multiple=""><option>test</option></select>',
+      )
     })
 
     it('no prop for select multiple={false}', () => {
@@ -310,12 +337,16 @@ describe('render to string', () => {
           <option>test</option>
         </select>
       )
-      expect(template.toString()).toBe('<select><option>test</option></select>')
+      expect(template.toString()).toBe(
+        '<select><option>test</option></select>',
+      )
     })
 
     it('should render "false" value properly for other non-defined keys', () => {
       const template = <input type='checkbox' testkey={false} />
-      expect(template.toString()).toBe('<input type="checkbox" testkey="false"/>')
+      expect(template.toString()).toBe(
+        '<input type="checkbox" testkey="false"/>',
+      )
     })
 
     it('should support attributes for elements other than input', () => {
@@ -325,7 +356,7 @@ describe('render to string', () => {
         </video>
       )
       expect(template.toString()).toBe(
-        '<video controls="" autoplay=""><source src="movie.mp4" type="video/mp4"/></video>'
+        '<video controls="" autoplay=""><source src="movie.mp4" type="video/mp4"/></video>',
       )
     })
   })
@@ -380,14 +411,16 @@ describe('render to string', () => {
       function ListOfTenThings() {
         return (
           <Repeat numTimes={10}>
-            {(index: string) => <div key={index}>This is item {index} in the list</div>}
+            {(index: string) => (
+              <div key={index}>This is item {index} in the list</div>
+            )}
           </Repeat>
         )
       }
 
       const template = <ListOfTenThings />
       expect(template.toString()).toBe(
-        '<div><div>This is item 0 in the list</div><div>This is item 1 in the list</div><div>This is item 2 in the list</div><div>This is item 3 in the list</div><div>This is item 4 in the list</div><div>This is item 5 in the list</div><div>This is item 6 in the list</div><div>This is item 7 in the list</div><div>This is item 8 in the list</div><div>This is item 9 in the list</div></div>'
+        '<div><div>This is item 0 in the list</div><div>This is item 1 in the list</div><div>This is item 2 in the list</div><div>This is item 3 in the list</div><div>This is item 4 in the list</div><div>This is item 5 in the list</div><div>This is item 6 in the list</div><div>This is item 7 in the list</div><div>This is item 8 in the list</div><div>This is item 9 in the list</div></div>',
       )
     })
   })
@@ -413,7 +446,7 @@ describe('render to string', () => {
       )
 
       expect(Top.toString()).toBe(
-        '<html><head><title>Home page</title></head><body><h1>Hono</h1><p>Hono is great</p></body></html>'
+        '<html><head><title>Home page</title></head><body><h1>Hono</h1><p>Hono is great</p></body></html>',
       )
     })
 
@@ -450,12 +483,14 @@ describe('render to string', () => {
         </h1>
       )
       expect(template.toString()).toBe(
-        '<h1 style="color:red;font-size:small;font-family:Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace">Hello</h1>'
+        '<h1 style="color:red;font-size:small;font-family:Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace">Hello</h1>',
       )
     })
     it('should not convert the strings', () => {
       const template = <h1 style='color:red;font-size:small'>Hello</h1>
-      expect(template.toString()).toBe('<h1 style="color:red;font-size:small">Hello</h1>')
+      expect(template.toString()).toBe(
+        '<h1 style="color:red;font-size:small">Hello</h1>',
+      )
     })
     it('should render variable without any name conversion', () => {
       const template = <h1 style={{ '--myVar': 1 }}>Hello</h1>
@@ -467,7 +502,9 @@ describe('render to string', () => {
     it('should not be double-escaped', () => {
       const escapedString = html`${'<html-escaped-string>'}`
       const template = <span data-text={escapedString}>Hello</span>
-      expect(template.toString()).toBe('<span data-text="&lt;html-escaped-string&gt;">Hello</span>')
+      expect(template.toString()).toBe(
+        '<span data-text="&lt;html-escaped-string&gt;">Hello</span>',
+      )
     })
   })
 
@@ -481,7 +518,7 @@ describe('render to string', () => {
         </head>
       )
       expect(template.toString()).toBe(
-        '<head><title>Hono!</title><meta name="description" content="A description"/><script src="script.js"></script></head>'
+        '<head><title>Hono!</title><meta name="description" content="A description"/><script src="script.js"></script></head>',
       )
     })
   })
@@ -495,7 +532,9 @@ describe('className', () => {
 
   it('should convert to class attribute for custom elements', () => {
     const template = <custom-element className='h1'>Hello</custom-element>
-    expect(template.toString()).toBe('<custom-element class="h1">Hello</custom-element>')
+    expect(template.toString()).toBe(
+      '<custom-element class="h1">Hello</custom-element>',
+    )
   })
 
   it('should not convert to class attribute for custom components', () => {
@@ -524,7 +563,7 @@ describe('memo', () => {
       </html>
     )
     expect(template.toString()).toBe(
-      '<html><head><title>Test Site 0</title></head><body><span>0</span></body></html>'
+      '<html><head><title>Test Site 0</title></head><body><span>0</span></body></html>',
     )
 
     counter++
@@ -539,12 +578,14 @@ describe('memo', () => {
       </html>
     )
     expect(template.toString()).toBe(
-      '<html><head><title>Test Site 0</title></head><body><span>1</span></body></html>'
+      '<html><head><title>Test Site 0</title></head><body><span>1</span></body></html>',
     )
   })
 
   it('props are updated', () => {
-    const Body = memo(({ counter }: { counter: number }) => <span>{counter}</span>)
+    const Body = memo(({ counter }: { counter: number }) => (
+      <span>{counter}</span>
+    ))
 
     let template = <Body counter={0} />
     expect(template.toString()).toBe('<span>0</span>')
@@ -555,8 +596,15 @@ describe('memo', () => {
 
   it('custom propsAreEqual', () => {
     const Body = memo(
-      ({ counter }: { counter: number; refresh?: boolean }) => <span>{counter}</span>,
-      (_, nextProps) => (typeof nextProps.refresh == 'undefined' ? true : !nextProps.refresh)
+      ({ counter }: { counter: number; refresh?: boolean }) => (
+        <span>{counter}</span>
+      ),
+      (
+        _,
+        nextProps,
+      ) => (typeof nextProps.refresh == 'undefined'
+        ? true
+        : !nextProps.refresh),
     )
 
     let template = <Body counter={0} />
@@ -636,11 +684,18 @@ describe('SVG', () => {
   it('simple', () => {
     const template = (
       <svg>
-        <circle cx='50' cy='50' r='40' stroke='black' stroke-width='3' fill='red' />
+        <circle
+          cx='50'
+          cy='50'
+          r='40'
+          stroke='black'
+          stroke-width='3'
+          fill='red'
+        />
       </svg>
     )
     expect(template.toString()).toBe(
-      '<svg><circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red"></circle></svg>'
+      '<svg><circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red"></circle></svg>',
     )
   })
 
@@ -656,7 +711,7 @@ describe('SVG', () => {
       </>
     )
     expect(template.toString()).toBe(
-      '<head><title>Document Title</title></head><svg><title>SVG Title</title></svg>'
+      '<head><title>Document Title</title></head><svg><title>SVG Title</title></svg>',
     )
   })
 
@@ -786,7 +841,9 @@ describe('SVG', () => {
           </svg>
         )
         expect(template.toString()).toBe(
-          `<svg><g ${key.replace(/([A-Z])/g, '-$1').toLowerCase()}="test"></g></svg>`
+          `<svg><g ${
+            key.replace(/([A-Z])/g, '-$1').toLowerCase()
+          }="test"></g></svg>`,
         )
       })
     })
@@ -854,7 +911,9 @@ describe('Context', () => {
           </div>
         </ThemeContext.Provider>
       )
-      expect(template.toString()).toBe('<div><span>dark</span>!</div><div><span>dark</span>!</div>')
+      expect(template.toString()).toBe(
+        '<div><span>dark</span>!</div><div><span>dark</span>!</div>',
+      )
     })
 
     it('nested', () => {
@@ -867,7 +926,9 @@ describe('Context', () => {
           <Consumer />
         </ThemeContext.Provider>
       )
-      expect(template.toString()).toBe('<span>dark</span><span>black</span><span>dark</span>')
+      expect(template.toString()).toBe(
+        '<span>dark</span><span>black</span><span>dark</span>',
+      )
     })
 
     it('should reset context by error', () => {
@@ -999,7 +1060,7 @@ d.replaceWith(c.content)
         </ThemeContext.Provider>
       )
       expect((await template.toString()).toString()).toBe(
-        '<div><span>dark</span><span>dark</span></div>'
+        '<div><span>dark</span><span>dark</span></div>',
       )
     })
 
@@ -1009,7 +1070,8 @@ d.replaceWith(c.content)
           <ParentAsyncErrorConsumer />
         </ThemeContext.Provider>
       )
-      expect(async () => (await template.toString()).toString()).rejects.toThrow()
+      expect(async () => (await template.toString()).toString()).rejects
+        .toThrow()
 
       const nextRequest = <Consumer />
       expect(nextRequest.toString()).toBe('<span>light</span>')

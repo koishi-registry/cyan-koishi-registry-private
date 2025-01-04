@@ -3,8 +3,17 @@
  * html Helper for Hono.
  */
 
-import { escapeToBuffer, raw, resolveCallbackSync, stringBufferToString } from '../../utils/html'
-import type { HtmlEscaped, HtmlEscapedString, StringBufferWithCallbacks } from '../../utils/html'
+import {
+  escapeToBuffer,
+  raw,
+  resolveCallbackSync,
+  stringBufferToString,
+} from '../../utils/html'
+import type {
+  HtmlEscaped,
+  HtmlEscapedString,
+  StringBufferWithCallbacks,
+} from '../../utils/html'
 
 export { raw }
 
@@ -27,9 +36,13 @@ export const html = (
         escapeToBuffer(child, buffer)
       } else if (typeof child === 'number') {
         ;(buffer[0] as string) += child
-      } else if (typeof child === 'boolean' || child === null || child === undefined) {
+      } else if (
+        typeof child === 'boolean' || child === null || child === undefined
+      ) {
         continue
-      } else if (typeof child === 'object' && (child as HtmlEscaped).isEscaped) {
+      } else if (
+        typeof child === 'object' && (child as HtmlEscaped).isEscaped
+      ) {
         if ((child as HtmlEscapedString).callbacks) {
           buffer.unshift('', child)
         } else {

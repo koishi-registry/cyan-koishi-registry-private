@@ -12,8 +12,12 @@ export type SecureHeadersVariables = {
   secureHeadersNonce?: string
 }
 
-export type ContentSecurityPolicyOptionHandler = (ctx: Context, directive: string) => string
-type ContentSecurityPolicyOptionValue = (string | ContentSecurityPolicyOptionHandler)[]
+export type ContentSecurityPolicyOptionHandler = (
+  ctx: Context,
+  directive: string,
+) => string
+type ContentSecurityPolicyOptionValue =
+  (string | ContentSecurityPolicyOptionHandler)[]
 
 interface ContentSecurityPolicyOptions {
   defaultSrc?: ContentSecurityPolicyOptionValue
@@ -94,7 +98,10 @@ const HEADERS_MAP: HeadersMap = {
   crossOriginOpenerPolicy: ['Cross-Origin-Opener-Policy', 'same-origin'],
   originAgentCluster: ['Origin-Agent-Cluster', '?1'],
   referrerPolicy: ['Referrer-Policy', 'no-referrer'],
-  strictTransportSecurity: ['Strict-Transport-Security', 'max-age=15552000; includeSubDomains'],
+  strictTransportSecurity: [
+    'Strict-Transport-Security',
+    'max-age=15552000; includeSubDomains',
+  ],
   xContentTypeOptions: ['X-Content-Type-Options', 'nosniff'],
   xDnsPrefetchControl: ['X-DNS-Prefetch-Control', 'off'],
   xDownloadOptions: ['X-Download-Options', 'noopen'],
@@ -122,7 +129,7 @@ const DEFAULT_OPTIONS: SecureHeadersOptions = {
 
 type SecureHeadersCallback = (
   ctx: Context,
-  headersToSet: [string, string | string[]][]
+  headersToSet: [string, string | string[]][],
 ) => [string, string][]
 
 const generateNonce = () => {
@@ -173,7 +180,9 @@ export const NONCE: ContentSecurityPolicyOptionHandler = (ctx) => {
  * app.use(secureHeaders())
  * ```
  */
-export const secureHeaders = (customOptions?: SecureHeadersOptions): MiddlewareHandler => {
+export const secureHeaders = (
+  customOptions?: SecureHeadersOptions,
+): MiddlewareHandler => {
   const options = { ...DEFAULT_OPTIONS, ...customOptions }
   const headersToSet = getFilteredHeaders(options)
   const callbacks: SecureHeadersCallback[] = []
@@ -187,14 +196,19 @@ export const secureHeaders = (customOptions?: SecureHeadersOptions): MiddlewareH
   }
 
   if (options.contentSecurityPolicyReportOnly) {
-    const [callback, value] = getCSPDirectives(options.contentSecurityPolicyReportOnly)
+    const [callback, value] = getCSPDirectives(
+      options.contentSecurityPolicyReportOnly,
+    )
     if (callback) {
       callbacks.push(callback)
     }
     headersToSet.push(['Content-Security-Policy-Report-Only', value as string])
   }
 
-  if (options.permissionsPolicy && Object.keys(options.permissionsPolicy).length > 0) {
+  if (
+    options.permissionsPolicy &&
+    Object.keys(options.permissionsPolicy).length > 0
+  ) {
     headersToSet.push([
       'Permissions-Policy',
       getPermissionsPolicyDirectives(options.permissionsPolicy),
@@ -202,7 +216,10 @@ export const secureHeaders = (customOptions?: SecureHeadersOptions): MiddlewareH
   }
 
   if (options.reportingEndpoints) {
-    headersToSet.push(['Reporting-Endpoints', getReportingEndpoints(options.reportingEndpoints)])
+    headersToSet.push([
+      'Reporting-Endpoints',
+      getReportingEndpoints(options.reportingEndpoints),
+    ])
   }
 
   if (options.reportTo) {
@@ -212,10 +229,9 @@ export const secureHeaders = (customOptions?: SecureHeadersOptions): MiddlewareH
   return async function secureHeaders(ctx, next) {
     // should evaluate callbacks before next()
     // some callback calls ctx.set() for embedding nonce to the page
-    const headersToSetForReq =
-      callbacks.length === 0
-        ? headersToSet
-        : callbacks.reduce((acc, cb) => cb(ctx, acc), headersToSet)
+    const headersToSetForReq = callbacks.length === 0
+      ? headersToSet
+      : callbacks.reduce((acc, cb) => cb(ctx, acc), headersToSet)
     await next()
     setHeaders(ctx, headersToSetForReq)
 
@@ -230,12 +246,14 @@ function getFilteredHeaders(options: SecureHeadersOptions): [string, string][] {
     .filter(([key]) => options[key as keyof SecureHeadersOptions])
     .map(([key, defaultValue]) => {
       const overrideValue = options[key as keyof SecureHeadersOptions]
-      return typeof overrideValue === 'string' ? [defaultValue[0], overrideValue] : defaultValue
+      return typeof overrideValue === 'string'
+        ? [defaultValue[0], overrideValue]
+        : defaultValue
     })
 }
 
 function getCSPDirectives(
-  contentSecurityPolicy: ContentSecurityPolicyOptions
+  contentSecurityPolicy: ContentSecurityPolicyOptions,
 ): [SecureHeadersCallback | undefined, string | string[]] {
   const callbacks: ((ctx: Context, values: string[]) => void)[] = []
   const resultValues: string[] = []
@@ -253,38 +271,40 @@ function getCSPDirectives(
     })
 
     resultValues.push(
-      directive.replace(/[A-Z]+(?![a-z])|[A-Z]/g, (match, offset) =>
-        offset ? '-' + match.toLowerCase() : match.toLowerCase()
+      directive.replace(
+        /[A-Z]+(?![a-z])|[A-Z]/g,
+        (match, offset) =>
+          offset ? '-' + match.toLowerCase() : match.toLowerCase(),
       ),
       ...valueArray.flatMap((value) => [' ', value]),
-      '; '
+      '; ',
     )
   }
   resultValues.pop()
 
-  return callbacks.length === 0
-    ? [undefined, resultValues.join('')]
-    : [
-        (ctx, headersToSet) =>
-          headersToSet.map((values) => {
-            if (
-              values[0] === 'Content-Security-Policy' ||
-              values[0] === 'Content-Security-Policy-Report-Only'
-            ) {
-              const clone = values[1].slice() as unknown as string[]
-              callbacks.forEach((cb) => {
-                cb(ctx, clone)
-              })
-              return [values[0], clone.join('')]
-            } else {
-              return values as [string, string]
-            }
-          }),
-        resultValues,
-      ]
+  return callbacks.length === 0 ? [undefined, resultValues.join('')] : [
+    (ctx, headersToSet) =>
+      headersToSet.map((values) => {
+        if (
+          values[0] === 'Content-Security-Policy' ||
+          values[0] === 'Content-Security-Policy-Report-Only'
+        ) {
+          const clone = values[1].slice() as unknown as string[]
+          callbacks.forEach((cb) => {
+            cb(ctx, clone)
+          })
+          return [values[0], clone.join('')]
+        } else {
+          return values as [string, string]
+        }
+      }),
+    resultValues,
+  ]
 }
 
-function getPermissionsPolicyDirectives(policy: PermissionsPolicyOptions): string {
+function getPermissionsPolicyDirectives(
+  policy: PermissionsPolicyOptions,
+): string {
   return Object.entries(policy)
     .map(([directive, value]) => {
       const kebabDirective = camelToKebab(directive)
@@ -300,7 +320,9 @@ function getPermissionsPolicyDirectives(policy: PermissionsPolicyOptions): strin
         if (value.length === 1 && (value[0] === '*' || value[0] === 'none')) {
           return `${kebabDirective}=${value[0]}`
         }
-        const allowlist = value.map((item) => (['self', 'src'].includes(item) ? item : `"${item}"`))
+        const allowlist = value.map((
+          item,
+        ) => (['self', 'src'].includes(item) ? item : `"${item}"`))
         return `${kebabDirective}=(${allowlist.join(' ')})`
       }
 
@@ -315,12 +337,16 @@ function camelToKebab(str: string): string {
 }
 
 function getReportingEndpoints(
-  reportingEndpoints: SecureHeadersOptions['reportingEndpoints'] = []
+  reportingEndpoints: SecureHeadersOptions['reportingEndpoints'] = [],
 ): string {
-  return reportingEndpoints.map((endpoint) => `${endpoint.name}="${endpoint.url}"`).join(', ')
+  return reportingEndpoints.map((endpoint) =>
+    `${endpoint.name}="${endpoint.url}"`
+  ).join(', ')
 }
 
-function getReportToOptions(reportTo: SecureHeadersOptions['reportTo'] = []): string {
+function getReportToOptions(
+  reportTo: SecureHeadersOptions['reportTo'] = [],
+): string {
   return reportTo.map((option) => JSON.stringify(option)).join(', ')
 }
 

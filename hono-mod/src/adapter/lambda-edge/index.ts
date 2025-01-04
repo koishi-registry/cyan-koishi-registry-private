@@ -8,7 +8,7 @@ export { getConnInfo } from './conninfo'
 export type {
   Callback,
   CloudFrontConfig,
+  CloudFrontEdgeEvent,
   CloudFrontRequest,
   CloudFrontResponse,
-  CloudFrontEdgeEvent,
 } from './handler'

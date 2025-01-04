@@ -2,16 +2,25 @@
 /** @jsxImportSource ./ */
 import { JSDOM } from 'jsdom'
 import type { HtmlEscapedString } from '../utils/html'
-import { HtmlEscapedCallbackPhase, resolveCallback as rawResolveCallback } from '../utils/html'
+import {
+  HtmlEscapedCallbackPhase,
+  resolveCallback as rawResolveCallback,
+} from '../utils/html'
 import { ErrorBoundary } from './components'
-import { Suspense, renderToReadableStream } from './streaming'
+import { renderToReadableStream, Suspense } from './streaming'
 
 function resolveCallback(template: string | HtmlEscapedString) {
-  return rawResolveCallback(template, HtmlEscapedCallbackPhase.Stream, false, {})
+  return rawResolveCallback(
+    template,
+    HtmlEscapedCallbackPhase.Stream,
+    false,
+    {},
+  )
 }
 
 function replacementResult(html: string) {
-  const document = new JSDOM(html, { runScripts: 'dangerously' }).window.document
+  const document =
+    new JSDOM(html, { runScripts: 'dangerously' }).window.document
   document.querySelectorAll('template, script').forEach((e) => e.remove())
   return document.body.innerHTML
 }
@@ -41,7 +50,9 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>
       )
 
-      expect((await resolveCallback(await html.toString())).toString()).toEqual('<div>Hello</div>')
+      expect((await resolveCallback(await html.toString())).toString()).toEqual(
+        '<div>Hello</div>',
+      )
 
       errorBoundaryCounter--
       suspenseCounter--
@@ -55,7 +66,7 @@ describe('ErrorBoundary', () => {
       )
 
       expect((await resolveCallback(await html.toString())).toString()).toEqual(
-        '<div>Out Of Service</div>'
+        '<div>Out Of Service</div>',
       )
 
       suspenseCounter--
@@ -64,11 +75,15 @@ describe('ErrorBoundary', () => {
     it('nullish', async () => {
       const html = (
         <div>
-          <ErrorBoundary fallback={<Fallback />}>{[null, undefined]}</ErrorBoundary>
+          <ErrorBoundary fallback={<Fallback />}>
+            {[null, undefined]}
+          </ErrorBoundary>
         </div>
       )
 
-      expect((await resolveCallback(await html.toString())).toString()).toEqual('<div></div>')
+      expect((await resolveCallback(await html.toString())).toString()).toEqual(
+        '<div></div>',
+      )
 
       errorBoundaryCounter--
       suspenseCounter--
@@ -81,7 +96,9 @@ describe('ErrorBoundary', () => {
         </div>
       )
 
-      expect((await resolveCallback(await html.toString())).toString()).toEqual('<div></div>')
+      expect((await resolveCallback(await html.toString())).toString()).toEqual(
+        '<div></div>',
+      )
 
       errorBoundaryCounter--
       suspenseCounter--
@@ -104,7 +121,9 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>
       )
 
-      expect((await resolveCallback(await html.toString())).toString()).toEqual('<div>Hello</div>')
+      expect((await resolveCallback(await html.toString())).toString()).toEqual(
+        '<div>Hello</div>',
+      )
 
       errorBoundaryCounter--
       suspenseCounter--
@@ -118,7 +137,7 @@ describe('ErrorBoundary', () => {
       )
 
       expect((await resolveCallback(await html.toString())).toString()).toEqual(
-        '<div>Out Of Service</div>'
+        '<div>Out Of Service</div>',
       )
 
       suspenseCounter--
@@ -126,9 +145,15 @@ describe('ErrorBoundary', () => {
   })
 
   describe('async : nested', async () => {
-    const handlers: Record<number, { resolve: (value: unknown) => void; reject: () => void }> = {}
+    const handlers: Record<
+      number,
+      { resolve: (value: unknown) => void; reject: () => void }
+    > = {}
     const Component = async ({ id }: { id: number }) => {
-      await new Promise((resolve, reject) => (handlers[id] = { resolve, reject }))
+      await new Promise((
+        resolve,
+        reject,
+      ) => (handlers[id] = { resolve, reject }))
       return <div>{id}</div>
     }
 
@@ -144,7 +169,9 @@ describe('ErrorBoundary', () => {
 
       Object.values(handlers).forEach(({ resolve }) => resolve(undefined))
 
-      expect((await resolveCallback(await html)).toString()).toEqual('<div>1</div><div>2</div>')
+      expect((await resolveCallback(await html)).toString()).toEqual(
+        '<div>1</div><div>2</div>',
+      )
 
       errorBoundaryCounter++
       suspenseCounter--
@@ -163,7 +190,9 @@ describe('ErrorBoundary', () => {
       handlers[2].resolve(undefined)
       handlers[1].reject()
 
-      expect((await resolveCallback(await html)).toString()).toEqual('<div>Out Of Service</div>')
+      expect((await resolveCallback(await html)).toString()).toEqual(
+        '<div>Out Of Service</div>',
+      )
 
       errorBoundaryCounter++
       suspenseCounter--
@@ -183,7 +212,7 @@ describe('ErrorBoundary', () => {
       handlers[2].reject()
 
       expect((await resolveCallback(await html)).toString()).toEqual(
-        '<div>1</div><div>Out Of Service</div>'
+        '<div>1</div><div>Out Of Service</div>',
       )
 
       errorBoundaryCounter++
@@ -212,7 +241,7 @@ describe('ErrorBoundary', () => {
       ).toString()
 
       expect((await resolveCallback(await html)).toString()).toEqual(
-        '<div>OK</div><div>Out Of Service</div>'
+        '<div>OK</div><div>Out Of Service</div>',
       )
 
       suspenseCounter--
@@ -234,7 +263,7 @@ describe('ErrorBoundary', () => {
           <Suspense fallback={<p>Loading...</p>}>
             <Component />
           </Suspense>
-        </ErrorBoundary>
+        </ErrorBoundary>,
       )
       const chunks = []
       const textDecoder = new TextDecoder()
@@ -272,9 +301,10 @@ d.remove()
 </script>`,
       ])
 
-      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`)).toEqual(
-        '<div>Hello</div>'
-      )
+      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`))
+        .toEqual(
+          '<div>Hello</div>',
+        )
     })
 
     it('error', async () => {
@@ -285,15 +315,21 @@ d.remove()
       )
 
       expect((await resolveCallback(await html.toString())).toString()).toEqual(
-        '<div>Out Of Service</div>'
+        '<div>Out Of Service</div>',
       )
     })
   })
 
   describe('streaming : contains multiple suspense', async () => {
-    const handlers: Record<number, { resolve: (value: unknown) => void; reject: () => void }> = {}
+    const handlers: Record<
+      number,
+      { resolve: (value: unknown) => void; reject: () => void }
+    > = {}
     const Component = async ({ id }: { id: number }) => {
-      await new Promise((resolve, reject) => (handlers[id] = { resolve, reject }))
+      await new Promise((
+        resolve,
+        reject,
+      ) => (handlers[id] = { resolve, reject }))
       return <div>{id}</div>
     }
 
@@ -309,7 +345,7 @@ d.remove()
           <Suspense fallback={<p>Loading...</p>}>
             <Component id={3} />
           </Suspense>
-        </ErrorBoundary>
+        </ErrorBoundary>,
       )
 
       Object.values(handlers).forEach(({ resolve }) => resolve(undefined))
@@ -320,9 +356,10 @@ d.remove()
         chunks.push(textDecoder.decode(chunk))
       }
 
-      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`)).toEqual(
-        '<div>1</div><div>2</div><div>3</div>'
-      )
+      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`))
+        .toEqual(
+          '<div>1</div><div>2</div><div>3</div>',
+        )
     })
 
     it('error', async () => {
@@ -337,7 +374,7 @@ d.remove()
           <Suspense fallback={<p>Loading...</p>}>
             <Component id={3} />
           </Suspense>
-        </ErrorBoundary>
+        </ErrorBoundary>,
       )
 
       handlers[1].resolve(undefined)
@@ -350,16 +387,23 @@ d.remove()
         chunks.push(textDecoder.decode(chunk))
       }
 
-      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`)).toEqual(
-        '<div>Out Of Service</div>'
-      )
+      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`))
+        .toEqual(
+          '<div>Out Of Service</div>',
+        )
     })
   })
 
   describe('streaming : nested', async () => {
-    const handlers: Record<number, { resolve: (value: unknown) => void; reject: () => void }> = {}
+    const handlers: Record<
+      number,
+      { resolve: (value: unknown) => void; reject: () => void }
+    > = {}
     const Component = async ({ id }: { id: number }) => {
-      await new Promise((resolve, reject) => (handlers[id] = { resolve, reject }))
+      await new Promise((
+        resolve,
+        reject,
+      ) => (handlers[id] = { resolve, reject }))
       return <div>{id}</div>
     }
 
@@ -374,7 +418,7 @@ d.remove()
               <Component id={2} />
             </Suspense>
           </ErrorBoundary>
-        </ErrorBoundary>
+        </ErrorBoundary>,
       )
 
       Object.values(handlers).forEach(({ resolve }) => resolve(undefined))
@@ -385,9 +429,10 @@ d.remove()
         chunks.push(textDecoder.decode(chunk))
       }
 
-      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`)).toEqual(
-        '<div>1</div><div>2</div>'
-      )
+      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`))
+        .toEqual(
+          '<div>1</div><div>2</div>',
+        )
     })
 
     it('error in parent', async () => {
@@ -401,7 +446,7 @@ d.remove()
               <Component id={2} />
             </Suspense>
           </ErrorBoundary>
-        </ErrorBoundary>
+        </ErrorBoundary>,
       )
 
       handlers[2].resolve(undefined)
@@ -413,9 +458,10 @@ d.remove()
         chunks.push(textDecoder.decode(chunk))
       }
 
-      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`)).toEqual(
-        '<div>Out Of Service</div>'
-      )
+      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`))
+        .toEqual(
+          '<div>Out Of Service</div>',
+        )
     })
 
     it('error in child', async () => {
@@ -429,7 +475,7 @@ d.remove()
               <Component id={2} />
             </Suspense>
           </ErrorBoundary>
-        </ErrorBoundary>
+        </ErrorBoundary>,
       )
 
       handlers[1].resolve(undefined)
@@ -441,9 +487,10 @@ d.remove()
         chunks.push(textDecoder.decode(chunk))
       }
 
-      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`)).toEqual(
-        '<div>1</div><div>Out Of Service</div>'
-      )
+      expect(replacementResult(`<html><body>${chunks.join('')}</body></html>`))
+        .toEqual(
+          '<div>1</div><div>Out Of Service</div>',
+        )
     })
   })
 
@@ -458,12 +505,17 @@ d.remove()
     it('no error', async () => {
       const errors: Error[] = []
       const html = (
-        <ErrorBoundary fallback={<Fallback />} onError={(err) => errors.push(err)}>
+        <ErrorBoundary
+          fallback={<Fallback />}
+          onError={(err) => errors.push(err)}
+        >
           <Component />
         </ErrorBoundary>
       )
 
-      expect((await resolveCallback(await html.toString())).toString()).toEqual('<div>Hello</div>')
+      expect((await resolveCallback(await html.toString())).toString()).toEqual(
+        '<div>Hello</div>',
+      )
 
       errorBoundaryCounter--
       suspenseCounter--
@@ -474,13 +526,16 @@ d.remove()
     it('error', async () => {
       const errors: Error[] = []
       const html = (
-        <ErrorBoundary fallback={<Fallback />} onError={(err) => errors.push(err)}>
+        <ErrorBoundary
+          fallback={<Fallback />}
+          onError={(err) => errors.push(err)}
+        >
           <Component error={true} />
         </ErrorBoundary>
       )
 
       expect((await resolveCallback(await html.toString())).toString()).toEqual(
-        '<div>Out Of Service</div>'
+        '<div>Out Of Service</div>',
       )
 
       suspenseCounter--
@@ -490,7 +545,9 @@ d.remove()
   })
 
   describe('fallbackRender', async () => {
-    const fallbackRenderer = (error: Error) => <div data-error>{error.message}</div>
+    const fallbackRenderer = (error: Error) => (
+      <div data-error>{error.message}</div>
+    )
     const Component = ({ error }: { error?: boolean }) => {
       if (error) {
         throw new Error('Error')
@@ -506,7 +563,9 @@ d.remove()
         </ErrorBoundary>
       )
 
-      expect((await resolveCallback(await html.toString())).toString()).toEqual('<div>Hello</div>')
+      expect((await resolveCallback(await html.toString())).toString()).toEqual(
+        '<div>Hello</div>',
+      )
 
       errorBoundaryCounter--
       suspenseCounter--
@@ -522,7 +581,7 @@ d.remove()
       )
 
       expect((await resolveCallback(await html.toString())).toString()).toEqual(
-        '<div data-error="true">Error</div>'
+        '<div data-error="true">Error</div>',
       )
 
       suspenseCounter--

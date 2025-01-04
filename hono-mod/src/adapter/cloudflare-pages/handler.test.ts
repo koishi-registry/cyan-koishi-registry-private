@@ -11,7 +11,7 @@ type Env = {
 }
 
 function createEventContext(
-  context: Partial<EventContext<Env['Bindings']>>
+  context: Partial<EventContext<Env['Bindings']>>,
 ): EventContext<Env['Bindings']> {
   return {
     data: {},
@@ -55,7 +55,7 @@ describe('Adapter for Cloudflare Pages', () => {
     expect(appFetchSpy).toHaveBeenCalledWith(
       request,
       { ...env, eventContext },
-      { waitUntil, passThroughOnException }
+      { waitUntil, passThroughOnException },
     )
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({
@@ -89,7 +89,9 @@ describe('Middleware adapter for Cloudflare Pages', () => {
         Cookie: 'my_cookie=1234',
       },
     })
-    const next = vi.fn().mockResolvedValue(Response.json('From Cloudflare Pages'))
+    const next = vi.fn().mockResolvedValue(
+      Response.json('From Cloudflare Pages'),
+    )
     const eventContext = createEventContext({ request, next })
     const handler = handleMiddleware(async (c, next) => {
       const cookie = getCookie(c, 'my_cookie')
@@ -149,7 +151,9 @@ describe('Middleware adapter for Cloudflare Pages', () => {
     const request = new Request('http://localhost/api/foo')
     const handler = handleMiddleware((c, next) => next())
 
-    const next = vi.fn().mockResolvedValue(Response.json('From Cloudflare Pages'))
+    const next = vi.fn().mockResolvedValue(
+      Response.json('From Cloudflare Pages'),
+    )
     const eventContext = createEventContext({ request, next })
     const res = await handler(eventContext)
 
@@ -181,7 +185,9 @@ describe('Middleware adapter for Cloudflare Pages', () => {
 
     const next = vi
       .fn()
-      .mockRejectedValue(new HTTPException(401, { res: Response.json('Unauthorized') }))
+      .mockRejectedValue(
+        new HTTPException(401, { res: Response.json('Unauthorized') }),
+      )
     const eventContext = createEventContext({ request, next })
     const res = await handler(eventContext)
 
@@ -196,7 +202,9 @@ describe('Middleware adapter for Cloudflare Pages', () => {
 
     const next = vi.fn().mockRejectedValue(new Error('Error from next()'))
     const eventContext = createEventContext({ request, next })
-    await expect(handler(eventContext)).rejects.toThrowError('Error from next()')
+    await expect(handler(eventContext)).rejects.toThrowError(
+      'Error from next()',
+    )
     expect(next).toHaveBeenCalled()
   })
 
@@ -206,7 +214,9 @@ describe('Middleware adapter for Cloudflare Pages', () => {
 
     const next = vi.fn().mockRejectedValue('Error from next()')
     const eventContext = createEventContext({ request, next })
-    await expect(handler(eventContext)).rejects.toThrowError('Error from next()')
+    await expect(handler(eventContext)).rejects.toThrowError(
+      'Error from next()',
+    )
     expect(next).toHaveBeenCalled()
   })
 
@@ -218,16 +228,22 @@ describe('Middleware adapter for Cloudflare Pages', () => {
 
     const next = vi.fn()
     const eventContext = createEventContext({ request, next })
-    await expect(handler(eventContext)).rejects.toThrowError('Something went wrong')
+    await expect(handler(eventContext)).rejects.toThrowError(
+      'Something went wrong',
+    )
     expect(next).not.toHaveBeenCalled()
   })
 
   it('Should rethrow non-Error exceptions', async () => {
     const request = new Request('http://localhost/api/foo')
-    const handler = handleMiddleware(() => Promise.reject('Something went wrong'))
+    const handler = handleMiddleware(() =>
+      Promise.reject('Something went wrong')
+    )
     const next = vi.fn()
     const eventContext = createEventContext({ request, next })
-    await expect(handler(eventContext)).rejects.toThrowError('Something went wrong')
+    await expect(handler(eventContext)).rejects.toThrowError(
+      'Something went wrong',
+    )
     expect(next).not.toHaveBeenCalled()
   })
 
@@ -265,7 +281,9 @@ describe('serveStatic()', () => {
   })
 
   it('Should respond with 404 if ASSETS.fetch returns a 404 response', async () => {
-    const assetsFetch = vi.fn().mockResolvedValue(new Response(null, { status: 404 }))
+    const assetsFetch = vi.fn().mockResolvedValue(
+      new Response(null, { status: 404 }),
+    )
     const request = new Request('http://localhost/foo.png')
     const env = {
       ASSETS: { fetch: assetsFetch },

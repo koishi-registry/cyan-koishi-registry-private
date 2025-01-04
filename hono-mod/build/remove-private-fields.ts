@@ -1,6 +1,8 @@
 import * as ts from 'typescript'
 
-const removePrivateTransformer = <T extends ts.Node>(ctx: ts.TransformationContext) => {
+const removePrivateTransformer = <T extends ts.Node>(
+  ctx: ts.TransformationContext,
+) => {
   const visit: ts.Visitor = (node) => {
     if (ts.isClassDeclaration(node)) {
       const newMembers = node.members.filter((elem) => {
@@ -21,7 +23,7 @@ const removePrivateTransformer = <T extends ts.Node>(ctx: ts.TransformationConte
         node.name,
         node.typeParameters,
         node.heritageClauses,
-        newMembers
+        newMembers,
       )
     }
     return ts.visitEachChild(node, visit, ctx)

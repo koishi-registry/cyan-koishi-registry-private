@@ -16,9 +16,11 @@ export const expandIPv6 = (ipV6: string): string => {
     sections.splice(
       -1,
       1,
-      ...convertIPv6BinaryToString(convertIPv4ToBinary(sections.at(-1) as string)) // => ::7f00:0001
+      ...convertIPv6BinaryToString(
+        convertIPv4ToBinary(sections.at(-1) as string),
+      ) // => ::7f00:0001
         .substring(2) // => 7f00:0001
-        .split(':') // => ['7f00', '0001']
+        .split(':'), // => ['7f00', '0001']
     )
   }
   for (let i = 0; i < sections.length; i++) {

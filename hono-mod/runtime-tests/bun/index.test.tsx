@@ -1,4 +1,12 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
 import fs from 'fs/promises'
 import path from 'path'
 import { stream, streamSSE } from '../..//src/helper/streaming'
@@ -59,7 +67,7 @@ describe('Basic Auth Middleware', () => {
     basicAuth({
       username,
       password,
-    })
+    }),
   )
 
   app.get('/auth/*', () => new Response('auth'))
@@ -84,10 +92,16 @@ describe('Basic Auth Middleware', () => {
 describe('Serve Static Middleware', () => {
   const app = new Hono()
   const onNotFound = vi.fn(() => {})
-  app.all('/favicon.ico', serveStatic({ path: './runtime-tests/bun/favicon.ico' }))
+  app.all(
+    '/favicon.ico',
+    serveStatic({ path: './runtime-tests/bun/favicon.ico' }),
+  )
   app.all(
     '/favicon-notfound.ico',
-    serveStatic({ path: './runtime-tests/bun/favicon-notfound.ico', onNotFound })
+    serveStatic({
+      path: './runtime-tests/bun/favicon-notfound.ico',
+      onNotFound,
+    }),
   )
   app.use('/favicon-notfound.ico', async (c, next) => {
     await next()
@@ -98,17 +112,20 @@ describe('Serve Static Middleware', () => {
     serveStatic({
       root: './runtime-tests/bun/',
       onNotFound,
-    })
+    }),
   )
   app.get(
     '/dot-static/*',
     serveStatic({
       root: './runtime-tests/bun/',
       rewriteRequestPath: (path) => path.replace(/^\/dot-static/, './.static'),
-    })
+    }),
   )
 
-  app.all('/static-absolute-root/*', serveStatic({ root: path.dirname(__filename) }))
+  app.all(
+    '/static-absolute-root/*',
+    serveStatic({ root: path.dirname(__filename) }),
+  )
 
   beforeEach(() => onNotFound.mockClear())
 
@@ -120,31 +137,39 @@ describe('Serve Static Middleware', () => {
   })
 
   it('Should return 404 response', async () => {
-    const res = await app.request(new Request('http://localhost/favicon-notfound.ico'))
+    const res = await app.request(
+      new Request('http://localhost/favicon-notfound.ico'),
+    )
     expect(res.status).toBe(404)
     expect(res.headers.get('X-Custom')).toBe('Bun')
     expect(onNotFound).toHaveBeenCalledWith(
       './runtime-tests/bun/favicon-notfound.ico',
-      expect.anything()
+      expect.anything(),
     )
   })
 
   it('Should return 200 response - /static/plain.txt', async () => {
-    const res = await app.request(new Request('http://localhost/static/plain.txt'))
+    const res = await app.request(
+      new Request('http://localhost/static/plain.txt'),
+    )
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('Bun!')
     expect(onNotFound).not.toHaveBeenCalled()
   })
 
   it('Should return 200 response - /static/download', async () => {
-    const res = await app.request(new Request('http://localhost/static/download'))
+    const res = await app.request(
+      new Request('http://localhost/static/download'),
+    )
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('download')
     expect(onNotFound).not.toHaveBeenCalled()
   })
 
   it('Should return 200 response - /dot-static/plain.txt', async () => {
-    const res = await app.request(new Request('http://localhost/dot-static/plain.txt'))
+    const res = await app.request(
+      new Request('http://localhost/dot-static/plain.txt'),
+    )
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('Bun!!')
   })
@@ -162,7 +187,9 @@ describe('Serve Static Middleware', () => {
   })
 
   it('Should return 200 response - /static-absolute-root/plain.txt', async () => {
-    const res = await app.request('http://localhost/static-absolute-root/plain.txt')
+    const res = await app.request(
+      'http://localhost/static-absolute-root/plain.txt',
+    )
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('Bun!')
     expect(onNotFound).not.toHaveBeenCalled()
@@ -210,14 +237,14 @@ describe('JSX Middleware', () => {
     return c.html(
       <h1>
         <a href='/top'>Hello</a>
-      </h1>
+      </h1>,
     )
   })
   app.get('/layout', (c) => {
     return c.html(
       <Layout>
         <p>hello</p>
-      </Layout>
+      </Layout>,
     )
   })
 
@@ -263,7 +290,7 @@ describe('toSSG function', () => {
             <body>
               <p>{content}</p>
             </body>
-          </html>
+          </html>,
         )
       })
       await next()
@@ -296,7 +323,7 @@ describe('WebSockets Helper', () => {
           onMessage(evt) {
             resolve(evt.data)
           },
-        }))
+        })),
       )
     )
     const upgradedData = await new Promise<BunWebSocketData>((resolve) =>
@@ -314,7 +341,7 @@ describe('WebSockets Helper', () => {
         data: upgradedData,
         send: () => undefined,
       },
-      message
+      message,
     )
     const receivedMessage = await receivedMessagePromise
     expect(receivedMessage).toBe(message)

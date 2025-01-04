@@ -12,5 +12,4 @@
 ### Koishi Registry
 cache/
 data/
-
-
+!/webui/packages/

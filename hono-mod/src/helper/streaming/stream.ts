@@ -1,11 +1,14 @@
 import type { Context } from '../../context'
 import { StreamingApi } from '../../utils/stream'
 
-const contextStash: WeakMap<ReadableStream, Context> = new WeakMap<ReadableStream, Context>()
+const contextStash: WeakMap<ReadableStream, Context> = new WeakMap<
+  ReadableStream,
+  Context
+>()
 export const stream = (
   c: Context,
   cb: (stream: StreamingApi) => Promise<void>,
-  onError?: (e: Error, stream: StreamingApi) => Promise<void>
+  onError?: (e: Error, stream: StreamingApi) => Promise<void>,
 ): Response => {
   const { readable, writable } = new TransformStream()
   const stream = new StreamingApi(writable, readable)

@@ -3,14 +3,26 @@ import { Hono } from '../../'
 import { html } from '../../helper/html'
 import type { JSXNode } from '../../jsx'
 import { isValidElement } from '../../jsx'
-import { Suspense, renderToReadableStream } from '../../jsx/streaming'
+import { renderToReadableStream, Suspense } from '../../jsx/streaming'
 import type { HtmlEscapedString } from '../../utils/html'
 import { HtmlEscapedCallbackPhase, resolveCallback } from '../../utils/html'
 import { renderTest } from './common.case.test'
-import { Style, createCssContext, css, cx, keyframes, rawCssString, viewTransition } from './index'
+import {
+  createCssContext,
+  css,
+  cx,
+  keyframes,
+  rawCssString,
+  Style,
+  viewTransition,
+} from './index'
 
 async function toString(
-  template: JSXNode | Promise<HtmlEscapedString> | Promise<string> | HtmlEscapedString
+  template:
+    | JSXNode
+    | Promise<HtmlEscapedString>
+    | Promise<string>
+    | HtmlEscapedString,
 ) {
   if (template instanceof Promise) {
     template = (await template) as HtmlEscapedString
@@ -18,11 +30,20 @@ async function toString(
   if (isValidElement(template)) {
     template = template.toString() as Promise<HtmlEscapedString>
   }
-  return resolveCallback(await template, HtmlEscapedCallbackPhase.Stringify, false, template)
+  return resolveCallback(
+    await template,
+    HtmlEscapedCallbackPhase.Stringify,
+    false,
+    template,
+  )
 }
 
 async function toCSS(
-  template: JSXNode | Promise<HtmlEscapedString> | Promise<string> | HtmlEscapedString
+  template:
+    | JSXNode
+    | Promise<HtmlEscapedString>
+    | Promise<string>
+    | HtmlEscapedString,
 ) {
   return (await toString(template))
     .replace(/.*?=(".*")<\/script.*/, '$1')
@@ -55,7 +76,7 @@ describe('CSS Helper', () => {
         <h1 class="${headerClass}">Hello!</h1>`
       expect(await toString(template)).toBe(
         `<style id="hono-css">.css-2458908649{background-color:blue}</style>
-        <h1 class="css-2458908649">Hello!</h1>`
+        <h1 class="css-2458908649">Hello!</h1>`,
       )
     })
 
@@ -67,7 +88,7 @@ describe('CSS Helper', () => {
         <h1 class="${headerClass}">Hello!</h1>`
       expect(await toString(template)).toBe(
         `<style id="hono-css" nonce="1234">.css-2458908649{background-color:blue}</style>
-        <h1 class="css-2458908649">Hello!</h1>`
+        <h1 class="css-2458908649">Hello!</h1>`,
       )
     })
   })
@@ -89,7 +110,7 @@ describe('CSS Helper', () => {
         </>
       )
       expect(await toString(template)).toBe(
-        '<style id="hono-css">.css-2395710522{border-radius:4px;background-color:blue;color:white}</style><h1 class="css-2395710522">Hello!</h1>'
+        '<style id="hono-css">.css-2395710522{border-radius:4px;background-color:blue;color:white}</style><h1 class="css-2395710522">Hello!</h1>',
       )
     })
 
@@ -105,7 +126,7 @@ describe('CSS Helper', () => {
         </>
       )
       expect(await toString(template)).toBe(
-        '<style id="hono-css">.css-3467431616{border-radius:4px}</style><h1 class="css-3467431616 external-class">Hello!</h1>'
+        '<style id="hono-css">.css-3467431616{border-radius:4px}</style><h1 class="css-3467431616 external-class">Hello!</h1>',
       )
     })
 
@@ -126,7 +147,7 @@ describe('CSS Helper', () => {
         </>
       )
       expect(await toString(template)).toBe(
-        '<style id="hono-css">.css-3358636561{border-radius:4px;color:white}</style><h1 class="css-3358636561 external-class external-class2">Hello!</h1>'
+        '<style id="hono-css">.css-3358636561{border-radius:4px;color:white}</style><h1 class="css-3358636561 external-class external-class2">Hello!</h1>',
       )
     })
   })
@@ -201,7 +222,7 @@ describe('CSS Helper', () => {
         </>
       )
       expect(await toString(template)).toBe(
-        '<style id="context1">.css-2458908649{background-color:blue}</style><style id="context2">.css-960045552{background-color:red}</style><h1 class="css-2458908649">Hello!</h1><h1 class="css-960045552">Hello!</h1>'
+        '<style id="context1">.css-2458908649{background-color:blue}</style><style id="context2">.css-960045552{background-color:red}</style><h1 class="css-2458908649">Hello!</h1><h1 class="css-960045552">Hello!</h1>',
       )
     })
   })
@@ -218,9 +239,8 @@ describe('CSS Helper', () => {
         <>
           <Style />
           <h1 class={headerClass}>Hello!</h1>
-        </>
-      )
-    )
+        </>,
+      ))
 
     app.get('/stream', (c) => {
       const stream = renderToReadableStream(
@@ -229,7 +249,7 @@ describe('CSS Helper', () => {
           <Suspense fallback={<p>Loading...</p>}>
             <h1 class={headerClass}>Hello!</h1>
           </Suspense>
-        </>
+        </>,
       )
       return c.body(stream, {
         headers: {
@@ -246,7 +266,7 @@ describe('CSS Helper', () => {
           <Suspense fallback={<p>Loading...</p>}>
             <h1 class={headerClass}>Hello!</h1>
           </Suspense>
-        </>
+        </>,
       )
       return c.body(stream, {
         headers: {
@@ -260,7 +280,7 @@ describe('CSS Helper', () => {
       const res = await app.request('http://localhost/sync')
       expect(res).not.toBeNull()
       expect(await res.text()).toBe(
-        '<style id="hono-css">.css-2458908649{background-color:blue}</style><h1 class="css-2458908649">Hello!</h1>'
+        '<style id="hono-css">.css-2458908649{background-color:blue}</style><h1 class="css-2458908649">Hello!</h1>',
       )
     })
 
@@ -276,7 +296,7 @@ if(!d)return
 do{n=d.nextSibling;n.remove()}while(n.nodeType!=8||n.nodeValue!='/$')
 d.replaceWith(c.content)
 })(document)
-</script>`
+</script>`,
       )
     })
 
@@ -292,7 +312,7 @@ if(!d)return
 do{n=d.nextSibling;n.remove()}while(n.nodeType!=8||n.nodeValue!='/$')
 d.replaceWith(c.content)
 })(document)
-</script>`
+</script>`,
       )
     })
   })

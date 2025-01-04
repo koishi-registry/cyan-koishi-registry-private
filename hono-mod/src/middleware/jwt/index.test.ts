@@ -80,7 +80,7 @@ describe('JWT', () => {
       expect(res).not.toBeNull()
       expect(res.status).toBe(401)
       expect(res.headers.get('www-authenticate')).toEqual(
-        `Bearer realm="${url}",error="invalid_token",error_description="token verification failure"`
+        `Bearer realm="${url}",error="invalid_token",error_description="token verification failure"`,
       )
       expect(handlerExecuted).toBeFalsy()
     })
@@ -94,7 +94,7 @@ describe('JWT', () => {
       expect(res).not.toBeNull()
       expect(res.status).toBe(401)
       expect(res.headers.get('www-authenticate')).toEqual(
-        `Bearer realm="${url}",error="invalid_request",error_description="invalid credentials structure"`
+        `Bearer realm="${url}",error="invalid_request",error_description="invalid credentials structure"`,
       )
       expect(handlerExecuted).toBeFalsy()
     })
@@ -131,7 +131,10 @@ describe('JWT', () => {
     const app = new Hono()
 
     app.use('/auth/*', jwt({ secret: 'a-secret', cookie: 'access_token' }))
-    app.use('/auth-unicode/*', jwt({ secret: 'a-secret', cookie: 'access_token' }))
+    app.use(
+      '/auth-unicode/*',
+      jwt({ secret: 'a-secret', cookie: 'access_token' }),
+    )
 
     app.get('/auth/*', (c) => {
       handlerExecuted = true
@@ -196,7 +199,7 @@ describe('JWT', () => {
       expect(res).not.toBeNull()
       expect(res.status).toBe(401)
       expect(res.headers.get('www-authenticate')).toEqual(
-        `Bearer realm="${url}",error="invalid_token",error_description="token verification failure"`
+        `Bearer realm="${url}",error="invalid_token",error_description="token verification failure"`,
       )
       expect(handlerExecuted).toBeFalsy()
     })
@@ -210,7 +213,7 @@ describe('JWT', () => {
       expect(res).not.toBeNull()
       expect(res.status).toBe(401)
       expect(res.headers.get('www-authenticate')).toEqual(
-        `Bearer realm="${url}",error="invalid_token",error_description="token verification failure"`
+        `Bearer realm="${url}",error="invalid_token",error_description="token verification failure"`,
       )
       expect(handlerExecuted).toBeFalsy()
     })
@@ -260,7 +263,7 @@ describe('JWT', () => {
           secret: 'cookie_secret',
           prefixOptions: 'host',
         },
-      })
+      }),
     )
 
     app.get('/auth/*', async (c) => {
@@ -311,7 +314,7 @@ describe('JWT', () => {
           key: 'cookie_name',
           secret: 'cookie_secret',
         },
-      })
+      }),
     )
 
     app.get('/auth/*', async (c) => {
@@ -362,7 +365,7 @@ describe('JWT', () => {
           key: 'cookie_name',
           prefixOptions: 'host',
         },
-      })
+      }),
     )
 
     app.get('/auth/*', async (c) => {
@@ -412,7 +415,7 @@ describe('JWT', () => {
         cookie: {
           key: 'cookie_name',
         },
-      })
+      }),
     )
 
     app.get('/auth/*', async (c) => {

@@ -7,7 +7,10 @@ export const mergePath = (base: string, path: string) => {
   return base + path
 }
 
-export const replaceUrlParam = (urlString: string, params: Record<string, string | undefined>) => {
+export const replaceUrlParam = (
+  urlString: string,
+  params: Record<string, string | undefined>,
+) => {
   for (const [k, v] of Object.entries(params)) {
     const reg = new RegExp('/:' + k + '(?:{[^/]+})?\\??')
     urlString = urlString.replace(reg, v ? `/${v}` : '')
@@ -35,7 +38,10 @@ export const buildSearchParams = (query: Record<string, string | string[]>) => {
   return searchParams
 }
 
-export const replaceUrlProtocol = (urlString: string, protocol: 'ws' | 'http') => {
+export const replaceUrlProtocol = (
+  urlString: string,
+  protocol: 'ws' | 'http',
+) => {
   switch (protocol) {
     case 'ws':
       return urlString.replace(/^http/, 'ws')

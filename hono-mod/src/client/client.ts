@@ -46,7 +46,7 @@ class ClientRequestImpl {
     args?: ValidationTargets<FormValue> & {
       param?: Record<string, string>
     },
-    opt?: ClientRequestOptions
+    opt?: ClientRequestOptions,
   ) => {
     if (args) {
       if (args.query) {
@@ -81,7 +81,9 @@ class ClientRequestImpl {
 
     const headerValues: Record<string, string> = {
       ...args?.header,
-      ...(typeof opt?.headers === 'function' ? await opt.headers() : opt?.headers),
+      ...(typeof opt?.headers === 'function'
+        ? await opt.headers()
+        : opt?.headers),
     }
 
     if (args?.cookie) {
@@ -121,7 +123,7 @@ class ClientRequestImpl {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const hc = <T extends Hono<any, any, any>>(
   baseUrl: string,
-  options?: ClientRequestOptions
+  options?: ClientRequestOptions,
 ) =>
   createProxy(function proxyCallback(opts) {
     const parts = [...opts.path]
@@ -162,19 +164,23 @@ export const hc = <T extends Hono<any, any, any>>(
           result = replaceUrlParam(url, opts.args[0].param)
         }
         if (opts.args[0].query) {
-          result = result + '?' + buildSearchParams(opts.args[0].query).toString()
+          result = result + '?' +
+            buildSearchParams(opts.args[0].query).toString()
         }
       }
       return new URL(result)
     }
     if (method === 'ws') {
       const webSocketUrl = replaceUrlProtocol(
-        opts.args[0] && opts.args[0].param ? replaceUrlParam(url, opts.args[0].param) : url,
-        'ws'
+        opts.args[0] && opts.args[0].param
+          ? replaceUrlParam(url, opts.args[0].param)
+          : url,
+        'ws',
       )
       const targetUrl = new URL(webSocketUrl)
 
-      const queryParams: Record<string, string | string[]> | undefined = opts.args[0]?.query
+      const queryParams: Record<string, string | string[]> | undefined = opts
+        .args[0]?.query
       if (queryParams) {
         Object.entries(queryParams).forEach(([key, value]) => {
           if (Array.isArray(value)) {
@@ -184,8 +190,13 @@ export const hc = <T extends Hono<any, any, any>>(
           }
         })
       }
-      const establishWebSocket = (...args: ConstructorParameters<typeof WebSocket>) => {
-        if (options?.webSocket !== undefined && typeof options.webSocket === 'function') {
+      const establishWebSocket = (
+        ...args: ConstructorParameters<typeof WebSocket>
+      ) => {
+        if (
+          options?.webSocket !== undefined &&
+          typeof options.webSocket === 'function'
+        ) {
           return options.webSocket(...args)
         }
         return new WebSocket(...args)
@@ -197,7 +208,9 @@ export const hc = <T extends Hono<any, any, any>>(
     const req = new ClientRequestImpl(url, method)
     if (method) {
       options ??= {}
-      const args = deepMerge<ClientRequestOptions>(options, { ...opts.args[1] })
+      const args = deepMerge<ClientRequestOptions>(options, {
+        ...opts.args[1],
+      })
       return req.fetch(opts.args[0], args)
     }
     return req

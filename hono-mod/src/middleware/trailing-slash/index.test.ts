@@ -32,7 +32,9 @@ describe('Resolve trailing slash', () => {
     expect(resp.status).toBe(301)
     expect(loc.pathname).toBe('/the/example/endpoint/without/trailing/slash')
 
-    resp = await app.request('/the/example/endpoint/without/trailing/slash/?exampleParam=1')
+    resp = await app.request(
+      '/the/example/endpoint/without/trailing/slash/?exampleParam=1',
+    )
     loc = new URL(resp.headers.get('location')!)
     expect(resp).not.toBeNull()
     expect(resp.status).toBe(301)
@@ -75,7 +77,9 @@ describe('Resolve trailing slash', () => {
     expect(resp.status).toBe(301)
     expect(loc.pathname).toBe('/the/example/endpoint/with/trailing/slash/')
 
-    resp = await app.request('/the/example/endpoint/with/trailing/slash?exampleParam=1')
+    resp = await app.request(
+      '/the/example/endpoint/with/trailing/slash?exampleParam=1',
+    )
     loc = new URL(resp.headers.get('location')!)
     expect(resp).not.toBeNull()
     expect(resp.status).toBe(301)

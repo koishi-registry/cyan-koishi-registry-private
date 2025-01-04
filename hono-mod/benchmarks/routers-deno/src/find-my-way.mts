@@ -1,7 +1,7 @@
 import type { HTTPMethod } from 'npm:find-my-way'
 import findMyWay from 'npm:find-my-way'
 import type { RouterInterface } from './tool.mts'
-import { routes, handler } from './tool.mts'
+import { handler, routes } from './tool.mts'
 
 const name = 'find-my-way'
 const router = findMyWay()

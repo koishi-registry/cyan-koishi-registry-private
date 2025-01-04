@@ -30,13 +30,17 @@ type GetIPAddr = GetConnInfo | ((c: Context) => string)
  * - `::1` static
  * - `::1/10` CIDR Notation
  */
-type IPRestrictionRuleFunction = (addr: { addr: string; type: AddressType }) => boolean
-export type IPRestrictionRule = string | ((addr: { addr: string; type: AddressType }) => boolean)
+type IPRestrictionRuleFunction = (
+  addr: { addr: string; type: AddressType },
+) => boolean
+export type IPRestrictionRule =
+  | string
+  | ((addr: { addr: string; type: AddressType }) => boolean)
 
 const IS_CIDR_NOTATION_REGEX = /\/[0-9]{0,3}$/
 const buildMatcher = (
-  rules: IPRestrictionRule[]
-): ((addr: { addr: string; type: AddressType; isIPv4: boolean }) => boolean) => {
+  rules: IPRestrictionRule[],
+): (addr: { addr: string; type: AddressType; isIPv4: boolean }) => boolean => {
   const functionRules: IPRestrictionRuleFunction[] = []
   const staticRules: Set<string> = new Set()
   const cidrRules: [boolean, bigint, bigint][] = []
@@ -63,10 +67,15 @@ const buildMatcher = (
           // this rule is a static rule
           rule = addrStr
         } else {
-          const addr = (isIPv4 ? convertIPv4ToBinary : convertIPv6ToBinary)(addrStr)
-          const mask = ((1n << BigInt(prefix)) - 1n) << BigInt((isIPv4 ? 32 : 128) - prefix)
+          const addr = (isIPv4 ? convertIPv4ToBinary : convertIPv6ToBinary)(
+            addrStr,
+          )
+          const mask = ((1n << BigInt(prefix)) - 1n) <<
+            BigInt((isIPv4 ? 32 : 128) - prefix)
 
-          cidrRules.push([isIPv4, addr & mask, mask] as [boolean, bigint, bigint])
+          cidrRules.push(
+            [isIPv4, addr & mask, mask] as [boolean, bigint, bigint],
+          )
           continue
         }
       }
@@ -78,7 +87,7 @@ const buildMatcher = (
       staticRules.add(
         type === 'IPv4'
           ? rule // IPv4 address is already normalized, so it is registered as is.
-          : convertIPv6BinaryToString(convertIPv6ToBinary(rule)) // normalize IPv6 address (e.g. 0000:0000:0000:0000:0000:0000:0000:0001 => ::1)
+          : convertIPv6BinaryToString(convertIPv6ToBinary(rule)), // normalize IPv6 address (e.g. 0000:0000:0000:0000:0000:0000:0000:0001 => ::1)
       )
     }
   }
@@ -130,8 +139,8 @@ export const ipRestriction = (
   { denyList = [], allowList = [] }: IPRestrictionRules,
   onError?: (
     remote: { addr: string; type: AddressType },
-    c: Context
-  ) => Response | Promise<Response>
+    c: Context,
+  ) => Response | Promise<Response>,
 ): MiddlewareHandler => {
   const allowLength = allowList.length
 
@@ -147,12 +156,15 @@ export const ipRestriction = (
 
   return async function ipRestriction(c, next) {
     const connInfo = getIP(c)
-    const addr = typeof connInfo === 'string' ? connInfo : connInfo.remote.address
+    const addr = typeof connInfo === 'string'
+      ? connInfo
+      : connInfo.remote.address
     if (!addr) {
       throw blockError(c)
     }
     const type =
-      (typeof connInfo !== 'string' && connInfo.remote.addressType) || distinctRemoteAddr(addr)
+      (typeof connInfo !== 'string' && connInfo.remote.addressType) ||
+      distinctRemoteAddr(addr)
 
     const remoteData = { addr, type, isIPv4: type === 'IPv4' }
 

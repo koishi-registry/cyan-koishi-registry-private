@@ -13,29 +13,31 @@ const TOKEN_STRINGS = '[A-Za-z0-9._~+/-]+=*'
 const PREFIX = 'Bearer'
 const HEADER = 'Authorization'
 
-type MessageFunction = (c: Context) => string | object | Promise<string | object>
+type MessageFunction = (
+  c: Context,
+) => string | object | Promise<string | object>
 
 type BearerAuthOptions =
   | {
-      token: string | string[]
-      realm?: string
-      prefix?: string
-      headerName?: string
-      hashFunction?: Function
-      noAuthenticationHeaderMessage?: string | object | MessageFunction
-      invalidAuthenticationHeaderMessage?: string | object | MessageFunction
-      invalidTokenMessage?: string | object | MessageFunction
-    }
+    token: string | string[]
+    realm?: string
+    prefix?: string
+    headerName?: string
+    hashFunction?: Function
+    noAuthenticationHeaderMessage?: string | object | MessageFunction
+    invalidAuthenticationHeaderMessage?: string | object | MessageFunction
+    invalidTokenMessage?: string | object | MessageFunction
+  }
   | {
-      realm?: string
-      prefix?: string
-      headerName?: string
-      verifyToken: (token: string, c: Context) => boolean | Promise<boolean>
-      hashFunction?: Function
-      noAuthenticationHeaderMessage?: string | object | MessageFunction
-      invalidAuthenticationHeaderMessage?: string | object | MessageFunction
-      invalidTokenMessage?: string | object | MessageFunction
-    }
+    realm?: string
+    prefix?: string
+    headerName?: string
+    verifyToken: (token: string, c: Context) => boolean | Promise<boolean>
+    hashFunction?: Function
+    noAuthenticationHeaderMessage?: string | object | MessageFunction
+    invalidAuthenticationHeaderMessage?: string | object | MessageFunction
+    invalidTokenMessage?: string | object | MessageFunction
+  }
 
 /**
  * Bearer Auth Middleware for Hono.
@@ -83,29 +85,31 @@ export const bearerAuth = (options: BearerAuthOptions): MiddlewareHandler => {
   const realm = options.realm?.replace(/"/g, '\\"')
   const prefixRegexStr = options.prefix === '' ? '' : `${options.prefix} +`
   const regexp = new RegExp(`^${prefixRegexStr}(${TOKEN_STRINGS}) *$`)
-  const wwwAuthenticatePrefix = options.prefix === '' ? '' : `${options.prefix} `
+  const wwwAuthenticatePrefix = options.prefix === ''
+    ? ''
+    : `${options.prefix} `
 
   const throwHTTPException = async (
     c: Context,
     status: StatusCode,
     wwwAuthenticateHeader: string,
-    messageOption: string | object | MessageFunction
+    messageOption: string | object | MessageFunction,
   ): Promise<Response> => {
     const headers = {
       'WWW-Authenticate': wwwAuthenticateHeader,
     }
-    const responseMessage =
-      typeof messageOption === 'function' ? await messageOption(c) : messageOption
-    const res =
-      typeof responseMessage === 'string'
-        ? new Response(responseMessage, { status, headers })
-        : new Response(JSON.stringify(responseMessage), {
-            status,
-            headers: {
-              ...headers,
-              'content-type': 'application/json; charset=UTF-8',
-            },
-          })
+    const responseMessage = typeof messageOption === 'function'
+      ? await messageOption(c)
+      : messageOption
+    const res = typeof responseMessage === 'string'
+      ? new Response(responseMessage, { status, headers })
+      : new Response(JSON.stringify(responseMessage), {
+        status,
+        headers: {
+          ...headers,
+          'content-type': 'application/json; charset=UTF-8',
+        },
+      })
     throw new HTTPException(status, { res })
   }
 
@@ -117,7 +121,7 @@ export const bearerAuth = (options: BearerAuthOptions): MiddlewareHandler => {
         c,
         401,
         `${wwwAuthenticatePrefix}realm="${realm}"`,
-        options.noAuthenticationHeaderMessage || 'Unauthorized'
+        options.noAuthenticationHeaderMessage || 'Unauthorized',
       )
     } else {
       const match = regexp.exec(headerToken)
@@ -127,14 +131,18 @@ export const bearerAuth = (options: BearerAuthOptions): MiddlewareHandler => {
           c,
           400,
           `${wwwAuthenticatePrefix}error="invalid_request"`,
-          options.invalidAuthenticationHeaderMessage || 'Bad Request'
+          options.invalidAuthenticationHeaderMessage || 'Bad Request',
         )
       } else {
         let equal = false
         if ('verifyToken' in options) {
           equal = await options.verifyToken(match[1], c)
         } else if (typeof options.token === 'string') {
-          equal = await timingSafeEqual(options.token, match[1], options.hashFunction)
+          equal = await timingSafeEqual(
+            options.token,
+            match[1],
+            options.hashFunction,
+          )
         } else if (Array.isArray(options.token) && options.token.length > 0) {
           for (const token of options.token) {
             if (await timingSafeEqual(token, match[1], options.hashFunction)) {
@@ -149,7 +157,7 @@ export const bearerAuth = (options: BearerAuthOptions): MiddlewareHandler => {
             c,
             401,
             `${wwwAuthenticatePrefix}error="invalid_token"`,
-            options.invalidTokenMessage || 'Unauthorized'
+            options.invalidTokenMessage || 'Unauthorized',
           )
         }
       }

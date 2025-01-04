@@ -12,11 +12,16 @@ describe('Timeout API', () => {
     '/slow-endpoint/custom',
     timeout(
       1100,
-      () => new HTTPException(408, { message: 'Request timeout. Please try again later.' })
-    )
+      () =>
+        new HTTPException(408, {
+          message: 'Request timeout. Please try again later.',
+        }),
+    ),
   )
   const exception500: HTTPExceptionFunction = (context: Context) =>
-    new HTTPException(500, { message: `Internal Server Error at ${context.req.path}` })
+    new HTTPException(500, {
+      message: `Internal Server Error at ${context.req.path}`,
+    })
   app.use('/slow-endpoint/error', timeout(1200, exception500))
   app.use('/normal-endpoint', timeout(1000))
 
@@ -51,14 +56,18 @@ describe('Timeout API', () => {
     const res = await app.request('http://localhost/slow-endpoint/custom')
     expect(res).not.toBeNull()
     expect(res.status).toBe(408)
-    expect(await res.text()).toContain('Request timeout. Please try again later.')
+    expect(await res.text()).toContain(
+      'Request timeout. Please try again later.',
+    )
   })
 
   it('Error timeout with custom status code and message', async () => {
     const res = await app.request('http://localhost/slow-endpoint/error')
     expect(res).not.toBeNull()
     expect(res.status).toBe(500)
-    expect(await res.text()).toContain('Internal Server Error at /slow-endpoint/error')
+    expect(await res.text()).toContain(
+      'Internal Server Error at /slow-endpoint/error',
+    )
   })
 
   it('No Timeout should pass', async () => {

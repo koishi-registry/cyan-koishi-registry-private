@@ -32,8 +32,8 @@ interface ComposeContext {
 export const compose = <C extends ComposeContext, E extends Env = Env>(
   middleware: [[Function, unknown], unknown][] | [[Function]][],
   onError?: ErrorHandler<E>,
-  onNotFound?: NotFoundHandler<E>
-): ((context: C, next?: Function) => Promise<C>) => {
+  onNotFound?: NotFoundHandler<E>,
+): (context: C, next?: Function) => Promise<C> => {
   return (context, next) => {
     let index = -1
     const isContext = context instanceof Context

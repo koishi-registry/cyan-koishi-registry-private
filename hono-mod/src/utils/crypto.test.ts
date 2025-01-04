@@ -4,10 +4,10 @@ import { md5, sha1, sha256 } from './crypto'
 describe('crypto', () => {
   it('sha256', async () => {
     expect(await sha256('hono')).toBe(
-      '8b3dc17add91b7e8f0b5109a389927d66001139cd9b03fa7b95f83126e1b2b23'
+      '8b3dc17add91b7e8f0b5109a389927d66001139cd9b03fa7b95f83126e1b2b23',
     )
     expect(await sha256('炎')).toBe(
-      '1fddc5a562ee1fbeb4fc6def7d4be4911fcdae4273b02ae3a507b170ba0ea169'
+      '1fddc5a562ee1fbeb4fc6def7d4be4911fcdae4273b02ae3a507b170ba0ea169',
     )
     expect(await sha256('abcdedf')).not.toBe('abcdef')
   })
@@ -31,13 +31,15 @@ describe('crypto', () => {
     expect(await sha256({ foo: 'bar' })).not.toEqual(
       await sha256({
         bar: 'foo',
-      })
+      }),
     )
   })
 
   it('Should create hash for Buffer', async () => {
     const hash = createHash('sha256').update(new Uint8Array(1)).digest('hex')
     expect(await sha256(new Uint8Array(1))).toBe(hash)
-    expect(await sha256(new Uint8Array(1))).not.toEqual(await sha256(new Uint8Array(2)))
+    expect(await sha256(new Uint8Array(1))).not.toEqual(
+      await sha256(new Uint8Array(2)),
+    )
   })
 })

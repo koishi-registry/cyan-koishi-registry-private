@@ -10,7 +10,11 @@ export const buildPage = ({ jsx, Fragment }: { jsx: any; Fragment: any }) => {
       <p id='b' className='class-name'>
         2<br />b
       </p>
-      <div dangerouslySetInnerHTML={{ __html: '<p id="c" class="class-name">3<br/>c</p>' }} />
+      <div
+        dangerouslySetInnerHTML={{
+          __html: '<p id="c" class="class-name">3<br/>c</p>',
+        }}
+      />
       {null}
       {undefined}
     </>
@@ -18,11 +22,36 @@ export const buildPage = ({ jsx, Fragment }: { jsx: any; Fragment: any }) => {
 
   const Form = () => (
     <form>
-      <input type='text' value='1234567890 < 1234567891' readOnly tabIndex={1} />
-      <input type='checkbox' value='1234567890 < 1234567891' defaultChecked={true} tabIndex={2} />
-      <input type='checkbox' value='1234567890 < 1234567891' defaultChecked={true} tabIndex={3} />
-      <input type='checkbox' value='1234567890 < 1234567891' defaultChecked={false} tabIndex={4} />
-      <input type='checkbox' value='1234567890 < 1234567891' defaultChecked={false} tabIndex={5} />
+      <input
+        type='text'
+        value='1234567890 < 1234567891'
+        readOnly
+        tabIndex={1}
+      />
+      <input
+        type='checkbox'
+        value='1234567890 < 1234567891'
+        defaultChecked={true}
+        tabIndex={2}
+      />
+      <input
+        type='checkbox'
+        value='1234567890 < 1234567891'
+        defaultChecked={true}
+        tabIndex={3}
+      />
+      <input
+        type='checkbox'
+        value='1234567890 < 1234567891'
+        defaultChecked={false}
+        tabIndex={4}
+      />
+      <input
+        type='checkbox'
+        value='1234567890 < 1234567891'
+        defaultChecked={false}
+        tabIndex={5}
+      />
     </form>
   )
 

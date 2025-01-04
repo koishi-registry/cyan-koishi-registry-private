@@ -1,6 +1,6 @@
 import type { JwtVariables } from './jwt'
 export type { JwtVariables }
-export { jwt, verify, decode, sign } from './jwt'
+export { decode, jwt, sign, verify } from './jwt'
 import type {} from '../..'
 
 declare module '../..' {

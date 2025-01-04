@@ -10,7 +10,7 @@ describe('auth', () => {
     const res = auth(
       new Request('http://localhost/auth', {
         headers: { Authorization: 'InvalidAuthHeader' },
-      })
+      }),
     )
     expect(res).toBeUndefined()
   })
@@ -19,7 +19,7 @@ describe('auth', () => {
     const res = auth(
       new Request('http://localhost/auth', {
         headers: { Authorization: 'Basic InvalidBase64' },
-      })
+      }),
     )
     expect(res).toBeUndefined()
   })
@@ -29,7 +29,7 @@ describe('auth', () => {
     const res = auth(
       new Request('http://localhost/auth', {
         headers: { Authorization: `Basic ${validBase64}` },
-      })
+      }),
     )
     expect(res).toEqual({ username: 'username', password: 'password' })
   })
@@ -39,7 +39,7 @@ describe('auth', () => {
     const res = auth(
       new Request('http://localhost/auth', {
         headers: { Authorization: `Basic ${validBase64}` },
-      })
+      }),
     )
     expect(res).toEqual({ username: '', password: 'password' })
   })
@@ -49,7 +49,7 @@ describe('auth', () => {
     const res = auth(
       new Request('http://localhost/auth', {
         headers: { Authorization: `Basic ${validBase64}` },
-      })
+      }),
     )
     expect(res).toEqual({ username: 'username', password: '' })
   })

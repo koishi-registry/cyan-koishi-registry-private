@@ -4,7 +4,7 @@ import { JSDOM } from 'jsdom'
 // hono/jsx/jsx-runtime and hono/jsx/dom/jsx-runtime are tested in their respective settings
 
 import type { JSXNode } from '..'
-import { Style, createCssContext, css, rawCssString } from '../../helper/css'
+import { createCssContext, css, rawCssString, Style } from '../../helper/css'
 import { minify } from '../../helper/css/common'
 import { renderTest } from '../../helper/css/common.case.test'
 import { render } from '.'
@@ -44,11 +44,11 @@ describe('Style and css for jsx/dom', () => {
     }
     render(<App />, root)
     expect(root.innerHTML).toBe(
-      '<div><style id="hono-css"></style><div class="css-3142110215">red</div></div>'
+      '<div><style id="hono-css"></style><div class="css-3142110215">red</div></div>',
     )
     await Promise.resolve()
     expect(root.querySelector('style')?.sheet?.cssRules[0].cssText).toBe(
-      '.css-3142110215 {color: red;}'
+      '.css-3142110215 {color: red;}',
     )
   })
 
@@ -61,16 +61,20 @@ describe('Style and css for jsx/dom', () => {
       )
     }
     render(<App />, root)
-    expect(root.innerHTML).toBe('<div><style id="hono-css" nonce="1234"></style></div>')
+    expect(root.innerHTML).toBe(
+      '<div><style id="hono-css" nonce="1234"></style></div>',
+    )
   })
 
   it('<Style>{css`global`}</Style>', async () => {
     const App = () => {
       return (
         <div>
-          <Style>{css`
+          <Style>
+            {css`
             color: red;
-          `}</Style>
+          `}
+          </Style>
           <div
             class={css`
               color: red;
@@ -83,7 +87,7 @@ describe('Style and css for jsx/dom', () => {
     }
     render(<App />, root)
     expect(root.innerHTML).toBe(
-      '<div><style id="hono-css">color:red</style><div class="css-3142110215">red</div></div>'
+      '<div><style id="hono-css">color:red</style><div class="css-3142110215">red</div></div>',
     )
   })
 })
@@ -106,7 +110,8 @@ describe('render', () => {
       const style = root.querySelector('style')
       if (style) {
         style.textContent = minify(
-          [...(style.sheet?.cssRules || [])].map((r) => r.cssText).join('') || ''
+          [...(style.sheet?.cssRules || [])].map((r) => r.cssText).join('') ||
+            '',
         )
       }
       return root.innerHTML

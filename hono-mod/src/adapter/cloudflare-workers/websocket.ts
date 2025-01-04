@@ -1,5 +1,9 @@
-import { WSContext, defineWebSocketHelper } from '../../helper/websocket'
-import type { UpgradeWebSocket, WSEvents, WSReadyState } from '../../helper/websocket'
+import { defineWebSocketHelper, WSContext } from '../../helper/websocket'
+import type {
+  UpgradeWebSocket,
+  WSEvents,
+  WSReadyState,
+} from '../../helper/websocket'
 
 // Based on https://github.com/honojs/hono/issues/1153#issuecomment-1767321332
 export const upgradeWebSocket: UpgradeWebSocket<
@@ -34,13 +38,22 @@ export const upgradeWebSocket: UpgradeWebSocket<
   // note: cloudflare workers doesn't support 'open' event
 
   if (events.onClose) {
-    server.addEventListener('close', (evt: CloseEvent) => events.onClose?.(evt, wsContext))
+    server.addEventListener(
+      'close',
+      (evt: CloseEvent) => events.onClose?.(evt, wsContext),
+    )
   }
   if (events.onMessage) {
-    server.addEventListener('message', (evt: MessageEvent) => events.onMessage?.(evt, wsContext))
+    server.addEventListener(
+      'message',
+      (evt: MessageEvent) => events.onMessage?.(evt, wsContext),
+    )
   }
   if (events.onError) {
-    server.addEventListener('error', (evt: Event) => events.onError?.(evt, wsContext))
+    server.addEventListener(
+      'error',
+      (evt: Event) => events.onError?.(evt, wsContext),
+    )
   }
 
   // @ts-expect-error - server.accept is not typed

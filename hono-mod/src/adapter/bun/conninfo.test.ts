@@ -38,7 +38,9 @@ describe('getConnInfo', () => {
   })
   it('Should getConnInfo works when env is { server: server }', () => {
     const { port, server, address } = createRandomBunServer()
-    const c = new Context(new Request('http://localhost/'), { env: { server } })
+    const c = new Context(new Request('http://localhost/'), {
+      env: { server },
+    })
 
     const info = getConnInfo(c)
 
@@ -49,7 +51,9 @@ describe('getConnInfo', () => {
   })
   it('should return undefined when addressType is invalid string', () => {
     const { server } = createRandomBunServer({ family: 'invalid' })
-    const c = new Context(new Request('http://localhost/'), { env: { server } })
+    const c = new Context(new Request('http://localhost/'), {
+      env: { server },
+    })
 
     const info = getConnInfo(c)
 

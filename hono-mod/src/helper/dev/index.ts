@@ -36,7 +36,10 @@ export const inspectRoutes = <E extends Env>(hono: Hono<E>): RouteData[] => {
   })
 }
 
-export const showRoutes = <E extends Env>(hono: Hono<E>, opts?: ShowRoutesOptions): void => {
+export const showRoutes = <E extends Env>(
+  hono: Hono<E>,
+  opts?: ShowRoutesOptions,
+): void => {
   const colorEnabled = opts?.colorize ?? getColorEnabled()
   const routeData: Record<string, RouteData[]> = {}
   let maxMethodLength = 0
@@ -61,7 +64,9 @@ export const showRoutes = <E extends Env>(hono: Hono<E>, opts?: ShowRoutesOption
       const { method, path, routes } = data
 
       const methodStr = colorEnabled ? `\x1b[32m${method}\x1b[0m` : method
-      console.log(`${methodStr} ${' '.repeat(maxMethodLength - method.length)} ${path}`)
+      console.log(
+        `${methodStr} ${' '.repeat(maxMethodLength - method.length)} ${path}`,
+      )
 
       if (!opts?.verbose) {
         return

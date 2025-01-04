@@ -20,7 +20,7 @@ Deno.test('Basic Auth Middleware', async () => {
     basicAuth({
       username,
       password,
-    })
+    }),
   )
 
   app.get('/auth/*', () => new Response('auth'))
@@ -69,10 +69,16 @@ Deno.test('JSX middleware', async () => {
 Deno.test('Serve Static middleware', async () => {
   const app = new Hono()
   const onNotFound = spy(() => {})
-  app.all('/favicon.ico', serveStatic({ path: './runtime-tests/deno/favicon.ico' }))
+  app.all(
+    '/favicon.ico',
+    serveStatic({ path: './runtime-tests/deno/favicon.ico' }),
+  )
   app.all(
     '/favicon-notfound.ico',
-    serveStatic({ path: './runtime-tests/deno/favicon-notfound.ico', onNotFound })
+    serveStatic({
+      path: './runtime-tests/deno/favicon-notfound.ico',
+      onNotFound,
+    }),
   )
   app.use('/favicon-notfound.ico', async (c, next) => {
     await next()
@@ -84,7 +90,7 @@ Deno.test('Serve Static middleware', async () => {
     serveStatic({
       root: './runtime-tests/deno',
       onNotFound,
-    })
+    }),
   )
 
   app.get(
@@ -92,10 +98,13 @@ Deno.test('Serve Static middleware', async () => {
     serveStatic({
       root: './runtime-tests/deno',
       rewriteRequestPath: (path) => path.replace(/^\/dot-static/, './.static'),
-    })
+    }),
   )
 
-  app.get('/static-absolute-root/*', serveStatic({ root: dirname(fromFileUrl(import.meta.url)) }))
+  app.get(
+    '/static-absolute-root/*',
+    serveStatic({ root: dirname(fromFileUrl(import.meta.url)) }),
+  )
 
   let res = await app.request('http://localhost/favicon.ico')
   assertEquals(res.status, 200)

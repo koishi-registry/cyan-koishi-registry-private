@@ -20,7 +20,11 @@ describe('SSE Streaming helper', () => {
 
       while (id < maxIterations) {
         const message = `Message\nIt is ${id}`
-        await stream.writeSSE({ data: message, event: 'time-update', id: String(id++) })
+        await stream.writeSSE({
+          data: message,
+          event: 'time-update',
+          id: String(id++),
+        })
         await stream.sleep(10)
       }
     })
@@ -134,7 +138,7 @@ describe('SSE Streaming helper', () => {
       async () => {
         throw new Error('Test error')
       },
-      onError
+      onError,
     )
     if (!res.body) {
       throw new Error('Body is null')

@@ -13,8 +13,8 @@ import type {
   MergePath,
   MergeSchemaPath,
   MiddlewareHandler,
-  ParamKeyToRecord,
   ParamKeys,
+  ParamKeyToRecord,
   RemoveQuestion,
   ResponseFormat,
   ToSchema,
@@ -115,7 +115,11 @@ describe('HandlerInterface', () => {
     }
     test('Context and AppType', () => {
       const route = app.get('/foo', middleware, (c) => {
-        type Expected = Context<Env, '/foo', { in: { json: Payload }; out: { json: Payload } }>
+        type Expected = Context<
+          Env,
+          '/foo',
+          { in: { json: Payload }; out: { json: Payload } }
+        >
         expectTypeOf(c).toEqualTypeOf<Expected>()
         return c.json({
           message: 'Hello!',
@@ -145,7 +149,10 @@ describe('HandlerInterface', () => {
 
   describe('With path parameters', () => {
     const app = new Hono<Env>()
-    const middleware: MiddlewareHandler<Env, '/post/:id'> = async (_c, next) => {
+    const middleware: MiddlewareHandler<Env, '/post/:id'> = async (
+      _c,
+      next,
+    ) => {
       await next()
     }
     it('Should have the `param` type', () => {
@@ -427,7 +434,11 @@ describe('Test types of Handler', () => {
 
   test('Env, Path, Type', async () => {
     const app = new Hono<E>()
-    const handler: Handler<E, '/', { in: { json: User }; out: { json: User } }> = (c) => {
+    const handler: Handler<
+      E,
+      '/',
+      { in: { json: User }; out: { json: User } }
+    > = (c) => {
       const foo = c.get('foo')
       expectTypeOf(foo).toEqualTypeOf<number>()
       const { name } = c.req.valid('json')
@@ -473,7 +484,7 @@ describe('`json()`', () => {
         {
           message: 'Hello!',
         },
-        200
+        200,
       )
     })
     type Actual = ExtractSchema<typeof route>
@@ -644,22 +655,23 @@ describe('MergePath', () => {
 
 describe('MergeSchemaPath', () => {
   it('Should merge schema and sub path correctly', () => {
-    type Sub = ToSchema<
-      'post',
-      '/posts',
-      {
-        in: {
-          json: {
-            id: number
-            title: string
+    type Sub =
+      & ToSchema<
+        'post',
+        '/posts',
+        {
+          in: {
+            json: {
+              id: number
+              title: string
+            }
           }
-        }
-      },
-      TypedResponse<{
-        message: string
-      }>
-    > &
-      ToSchema<
+        },
+        TypedResponse<{
+          message: string
+        }>
+      >
+      & ToSchema<
         'get',
         '/posts',
         {},
@@ -761,7 +773,10 @@ describe('MergeSchemaPath', () => {
   })
 
   test('MergeSchemaPath - SubPath has path params', () => {
-    type Actual = MergeSchemaPath<ToSchema<'get', '/', {}, TypedResponse>, '/a/:b'>
+    type Actual = MergeSchemaPath<
+      ToSchema<'get', '/', {}, TypedResponse>,
+      '/a/:b'
+    >
     type Expected = {
       '/a/:b': {
         $get: {
@@ -780,7 +795,10 @@ describe('MergeSchemaPath', () => {
   })
 
   test('MergeSchemaPath - Path and SubPath have path params', () => {
-    type Actual = MergeSchemaPath<ToSchema<'get', '/c/:d', {}, TypedResponse<{}>>, '/a/:b'>
+    type Actual = MergeSchemaPath<
+      ToSchema<'get', '/c/:d', {}, TypedResponse<{}>>,
+      '/a/:b'
+    >
     type Expected = {
       '/a/:b/c/:d': {
         $get: {
@@ -801,7 +819,10 @@ describe('MergeSchemaPath', () => {
   })
 
   test('MergeSchemaPath - Path and SubPath have regexp path params', () => {
-    type Actual = MergeSchemaPath<ToSchema<'get', '/c/:d{.+}', {}, TypedResponse<{}>>, '/a/:b{.+}'>
+    type Actual = MergeSchemaPath<
+      ToSchema<'get', '/c/:d{.+}', {}, TypedResponse<{}>>,
+      '/a/:b{.+}'
+    >
     type Expected = {
       '/a/:b{.+}/c/:d{.+}': {
         $get: {
@@ -827,21 +848,21 @@ describe('MergeSchemaPath', () => {
         '/': {
           $get:
             | {
-                input: {}
-                output: {
-                  error: string
-                }
-                outputFormat: 'json'
-                status: 404
+              input: {}
+              output: {
+                error: string
               }
+              outputFormat: 'json'
+              status: 404
+            }
             | {
-                input: {}
-                output: {
-                  success: boolean
-                }
-                outputFormat: 'json'
-                status: 200
+              input: {}
+              output: {
+                success: boolean
               }
+              outputFormat: 'json'
+              status: 200
+            }
         }
       },
       '/api/hello'
@@ -850,21 +871,21 @@ describe('MergeSchemaPath', () => {
       '/api/hello': {
         $get:
           | {
-              input: {}
-              output: {
-                error: string
-              }
-              outputFormat: 'json'
-              status: 404
+            input: {}
+            output: {
+              error: string
             }
+            outputFormat: 'json'
+            status: 404
+          }
           | {
-              input: {}
-              output: {
-                success: boolean
-              }
-              outputFormat: 'json'
-              status: 200
+            input: {}
+            output: {
+              success: boolean
             }
+            outputFormat: 'json'
+            status: 200
+          }
       }
     }
     type verify = Expect<Equal<Expected, Actual>>
@@ -897,29 +918,29 @@ describe('Different types using json()', () => {
         '/': {
           $get:
             | {
-                input: {}
-                output: {
-                  ng: boolean
-                }
-                outputFormat: 'json'
-                status: StatusCode
+              input: {}
+              output: {
+                ng: boolean
               }
+              outputFormat: 'json'
+              status: StatusCode
+            }
             | {
-                input: {}
-                output: {
-                  ok: boolean
-                }
-                outputFormat: 'json'
-                status: StatusCode
+              input: {}
+              output: {
+                ok: boolean
               }
+              outputFormat: 'json'
+              status: StatusCode
+            }
             | {
-                input: {}
-                output: {
-                  default: boolean
-                }
-                outputFormat: 'json'
-                status: StatusCode
+              input: {}
+              output: {
+                default: boolean
               }
+              outputFormat: 'json'
+              status: StatusCode
+            }
         }
       }
       type verify = Expect<Equal<Expected, Actual>>
@@ -933,7 +954,7 @@ describe('Different types using json()', () => {
             {
               ng: true,
             },
-            400
+            400,
           )
         }
         if (!flag) {
@@ -941,7 +962,7 @@ describe('Different types using json()', () => {
             {
               ok: true,
             },
-            200
+            200,
           )
         }
         return c.json({
@@ -953,29 +974,29 @@ describe('Different types using json()', () => {
         '/': {
           $get:
             | {
-                input: {}
-                output: {
-                  ng: boolean
-                }
-                outputFormat: 'json'
-                status: 400
+              input: {}
+              output: {
+                ng: boolean
               }
+              outputFormat: 'json'
+              status: 400
+            }
             | {
-                input: {}
-                output: {
-                  ok: boolean
-                }
-                outputFormat: 'json'
-                status: 200
+              input: {}
+              output: {
+                ok: boolean
               }
+              outputFormat: 'json'
+              status: 200
+            }
             | {
-                input: {}
-                output: {
-                  default: boolean
-                }
-                outputFormat: 'json'
-                status: StatusCode
+              input: {}
+              output: {
+                default: boolean
               }
+              outputFormat: 'json'
+              status: StatusCode
+            }
         }
       }
       type verify = Expect<Equal<Expected, Actual>>
@@ -1007,29 +1028,29 @@ describe('Different types using json()', () => {
         '/foo': {
           $get:
             | {
-                input: {}
-                output: {
-                  ng: boolean
-                }
-                outputFormat: 'json'
-                status: StatusCode
+              input: {}
+              output: {
+                ng: boolean
               }
+              outputFormat: 'json'
+              status: StatusCode
+            }
             | {
-                input: {}
-                output: {
-                  ok: boolean
-                }
-                outputFormat: 'json'
-                status: StatusCode
+              input: {}
+              output: {
+                ok: boolean
               }
+              outputFormat: 'json'
+              status: StatusCode
+            }
             | {
-                input: {}
-                output: {
-                  default: boolean
-                }
-                outputFormat: 'json'
-                status: StatusCode
+              input: {}
+              output: {
+                default: boolean
               }
+              outputFormat: 'json'
+              status: StatusCode
+            }
         }
       }
       type verify = Expect<Equal<Expected, Actual>>
@@ -1043,7 +1064,7 @@ describe('Different types using json()', () => {
             {
               ng: true,
             },
-            400
+            400,
           )
         }
         if (!flag) {
@@ -1051,7 +1072,7 @@ describe('Different types using json()', () => {
             {
               ok: true,
             },
-            200
+            200,
           )
         }
         return c.json({
@@ -1063,29 +1084,29 @@ describe('Different types using json()', () => {
         '/foo': {
           $get:
             | {
-                input: {}
-                output: {
-                  ng: boolean
-                }
-                outputFormat: 'json'
-                status: 400
+              input: {}
+              output: {
+                ng: boolean
               }
+              outputFormat: 'json'
+              status: 400
+            }
             | {
-                input: {}
-                output: {
-                  ok: boolean
-                }
-                outputFormat: 'json'
-                status: 200
+              input: {}
+              output: {
+                ok: boolean
               }
+              outputFormat: 'json'
+              status: 200
+            }
             | {
-                input: {}
-                output: {
-                  default: boolean
-                }
-                outputFormat: 'json'
-                status: StatusCode
+              input: {}
+              output: {
+                default: boolean
               }
+              outputFormat: 'json'
+              status: StatusCode
+            }
         }
       }
       type verify = Expect<Equal<Expected, Actual>>
@@ -1124,7 +1145,7 @@ describe('json() in an async handler', () => {
         {
           ok: true,
         },
-        200
+        200,
       )
     })
     type Actual = ExtractSchema<typeof route>
@@ -1271,32 +1292,38 @@ describe('c.var with chaining - test only types', () => {
       return c.json(0)
     })
 
-    new Hono().get(mw1, mw2, mw3, mw4, mw5, mw6, mw7, mw8, mw9).get('/', (c) => {
-      expectTypeOf(c.var.foo1).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo2).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo3).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo4).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo5).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo6).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo7).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo8).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo9).toEqualTypeOf<string>()
-      return c.json(0)
-    })
+    new Hono().get(mw1, mw2, mw3, mw4, mw5, mw6, mw7, mw8, mw9).get(
+      '/',
+      (c) => {
+        expectTypeOf(c.var.foo1).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo2).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo3).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo4).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo5).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo6).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo7).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo8).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo9).toEqualTypeOf<string>()
+        return c.json(0)
+      },
+    )
 
-    new Hono().get(mw1, mw2, mw3, mw4, mw5, mw6, mw7, mw8, mw9, mw10).get('/', (c) => {
-      expectTypeOf(c.var.foo1).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo2).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo3).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo4).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo5).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo6).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo7).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo8).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo9).toEqualTypeOf<string>()
-      expectTypeOf(c.var.foo10).toEqualTypeOf<string>()
-      return c.json(0)
-    })
+    new Hono().get(mw1, mw2, mw3, mw4, mw5, mw6, mw7, mw8, mw9, mw10).get(
+      '/',
+      (c) => {
+        expectTypeOf(c.var.foo1).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo2).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo3).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo4).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo5).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo6).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo7).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo8).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo9).toEqualTypeOf<string>()
+        expectTypeOf(c.var.foo10).toEqualTypeOf<string>()
+        return c.json(0)
+      },
+    )
 
     new Hono().get(mw1, mw2, mw3, mw4, mw5, mw6, mw7, mw8, mw9, (c) => {
       expectTypeOf(c.req.valid('query')).toMatchTypeOf<{
@@ -1711,7 +1738,6 @@ describe('c.var with chaining - test only types', () => {
 })
 
 /**
- *
  * Declaring a ContextVariableMap for testing.
  */
 declare module './context' {
@@ -1770,7 +1796,7 @@ describe('Env types with chained routes - test only types', () => {
         async (c) => {
           expectTypeOf(c.get('testVar')).toEqualTypeOf<string>()
           return c.json({ success: true })
-        }
+        },
       )
       .patch(
         '/',
@@ -1778,7 +1804,7 @@ describe('Env types with chained routes - test only types', () => {
         async (c) => {
           expectTypeOf(c.get('testVar')).toEqualTypeOf<string>()
           return c.json({ success: true })
-        }
+        },
       )
   })
 })
@@ -1798,7 +1824,7 @@ describe('Env types with validator as first middleware - test only types', () =>
       async (c) => {
         const foo = c.req.valid('json') // Error here
         return c.json(1)
-      }
+      },
     )
 
     const dummyMiddleware1 = createMiddleware(async (c, next) => {
@@ -1818,7 +1844,7 @@ describe('Env types with validator as first middleware - test only types', () =>
       async (c) => {
         const foo = c.req.valid('json') // Error here also
         return c.json(1)
-      }
+      },
     )
   })
 })
@@ -1880,7 +1906,7 @@ describe('Env types and a path type with `app.use(path, handler...)` - test only
           expectTypeOf(c.var.foo).toEqualTypeOf<string>()
           expectTypeOf(c.req.param('id')).toEqualTypeOf<string>()
           await next()
-        }
+        },
       )
       .get((c) => {
         expectTypeOf(c.var.foo).toEqualTypeOf<string>()
@@ -1906,7 +1932,7 @@ describe('Env types and a path type with `app.use(path, handler...)` - test only
           expectTypeOf(c.var.foo).toEqualTypeOf<string>()
           expectTypeOf(c.req.param('id')).toEqualTypeOf<string>()
           await next()
-        }
+        },
       )
       .get((c) => {
         expectTypeOf(c.var.foo).toEqualTypeOf<string>()
@@ -1937,7 +1963,7 @@ describe('Env types and a path type with `app.use(path, handler...)` - test only
           expectTypeOf(c.var.foo).toEqualTypeOf<string>()
           expectTypeOf(c.req.param('id')).toEqualTypeOf<string>()
           await next()
-        }
+        },
       )
       .get((c) => {
         expectTypeOf(c.var.foo).toEqualTypeOf<string>()
@@ -1973,7 +1999,7 @@ describe('Env types and a path type with `app.use(path, handler...)` - test only
           expectTypeOf(c.var.foo).toEqualTypeOf<string>()
           expectTypeOf(c.req.param('id')).toEqualTypeOf<string>()
           await next()
-        }
+        },
       )
       .get((c) => {
         expectTypeOf(c.var.foo).toEqualTypeOf<string>()
@@ -2014,7 +2040,7 @@ describe('Env types and a path type with `app.use(path, handler...)` - test only
           expectTypeOf(c.var.foo).toEqualTypeOf<string>()
           expectTypeOf(c.req.param('id')).toEqualTypeOf<string>()
           await next()
-        }
+        },
       )
       .get((c) => {
         expectTypeOf(c.var.foo).toEqualTypeOf<string>()
@@ -2060,7 +2086,7 @@ describe('Env types and a path type with `app.use(path, handler...)` - test only
           expectTypeOf(c.var.foo).toEqualTypeOf<string>()
           expectTypeOf(c.req.param('id')).toEqualTypeOf<string>()
           await next()
-        }
+        },
       )
       .get((c) => {
         expectTypeOf(c.var.foo).toEqualTypeOf<string>()
@@ -2111,7 +2137,7 @@ describe('Env types and a path type with `app.use(path, handler...)` - test only
           expectTypeOf(c.var.foo).toEqualTypeOf<string>()
           expectTypeOf(c.req.param('id')).toEqualTypeOf<string>()
           await next()
-        }
+        },
       )
       .get((c) => {
         expectTypeOf(c.var.foo).toEqualTypeOf<string>()
@@ -2167,7 +2193,7 @@ describe('Env types and a path type with `app.use(path, handler...)` - test only
           expectTypeOf(c.var.foo).toEqualTypeOf<string>()
           expectTypeOf(c.req.param('id')).toEqualTypeOf<string>()
           await next()
-        }
+        },
       )
       .get((c) => {
         expectTypeOf(c.var.foo).toEqualTypeOf<string>()
@@ -2223,7 +2249,7 @@ describe('Env types and a path type with `app.use(path, handler...)` - test only
           expectTypeOf(c.var.foo).toEqualTypeOf<string>()
           expectTypeOf(c.req.param('id')).toEqualTypeOf<string>()
           await next()
-        }
+        },
       )
       .get((c) => {
         expectTypeOf(c.var.foo).toEqualTypeOf<string>()

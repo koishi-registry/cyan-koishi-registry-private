@@ -1,12 +1,10 @@
 {
-  "version": "0.3.4",
+  "version": "0.4.0-rc.0",
   "imports": {
-    "@cordisjs/plugin-logger": "npm:@cordisjs/plugin-logger@^0",
-    "@cordisjs/plugin-timer": "npm:@cordisjs/plugin-timer@^1.0.0-alpha.0",
-    "@cordisjs/schema": "npm:@cordisjs/schema@^0.1.1",
     "@km-api/km-api": "jsr:@km-api/km-api@^1.1.0-0",
     "@koishijs/registry": "npm:@koishijs/registry@^7.0.3",
     "@std/assert": "jsr:@std/assert@^1.0.9",
+    "@std/async": "jsr:@std/async@^1.0.9",
     "@std/fs": "jsr:@std/fs@^1.0.7",
     "@std/path": "jsr:@std/path@^1.0.8",
     "@std/dotenv": "jsr:@std/dotenv@^0.225.3",
@@ -20,28 +18,51 @@
     "lodash.trim": "npm:lodash.trim@^4.5.1",
     "lodash.trimend": "npm:lodash.trimend@^4.5.1",
     "magic-regexp": "npm:magic-regexp@^0.8.0",
+    "p-try": "npm:p-try@^3.0.0",
     "paseto-ts": "npm:paseto-ts@^1.5.7",
     "reggol": "npm:reggol@^1.7.1",
     "schemastery": "npm:schemastery@^3.14.7",
     "./koishi_registry": "./koishi_registry/mod.ts",
-    "./storage": "./storage/mod.ts",
-    "./analyzer": "./analyzer/mod.ts"
+    "./koishi_analyzer": "./koishi_analyzer/mod.ts",
+    "typescript": "npm:typescript@^5.7.2"
   },
   "unstable": [
     "sloppy-imports",
     "net"
   ],
   "tasks": {
-    "start": "deno run --allow-all main.ts",
+    "start": "deno run --allow-all runner.ts",
     "test": "deno test --ignore=./hono-mod --no-check",
     "cordis": "cordis"
   },
   "lint": {
     "rules": {
-      "exclude": ["no-namespace", "ban-types"]
-    }
+      "exclude": [
+        "no-namespace",
+        "ban-types",
+        "no-slow-types",
+        "require-await"
+      ]
+    },
+    "exclude": [
+      "./http-mod/*",
+      "./cordis/*"
+    ]
   },
-  "workspace": ["./hono-mod", "./http-mod/http", "./http-mod/socks"],
+  "fmt": {
+    "semiColons": false,
+    "singleQuote": true
+  },
+  "workspace": [
+    "./hono-mod",
+    "./http-mod/http",
+    "./http-mod/socks",
+    "./webui/plugins/*",
+    "./webui/packages/*",
+    "./cordis/packages/*",
+    "./packages/*",
+    "./plugins/*"
+  ],
   "compilerOptions": {
     "jsx": "precompile",
     "jsxImportSource": "hono/jsx"

@@ -10,7 +10,7 @@
 import arg from 'arg'
 import { $, stdout } from 'bun'
 import { build } from 'esbuild'
-import type { Plugin, PluginBuild, BuildOptions } from 'esbuild'
+import type { BuildOptions, Plugin, PluginBuild } from 'esbuild'
 import * as glob from 'glob'
 import fs from 'fs'
 import path from 'path'
@@ -23,23 +23,33 @@ const args = arg({
 
 const isWatch = args['--watch'] || false
 
-const readJsonExports = (path: string) => JSON.parse(fs.readFileSync(path, 'utf-8')).exports
+const readJsonExports = (path: string) =>
+  JSON.parse(fs.readFileSync(path, 'utf-8')).exports
 
-const [packageJsonExports, jsrJsonExports] = ['./package.json', './jsr.json'].map(readJsonExports)
+const [packageJsonExports, jsrJsonExports] = ['./package.json', './jsr.json']
+  .map(readJsonExports)
 
 // Validate exports of package.json and jsr.json
 validateExports(packageJsonExports, jsrJsonExports, 'jsr.json')
 validateExports(jsrJsonExports, packageJsonExports, 'package.json')
 
 const entryPoints = glob.sync('./src/**/*.ts', {
-  ignore: ['./src/**/*.test.ts', './src/mod.ts', './src/middleware.ts', './src/deno/**/*.ts'],
+  ignore: [
+    './src/**/*.test.ts',
+    './src/mod.ts',
+    './src/middleware.ts',
+    './src/deno/**/*.ts',
+  ],
 })
 
 /*
   This plugin is inspired by the following.
   https://github.com/evanw/esbuild/issues/622#issuecomment-769462611
 */
-const addExtension = (extension: string = '.js', fileExtension: string = '.ts'): Plugin => ({
+const addExtension = (
+  extension: string = '.js',
+  fileExtension: string = '.ts',
+): Plugin => ({
   name: 'add-extension',
   setup(build: PluginBuild) {
     build.onResolve({ filter: /.*/ }, (args) => {
@@ -51,7 +61,11 @@ const addExtension = (extension: string = '.js', fileExtension: string = '.ts'):
         if (fs.existsSync(tsPath)) {
           importPath = args.path + extension
         } else {
-          tsPath = path.join(args.resolveDir, args.path, `index${fileExtension}`)
+          tsPath = path.join(
+            args.resolveDir,
+            args.path,
+            `index${fileExtension}`,
+          )
           if (fs.existsSync(tsPath)) {
             if (args.path.endsWith('/')) {
               importPath = `${args.path}index${extension}`
@@ -105,7 +119,9 @@ let lastOutputLength = 0
 for (let i = 0; i < dtsEntries.length; i++) {
   const entry = dtsEntries[i]
 
-  const message = `Removing private fields(${i + 1}/${dtsEntries.length}): ${entry}`
+  const message = `Removing private fields(${
+    i + 1
+  }/${dtsEntries.length}): ${entry}`
   writer.write(`\r${' '.repeat(lastOutputLength)}`)
   lastOutputLength = message.length
   writer.write(`\r${message}`)

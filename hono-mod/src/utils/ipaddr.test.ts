@@ -11,10 +11,18 @@ describe('expandIPv6', () => {
   it('Should result be valid', () => {
     expect(expandIPv6('1::1')).toBe('0001:0000:0000:0000:0000:0000:0000:0001')
     expect(expandIPv6('::1')).toBe('0000:0000:0000:0000:0000:0000:0000:0001')
-    expect(expandIPv6('2001:2::')).toBe('2001:0002:0000:0000:0000:0000:0000:0000')
-    expect(expandIPv6('2001:2::')).toBe('2001:0002:0000:0000:0000:0000:0000:0000')
-    expect(expandIPv6('2001:0:0:db8::1')).toBe('2001:0000:0000:0db8:0000:0000:0000:0001')
-    expect(expandIPv6('::ffff:127.0.0.1')).toBe('0000:0000:0000:0000:0000:ffff:7f00:0001')
+    expect(expandIPv6('2001:2::')).toBe(
+      '2001:0002:0000:0000:0000:0000:0000:0000',
+    )
+    expect(expandIPv6('2001:2::')).toBe(
+      '2001:0002:0000:0000:0000:0000:0000:0000',
+    )
+    expect(expandIPv6('2001:0:0:db8::1')).toBe(
+      '2001:0000:0000:0db8:0000:0000:0000:0001',
+    )
+    expect(expandIPv6('::ffff:127.0.0.1')).toBe(
+      '0000:0000:0000:0000:0000:ffff:7f00:0001',
+    )
   })
 })
 describe('distinctRemoteAddr', () => {
@@ -47,7 +55,9 @@ describe('convertIPv4ToString', () => {
     ${'0.0.0.1'} | ${'0.0.0.1'}
     ${'0.0.1.0'} | ${'0.0.1.0'}
   `('convertIPv4ToString($input) === $expected', ({ input, expected }) => {
-    expect(convertIPv4BinaryToString(convertIPv4ToBinary(input))).toBe(expected)
+    expect(convertIPv4BinaryToString(convertIPv4ToBinary(input))).toBe(
+      expected,
+    )
   })
 })
 
@@ -57,7 +67,9 @@ describe('convertIPv6ToBinary', () => {
     expect(convertIPv6ToBinary('::1')).toBe(1n)
 
     expect(convertIPv6ToBinary('::f')).toBe(15n)
-    expect(convertIPv6ToBinary('1234:::5678')).toBe(24196103360772296748952112894165669496n)
+    expect(convertIPv6ToBinary('1234:::5678')).toBe(
+      24196103360772296748952112894165669496n,
+    )
     expect(convertIPv6ToBinary('::ffff:127.0.0.1')).toBe(281472812449793n)
   })
 })
@@ -74,6 +86,8 @@ describe('convertIPv6ToString', () => {
     ${'1234:5678:9abc:def0:1234:5678:9abc:def0'} | ${'1234:5678:9abc:def0:1234:5678:9abc:def0'}
     ${'::ffff:127.0.0.1'}                        | ${'::ffff:127.0.0.1'}
   `('convertIPv6ToString($input) === $expected', ({ input, expected }) => {
-    expect(convertIPv6BinaryToString(convertIPv6ToBinary(input))).toBe(expected)
+    expect(convertIPv6BinaryToString(convertIPv6ToBinary(input))).toBe(
+      expected,
+    )
   })
 })

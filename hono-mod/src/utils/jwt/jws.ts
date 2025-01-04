@@ -23,7 +23,7 @@ export type SignatureKey = string | JsonWebKey | CryptoKey
 export async function signing(
   privateKey: SignatureKey,
   alg: SignatureAlgorithm,
-  data: BufferSource
+  data: BufferSource,
 ): Promise<ArrayBuffer> {
   const algorithm = getKeyAlgorithm(alg)
   const cryptoKey = await importPrivateKey(privateKey, algorithm)
@@ -34,7 +34,7 @@ export async function verifying(
   publicKey: SignatureKey,
   alg: SignatureAlgorithm,
   signature: BufferSource,
-  data: BufferSource
+  data: BufferSource,
 ): Promise<boolean> {
   const algorithm = getKeyAlgorithm(alg)
   const cryptoKey = await importPublicKey(publicKey, algorithm)
@@ -45,14 +45,19 @@ function pemToBinary(pem: string): Uint8Array {
   return decodeBase64(pem.replace(/-+(BEGIN|END).*/g, '').replace(/\s/g, ''))
 }
 
-async function importPrivateKey(key: SignatureKey, alg: KeyImporterAlgorithm): Promise<CryptoKey> {
+async function importPrivateKey(
+  key: SignatureKey,
+  alg: KeyImporterAlgorithm,
+): Promise<CryptoKey> {
   if (!crypto.subtle || !crypto.subtle.importKey) {
-    throw new Error('`crypto.subtle.importKey` is undefined. JWT auth middleware requires it.')
+    throw new Error(
+      '`crypto.subtle.importKey` is undefined. JWT auth middleware requires it.',
+    )
   }
   if (isCryptoKey(key)) {
     if (key.type !== 'private' && key.type !== 'secret') {
       throw new Error(
-        `unexpected key type: CryptoKey.type is ${key.type}, expected private or secret`
+        `unexpected key type: CryptoKey.type is ${key.type}, expected private or secret`,
       )
     }
     return key
@@ -64,14 +69,31 @@ async function importPrivateKey(key: SignatureKey, alg: KeyImporterAlgorithm): P
   }
   if (key.includes('PRIVATE')) {
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey#pkcs_8_import
-    return await crypto.subtle.importKey('pkcs8', pemToBinary(key), alg, false, usages)
+    return await crypto.subtle.importKey(
+      'pkcs8',
+      pemToBinary(key),
+      alg,
+      false,
+      usages,
+    )
   }
-  return await crypto.subtle.importKey('raw', utf8Encoder.encode(key), alg, false, usages)
+  return await crypto.subtle.importKey(
+    'raw',
+    utf8Encoder.encode(key),
+    alg,
+    false,
+    usages,
+  )
 }
 
-async function importPublicKey(key: SignatureKey, alg: KeyImporterAlgorithm): Promise<CryptoKey> {
+async function importPublicKey(
+  key: SignatureKey,
+  alg: KeyImporterAlgorithm,
+): Promise<CryptoKey> {
   if (!crypto.subtle || !crypto.subtle.importKey) {
-    throw new Error('`crypto.subtle.importKey` is undefined. JWT auth middleware requires it.')
+    throw new Error(
+      '`crypto.subtle.importKey` is undefined. JWT auth middleware requires it.',
+    )
   }
   if (isCryptoKey(key)) {
     if (key.type === 'public' || key.type === 'secret') {
@@ -81,9 +103,15 @@ async function importPublicKey(key: SignatureKey, alg: KeyImporterAlgorithm): Pr
   }
   if (typeof key === 'string' && key.includes('PRIVATE')) {
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey#pkcs_8_import
-    const privateKey = await crypto.subtle.importKey('pkcs8', pemToBinary(key), alg, true, [
-      CryptoKeyUsage.Sign,
-    ])
+    const privateKey = await crypto.subtle.importKey(
+      'pkcs8',
+      pemToBinary(key),
+      alg,
+      true,
+      [
+        CryptoKeyUsage.Sign,
+      ],
+    )
     key = await exportPublicJwkFrom(privateKey)
   }
   const usages = [CryptoKeyUsage.Verify]
@@ -93,9 +121,21 @@ async function importPublicKey(key: SignatureKey, alg: KeyImporterAlgorithm): Pr
   }
   if (key.includes('PUBLIC')) {
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey#subjectpublickeyinfo_import
-    return await crypto.subtle.importKey('spki', pemToBinary(key), alg, false, usages)
+    return await crypto.subtle.importKey(
+      'spki',
+      pemToBinary(key),
+      alg,
+      false,
+      usages,
+    )
   }
-  return await crypto.subtle.importKey('raw', utf8Encoder.encode(key), alg, false, usages)
+  return await crypto.subtle.importKey(
+    'raw',
+    utf8Encoder.encode(key),
+    alg,
+    false,
+    usages,
+  )
 }
 
 // https://datatracker.ietf.org/doc/html/rfc7517

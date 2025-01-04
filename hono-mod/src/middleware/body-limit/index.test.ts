@@ -1,7 +1,9 @@
 import { Hono } from '../../hono'
 import { bodyLimit } from '.'
 
-const buildRequestInit = (init: RequestInit = {}): RequestInit & { duplex: 'half' } => {
+const buildRequestInit = (
+  init: RequestInit = {},
+): RequestInit & { duplex: 'half' } => {
   const headers: Record<string, string> = {
     'Content-Type': 'text/plain',
   }
@@ -44,7 +46,10 @@ describe('Body Limit Middleware', () => {
   describe('POST request', () => {
     describe('string body', () => {
       it('should return 200 response', async () => {
-        const res = await app.request('/body-limit-15byte', buildRequestInit({ body: exampleText }))
+        const res = await app.request(
+          '/body-limit-15byte',
+          buildRequestInit({ body: exampleText }),
+        )
 
         expect(res).not.toBeNull()
         expect(res.status).toBe(200)
@@ -54,7 +59,7 @@ describe('Body Limit Middleware', () => {
       it('should return 413 response', async () => {
         const res = await app.request(
           '/body-limit-15byte',
-          buildRequestInit({ body: exampleText2 })
+          buildRequestInit({ body: exampleText2 }),
         )
 
         expect(res).not.toBeNull()
@@ -69,12 +74,17 @@ describe('Body Limit Middleware', () => {
         const stream = new ReadableStream({
           start(controller) {
             while (contents.length) {
-              controller.enqueue(new TextEncoder().encode(contents.shift() as string))
+              controller.enqueue(
+                new TextEncoder().encode(contents.shift() as string),
+              )
             }
             controller.close()
           },
         })
-        const res = await app.request('/body-limit-15byte', buildRequestInit({ body: stream }))
+        const res = await app.request(
+          '/body-limit-15byte',
+          buildRequestInit({ body: stream }),
+        )
 
         expect(res).not.toBeNull()
         expect(res.status).toBe(200)
@@ -92,7 +102,10 @@ describe('Body Limit Middleware', () => {
         vi.spyOn(stream, 'getReader').mockReturnValue({
           read: readSpy,
         } as unknown as ReadableStreamDefaultReader)
-        const res = await app.request('/body-limit-15byte', buildRequestInit({ body: stream }))
+        const res = await app.request(
+          '/body-limit-15byte',
+          buildRequestInit({ body: stream }),
+        )
 
         expect(res).not.toBeNull()
         expect(res.status).toBe(413)
@@ -115,14 +128,14 @@ describe('Body Limit Middleware', () => {
         }),
         (c) => {
           return c.text('yes')
-        }
+        },
       )
     })
 
     it('should return the custom error handler', async () => {
       const res = await app.request(
         '/text-limit-15byte-custom',
-        buildRequestInit({ body: exampleText2 })
+        buildRequestInit({ body: exampleText2 }),
       )
 
       expect(res).not.toBeNull()

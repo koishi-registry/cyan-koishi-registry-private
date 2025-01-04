@@ -1,6 +1,6 @@
 import KoaRouter from 'koa-tree-router'
 import type { RouterInterface } from './tool.mts'
-import { routes, handler } from './tool.mts'
+import { handler, routes } from './tool.mts'
 
 const name = 'koa-tree-router'
 const router = new KoaRouter()

@@ -55,7 +55,7 @@ describe('GET Request', () => {
           get(target, prop: keyof Response) {
             return target[prop]
           },
-        })
+        }),
     )
 
     app.get(
@@ -65,7 +65,7 @@ describe('GET Request', () => {
           get(target, prop: keyof Response) {
             return target[prop]
           },
-        })
+        }),
     )
 
     it('GET http://localhost/hello is ok', async () => {
@@ -113,7 +113,9 @@ describe('GET Request', () => {
     })
 
     it('GET /hello-env is ok', async () => {
-      const res = await app.request('/hello-env', undefined, { HELLO: 'world' })
+      const res = await app.request('/hello-env', undefined, {
+        HELLO: 'world',
+      })
       expect(res.status).toBe(200)
       expect(await res.json()).toEqual({ HELLO: 'world' })
     })
@@ -166,7 +168,7 @@ describe('GET Request', () => {
           get(target, prop: keyof Response) {
             return target[prop]
           },
-        })
+        }),
     )
 
     app.get(
@@ -176,7 +178,7 @@ describe('GET Request', () => {
           get(target, prop: keyof Response) {
             return target[prop]
           },
-        })
+        }),
     )
 
     it('GET http://localhost/hello is ok', async () => {
@@ -224,7 +226,9 @@ describe('GET Request', () => {
     })
 
     it('GET /hello-env is ok', async () => {
-      const res = await app.request('/hello-env', undefined, { HELLO: 'world' })
+      const res = await app.request('/hello-env', undefined, {
+        HELLO: 'world',
+      })
       expect(res.status).toBe(200)
       expect(await res.json()).toEqual({ HELLO: 'world' })
     })
@@ -440,9 +444,15 @@ describe('Routing', () => {
     user.post('/register', (c) => c.text('post /user/register'))
 
     const appForEachUser = user.basePath(':id')
-    appForEachUser.get('/profile', (c) => c.text('get /user/' + c.req.param('id') + '/profile'))
+    appForEachUser.get(
+      '/profile',
+      (c) => c.text('get /user/' + c.req.param('id') + '/profile'),
+    )
 
-    app.get('/add-path-after-route-call', (c) => c.text('get /add-path-after-route-call'))
+    app.get(
+      '/add-path-after-route-call',
+      (c) => c.text('get /add-path-after-route-call'),
+    )
 
     let res = await app.request('http://localhost/book', { method: 'GET' })
     expect(res.status).toBe(200)
@@ -463,15 +473,21 @@ describe('Routing', () => {
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('get /user/login')
 
-    res = await app.request('http://localhost/user/register', { method: 'POST' })
+    res = await app.request('http://localhost/user/register', {
+      method: 'POST',
+    })
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('post /user/register')
 
-    res = await app.request('http://localhost/user/123/profile', { method: 'GET' })
+    res = await app.request('http://localhost/user/123/profile', {
+      method: 'GET',
+    })
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('get /user/123/profile')
 
-    res = await app.request('http://localhost/add-path-after-route-call', { method: 'GET' })
+    res = await app.request('http://localhost/add-path-after-route-call', {
+      method: 'GET',
+    })
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('get /add-path-after-route-call')
   })
@@ -482,7 +498,9 @@ describe('Routing', () => {
     book.get('/', (c) => c.text('get /book'))
     app.route('/api', book)
 
-    const res = await app.request('http://localhost/api/book', { method: 'GET' })
+    const res = await app.request('http://localhost/api/book', {
+      method: 'GET',
+    })
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('get /book')
   })
@@ -498,7 +516,9 @@ describe('Routing', () => {
 
     app.route('/book', book).route('/user', user)
 
-    let res = await app.request('http://localhost/book/hello', { method: 'GET' })
+    let res = await app.request('http://localhost/book/hello', {
+      method: 'GET',
+    })
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('get /book/hello')
 
@@ -530,7 +550,9 @@ describe('Routing', () => {
       two.route('/three', three)
       one.route('/two', two)
 
-      const { status } = await one.request('http://localhost/two/three/hi', { method: 'GET' })
+      const { status } = await one.request('http://localhost/two/three/hi', {
+        method: 'GET',
+      })
       expect(status).toBe(200)
     })
 
@@ -539,7 +561,9 @@ describe('Routing', () => {
       one.route('/two', two)
       two.route('/three', three)
 
-      const { status } = await one.request('http://localhost/two/three/hi', { method: 'GET' })
+      const { status } = await one.request('http://localhost/two/three/hi', {
+        method: 'GET',
+      })
       expect(status).toBe(404)
     })
 
@@ -548,7 +572,9 @@ describe('Routing', () => {
       three.get('/hi', (c) => c.text('hi'))
       one.route('/two', two)
 
-      const { status } = await one.request('http://localhost/two/three/hi', { method: 'GET' })
+      const { status } = await one.request('http://localhost/two/three/hi', {
+        method: 'GET',
+      })
       expect(status).toBe(404)
     })
 
@@ -557,7 +583,9 @@ describe('Routing', () => {
       one.route('/two', two)
       three.get('/hi', (c) => c.text('hi'))
 
-      const { status } = await one.request('http://localhost/two/three/hi', { method: 'GET' })
+      const { status } = await one.request('http://localhost/two/three/hi', {
+        method: 'GET',
+      })
       expect(status).toBe(404)
     })
 
@@ -566,7 +594,9 @@ describe('Routing', () => {
       three.get('/hi', (c) => c.text('hi'))
       two.route('/three', three)
 
-      const { status } = await one.request('http://localhost/two/three/hi', { method: 'GET' })
+      const { status } = await one.request('http://localhost/two/three/hi', {
+        method: 'GET',
+      })
       expect(status).toBe(404)
     })
 
@@ -575,7 +605,9 @@ describe('Routing', () => {
       two.route('/three', three)
       three.get('/hi', (c) => c.text('hi'))
 
-      const { status } = await one.request('http://localhost/two/three/hi', { method: 'GET' })
+      const { status } = await one.request('http://localhost/two/three/hi', {
+        method: 'GET',
+      })
       expect(status).toBe(404)
     })
   })
@@ -624,7 +656,8 @@ describe('Routing', () => {
   it('routing with request header', async () => {
     const app = new Hono({
       getPath: (req) =>
-        '/' + req.headers.get('host') + req.url.replace(/^https?:\/\/[^/]+(\/[^?]*)/, '$1'),
+        '/' + req.headers.get('host') +
+        req.url.replace(/^https?:\/\/[^/]+(\/[^?]*)/, '$1'),
     })
 
     const sub = new Hono()
@@ -724,17 +757,23 @@ describe('Routing', () => {
         return c.text(`POST for ${abc}`)
       })
     it('Should return 200 response from GET request', async () => {
-      const res = await app.request('http://localhost/chained/abc', { method: 'GET' })
+      const res = await app.request('http://localhost/chained/abc', {
+        method: 'GET',
+      })
       expect(res.status).toBe(200)
       expect(await res.text()).toBe('GET for abc')
     })
     it('Should return 200 response from POST request', async () => {
-      const res = await app.request('http://localhost/chained/abc', { method: 'POST' })
+      const res = await app.request('http://localhost/chained/abc', {
+        method: 'POST',
+      })
       expect(res.status).toBe(200)
       expect(await res.text()).toBe('POST for abc')
     })
     it('Should return 404 response from PUT request', async () => {
-      const res = await app.request('http://localhost/chained/abc', { method: 'PUT' })
+      const res = await app.request('http://localhost/chained/abc', {
+        method: 'PUT',
+      })
       expect(res.status).toBe(404)
     })
   })
@@ -748,7 +787,9 @@ describe('Routing', () => {
     it('should decode path parameter', async () => {
       app.get('/users/:id', (c) => c.text(`id is ${c.req.param('id')}`))
 
-      const res = await app.request('http://localhost/users/%C3%A7awa%20y%C3%AE%3F')
+      const res = await app.request(
+        'http://localhost/users/%C3%A7awa%20y%C3%AE%3F',
+      )
       expect(res.status).toBe(200)
       expect(await res.text()).toBe('id is çawa yî?')
     })
@@ -820,9 +861,13 @@ describe('param and query', () => {
     })
 
     app.get('/multiple-values', (c) => {
-      const queries = c.req.queries('q') ?? throwExpression('missing query values')
-      const limit = c.req.queries('limit') ?? throwExpression('missing query values')
-      return c.text(`q is ${queries[0]} and ${queries[1]}, limit is ${limit[0]}`)
+      const queries = c.req.queries('q') ??
+        throwExpression('missing query values')
+      const limit = c.req.queries('limit') ??
+        throwExpression('missing query values')
+      return c.text(
+        `q is ${queries[0]} and ${queries[1]}, limit is ${limit[0]}`,
+      )
     })
 
     app.get('/add-header', (c) => {
@@ -880,7 +925,9 @@ describe('param and query', () => {
     })
 
     it('param of /entry/:id is decoded', async () => {
-      const res = await app.request('http://localhost/entry/%C3%A7awa%20y%C3%AE%3F')
+      const res = await app.request(
+        'http://localhost/entry/%C3%A7awa%20y%C3%AE%3F',
+      )
       expect(res.status).toBe(200)
       expect(await res.text()).toBe('id is çawa yî?')
     })
@@ -898,13 +945,17 @@ describe('param and query', () => {
     })
 
     it('query of /search?name=sam&name=tom is found', async () => {
-      const res = await app.request('http://localhost/search?name=sam&name=tom')
+      const res = await app.request(
+        'http://localhost/search?name=sam&name=tom',
+      )
       expect(res.status).toBe(200)
       expect(await res.text()).toBe('name is sam')
     })
 
     it('query of /multiple-values?q=foo&q=bar&limit=10 is found', async () => {
-      const res = await app.request('http://localhost/multiple-values?q=foo&q=bar&limit=10')
+      const res = await app.request(
+        'http://localhost/multiple-values?q=foo&q=bar&limit=10',
+      )
       expect(res.status).toBe(200)
       expect(await res.text()).toBe('q is foo and bar, limit is 10')
     })
@@ -1023,7 +1074,7 @@ describe('Middleware', () => {
           headers: {
             'content-type': 'application/json',
           },
-        }
+        },
       )
     })
 
@@ -1087,7 +1138,8 @@ describe('Middleware', () => {
         await next()
         c.header(
           'x-after',
-          c.req.header('x-before') ?? throwExpression('missing `x-before` header')
+          c.req.header('x-before') ??
+            throwExpression('missing `x-before` header'),
         )
       })
       .get('/chained/abc', (c) => {
@@ -1114,9 +1166,10 @@ describe('Middleware', () => {
           await next()
           c.header(
             'x-after',
-            c.req.header('x-before') ?? throwExpression('missing `x-before` header')
+            c.req.header('x-before') ??
+              throwExpression('missing `x-before` header'),
           )
-        }
+        },
       )
       .get('/multiple/abc', (c) => {
         return c.text('GET multiple')
@@ -1302,7 +1355,9 @@ describe('Not Found', () => {
       expect(await res.text()).toBe('hello')
       res = await app.request('http://localhost/foo')
       expect(res.status).toBe(404)
-      expect(await res.text()).toBe('404 Not Found + Middleware 2 + Middleware 1')
+      expect(await res.text()).toBe(
+        '404 Not Found + Middleware 2 + Middleware 1',
+      )
     })
   })
 
@@ -1492,7 +1547,10 @@ describe('Error handling in middleware', () => {
     await next()
     if (c.error) {
       const message = c.error.message
-      c.res = c.text(`Handle the error in middleware, original message is ${message}`, 500)
+      c.res = c.text(
+        `Handle the error in middleware, original message is ${message}`,
+        500,
+      )
     }
   })
 
@@ -1502,7 +1560,7 @@ describe('Error handling in middleware', () => {
       const message = c.error.message
       c.res = c.text(
         `Handle the error in middleware with async, original message is ${message}`,
-        500
+        500,
       )
     }
   })
@@ -1516,18 +1574,22 @@ describe('Error handling in middleware', () => {
   })
 
   it('Should handle the error in middleware', async () => {
-    const res = await app.request('https://example.com/handle-error-in-middleware')
+    const res = await app.request(
+      'https://example.com/handle-error-in-middleware',
+    )
     expect(res.status).toBe(500)
     expect(await res.text()).toBe(
-      'Handle the error in middleware, original message is Error message'
+      'Handle the error in middleware, original message is Error message',
     )
   })
 
   it('Should handle the error in middleware - async', async () => {
-    const res = await app.request('https://example.com/handle-error-in-middleware-async')
+    const res = await app.request(
+      'https://example.com/handle-error-in-middleware-async',
+    )
     expect(res.status).toBe(500)
     expect(await res.text()).toBe(
-      'Handle the error in middleware with async, original message is Error message'
+      'Handle the error in middleware with async, original message is Error message',
     )
   })
 
@@ -1580,9 +1642,15 @@ describe('Request methods with custom middleware', () => {
     const param = c.req.param('foo') // This will cause a type error.
     const header = c.req.header('User-Agent')
     await next()
-    c.header('X-Query-2', query ?? throwExpression('missing `X-Query-2` header'))
+    c.header(
+      'X-Query-2',
+      query ?? throwExpression('missing `X-Query-2` header'),
+    )
     c.header('X-Param-2', param)
-    c.header('X-Header-2', header ?? throwExpression('missing `X-Header-2` header'))
+    c.header(
+      'X-Header-2',
+      header ?? throwExpression('missing `X-Header-2` header'),
+    )
   })
 
   app.get('/:foo', (c) => {
@@ -1591,7 +1659,10 @@ describe('Request methods with custom middleware', () => {
     const header = c.req.header('User-Agent')
     c.header('X-Query', query ?? throwExpression('missing `X-Query` header'))
     c.header('X-Param', param)
-    c.header('X-Header', header ?? throwExpression('missing `X-Header` header'))
+    c.header(
+      'X-Header',
+      header ?? throwExpression('missing `X-Header` header'),
+    )
     return c.body('Hono')
   })
 
@@ -1682,7 +1753,9 @@ describe('Hono with `app.route`', () => {
     })
 
     test('POST /api/posts', async () => {
-      const res = await app.request('http://localhost/api/posts', { method: 'POST' })
+      const res = await app.request('http://localhost/api/posts', {
+        method: 'POST',
+      })
       expect(res.status).toBe(200)
       expect(await res.text()).toBe('Create')
     })
@@ -1741,7 +1814,9 @@ describe('Hono with `app.route`', () => {
   describe('Chaining', () => {
     const app = new Hono()
     const route = new Hono()
-    route.get('/post', (c) => c.text('GET /POST v2')).post((c) => c.text('POST /POST v2'))
+    route.get('/post', (c) => c.text('GET /POST v2')).post((c) =>
+      c.text('POST /POST v2')
+    )
     app.route('/v2', route)
 
     it('Should return 200 response - GET /v2/post', async () => {
@@ -1751,13 +1826,17 @@ describe('Hono with `app.route`', () => {
     })
 
     it('Should return 200 response - POST /v2/post', async () => {
-      const res = await app.request('http://localhost/v2/post', { method: 'POST' })
+      const res = await app.request('http://localhost/v2/post', {
+        method: 'POST',
+      })
       expect(res.status).toBe(200)
       expect(await res.text()).toBe('POST /POST v2')
     })
 
     it('Should return 404 response - DELETE /v2/post', async () => {
-      const res = await app.request('http://localhost/v2/post', { method: 'DELETE' })
+      const res = await app.request('http://localhost/v2/post', {
+        method: 'DELETE',
+      })
       expect(res.status).toBe(404)
     })
   })
@@ -2061,10 +2140,14 @@ describe('Multiple handler', () => {
     describe('basic', () => {
       const app = new Hono()
       app.get('/:type/:url', (c) => {
-        return c.text(`type: ${c.req.param('type')}, url: ${c.req.param('url')}`)
+        return c.text(
+          `type: ${c.req.param('type')}, url: ${c.req.param('url')}`,
+        )
       })
       app.get('/foo/:type/:url', (c) => {
-        return c.text(`foo type: ${c.req.param('type')}, url: ${c.req.param('url')}`)
+        return c.text(
+          `foo type: ${c.req.param('type')}, url: ${c.req.param('url')}`,
+        )
       })
 
       it('Should return a correct param - GET /car/good-car', async () => {
@@ -2095,7 +2178,9 @@ describe('Multiple handler', () => {
     describe('hierarchy', () => {
       const app = new Hono()
       app.get('/posts/:id/comments/:comment_id', (c) => {
-        return c.text(`post: ${c.req.param('id')}, comment: ${c.req.param('comment_id')}`)
+        return c.text(
+          `post: ${c.req.param('id')}, comment: ${c.req.param('comment_id')}`,
+        )
       })
       app.get('/posts/:id', (c) => {
         return c.text(`post: ${c.req.param('id')}`)
@@ -2115,10 +2200,14 @@ describe('Multiple handler', () => {
     describe('different regular expression', () => {
       const app = new Hono()
       app.get('/:id/:action{create|update}', (c) => {
-        return c.text(`id: ${c.req.param('id')}, action: ${c.req.param('action')}`)
+        return c.text(
+          `id: ${c.req.param('id')}, action: ${c.req.param('action')}`,
+        )
       })
       app.get('/:id/:action{delete}', (c) => {
-        return c.text(`id: ${c.req.param('id')}, action: ${c.req.param('action')}`)
+        return c.text(
+          `id: ${c.req.param('id')}, action: ${c.req.param('action')}`,
+        )
       })
 
       it('Should return a correct param - GET /123/create', async () => {
@@ -2514,7 +2603,7 @@ describe('app.mount()', () => {
             headers: {
               'Content-Type': 'application.json',
             },
-          }
+          },
         )
       }
       if (path === '/undefined') {
@@ -2595,7 +2684,9 @@ describe('app.mount()', () => {
     })
 
     it('Should return response from Another app with an array option', async () => {
-      const res = await app.request('/another-app-with-array-option/with-params')
+      const res = await app.request(
+        '/another-app-with-array-option/with-params',
+      )
       expect(res.status).toBe(200)
       expect(await res.json()).toEqual({
         params: ['param1', 'param2'],
@@ -2616,7 +2707,11 @@ describe('app.mount()', () => {
   })
 
   describe('With fetch', () => {
-    const anotherApp = async (req: Request, env: {}, executionContext: ExecutionContext) => {
+    const anotherApp = async (
+      req: Request,
+      env: {},
+      executionContext: ExecutionContext,
+    ) => {
       const path = getPath(req)
       if (path === '/') {
         return new Response(
@@ -2628,7 +2723,7 @@ describe('app.mount()', () => {
             headers: {
               'Content-Type': 'application/json',
             },
-          }
+          },
         )
       }
       return new Response('Not Found from AnotherApp', {
@@ -2654,7 +2749,7 @@ describe('app.mount()', () => {
 
           // @ts-ignore
           passThroughOnException: 'passThroughOnException',
-        }
+        },
       )
       expect(res.status).toBe(200)
       expect(await res.json()).toEqual({
@@ -2758,7 +2853,10 @@ describe('HEAD method', () => {
 
 declare module './context' {
   interface ContextRenderer {
-    (content: string | Promise<string>, head: { title: string }): Response | Promise<Response>
+    (
+      content: string | Promise<string>,
+      head: { title: string },
+    ): Response | Promise<Response>
   }
 }
 
@@ -2785,7 +2883,10 @@ describe('app.fire()', () => {
     const addEventListener = vi.fn()
     global.addEventListener = addEventListener
     app.fire()
-    expect(addEventListener).toHaveBeenCalledWith('fetch', expect.any(Function))
+    expect(addEventListener).toHaveBeenCalledWith(
+      'fetch',
+      expect.any(Function),
+    )
 
     const fetchEventListener = addEventListener.mock.calls[0][1]
     const respondWith = vi.fn()
@@ -2803,7 +2904,7 @@ describe('Context render and setRenderer', () => {
   app.use('/page', async (c, next) => {
     c.setRenderer((content, head) => {
       return new Response(
-        `<html><head><title>${head.title}</title></head><body><h1>${content}</h1></body></html>`
+        `<html><head><title>${head.title}</title></head><body><h1>${content}</h1></body></html>`,
       )
     })
     await next()
@@ -2822,7 +2923,7 @@ describe('Context render and setRenderer', () => {
   it('Should return a Response from the custom renderer', async () => {
     const res = await app.request('/page')
     expect(await res.text()).toBe(
-      '<html><head><title>page title</title></head><body><h1>page content</h1></body></html>'
+      '<html><head><title>page title</title></head><body><h1>page content</h1></body></html>',
     )
   })
 })
@@ -2834,115 +2935,105 @@ describe('c.var - with testing types', () => {
     }
   }>()
 
-  const mw =
-    (): MiddlewareHandler<{
-      Variables: {
-        echo: (str: string) => string
-      }
-    }> =>
-    async (c, next) => {
-      c.set('echo', (str) => str)
-      await next()
+  const mw = (): MiddlewareHandler<{
+    Variables: {
+      echo: (str: string) => string
     }
+  }> =>
+  async (c, next) => {
+    c.set('echo', (str) => str)
+    await next()
+  }
 
-  const mw2 =
-    (): MiddlewareHandler<{
-      Variables: {
-        echo2: (str: string) => string
-      }
-    }> =>
-    async (c, next) => {
-      c.set('echo2', (str) => str)
-      await next()
+  const mw2 = (): MiddlewareHandler<{
+    Variables: {
+      echo2: (str: string) => string
     }
+  }> =>
+  async (c, next) => {
+    c.set('echo2', (str) => str)
+    await next()
+  }
 
-  const mw3 =
-    (): MiddlewareHandler<{
-      Variables: {
-        echo3: (str: string) => string
-      }
-    }> =>
-    async (c, next) => {
-      c.set('echo3', (str) => str)
-      await next()
+  const mw3 = (): MiddlewareHandler<{
+    Variables: {
+      echo3: (str: string) => string
     }
+  }> =>
+  async (c, next) => {
+    c.set('echo3', (str) => str)
+    await next()
+  }
 
-  const mw4 =
-    (): MiddlewareHandler<{
-      Variables: {
-        echo4: (str: string) => string
-      }
-    }> =>
-    async (c, next) => {
-      c.set('echo4', (str) => str)
-      await next()
+  const mw4 = (): MiddlewareHandler<{
+    Variables: {
+      echo4: (str: string) => string
     }
+  }> =>
+  async (c, next) => {
+    c.set('echo4', (str) => str)
+    await next()
+  }
 
-  const mw5 =
-    (): MiddlewareHandler<{
-      Variables: {
-        echo5: (str: string) => string
-      }
-    }> =>
-    async (c, next) => {
-      c.set('echo5', (str) => str)
-      await next()
+  const mw5 = (): MiddlewareHandler<{
+    Variables: {
+      echo5: (str: string) => string
     }
+  }> =>
+  async (c, next) => {
+    c.set('echo5', (str) => str)
+    await next()
+  }
 
-  const mw6 =
-    (): MiddlewareHandler<{
-      Variables: {
-        echo6: (str: string) => string
-      }
-    }> =>
-    async (c, next) => {
-      c.set('echo6', (str) => str)
-      await next()
+  const mw6 = (): MiddlewareHandler<{
+    Variables: {
+      echo6: (str: string) => string
     }
+  }> =>
+  async (c, next) => {
+    c.set('echo6', (str) => str)
+    await next()
+  }
 
-  const mw7 =
-    (): MiddlewareHandler<{
-      Variables: {
-        echo7: (str: string) => string
-      }
-    }> =>
-    async (c, next) => {
-      c.set('echo7', (str) => str)
-      await next()
+  const mw7 = (): MiddlewareHandler<{
+    Variables: {
+      echo7: (str: string) => string
     }
+  }> =>
+  async (c, next) => {
+    c.set('echo7', (str) => str)
+    await next()
+  }
 
-  const mw8 =
-    (): MiddlewareHandler<{
-      Variables: {
-        echo8: (str: string) => string
-      }
-    }> =>
-    async (c, next) => {
-      c.set('echo8', (str) => str)
-      await next()
+  const mw8 = (): MiddlewareHandler<{
+    Variables: {
+      echo8: (str: string) => string
     }
+  }> =>
+  async (c, next) => {
+    c.set('echo8', (str) => str)
+    await next()
+  }
 
-  const mw9 =
-    (): MiddlewareHandler<{
-      Variables: {
-        echo9: (str: string) => string
-      }
-    }> =>
-    async (c, next) => {
-      c.set('echo9', (str) => str)
-      await next()
+  const mw9 = (): MiddlewareHandler<{
+    Variables: {
+      echo9: (str: string) => string
     }
+  }> =>
+  async (c, next) => {
+    c.set('echo9', (str) => str)
+    await next()
+  }
 
-  const mw10 =
-    (): MiddlewareHandler<{
-      Variables: {
-        echo10: (str: string) => string
-      }
-    }> =>
-    async (c, next) => {
-      c.set('echo10', (str) => str)
-      await next()
+  const mw10 = (): MiddlewareHandler<{
+    Variables: {
+      echo10: (str: string) => string
     }
+  }> =>
+  async (c, next) => {
+    c.set('echo10', (str) => str)
+    await next()
+  }
 
   app.use('/no-path/1').get(mw(), (c) => {
     return c.text(c.var.echo('hello'))
@@ -2953,12 +3044,15 @@ describe('c.var - with testing types', () => {
   })
 
   app.use('/no-path/3').get(mw(), mw2(), mw3(), (c) => {
-    return c.text(c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3'))
+    return c.text(
+      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3'),
+    )
   })
 
   app.use('/no-path/4').get(mw(), mw2(), mw3(), mw4(), (c) => {
     return c.text(
-      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3') + c.var.echo4('hello4')
+      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3') +
+        c.var.echo4('hello4'),
     )
   })
 
@@ -2968,7 +3062,7 @@ describe('c.var - with testing types', () => {
         c.var.echo2('hello2') +
         c.var.echo3('hello3') +
         c.var.echo4('hello4') +
-        c.var.echo5('hello5')
+        c.var.echo5('hello5'),
     )
   })
 
@@ -2979,48 +3073,78 @@ describe('c.var - with testing types', () => {
         c.var.echo3('hello3') +
         c.var.echo4('hello4') +
         c.var.echo5('hello5') +
-        c.var.echo6('hello6')
+        c.var.echo6('hello6'),
     )
   })
 
-  app.use('/no-path/7').get(mw(), mw2(), mw3(), mw4(), mw5(), mw6(), mw7(), (c) => {
-    return c.text(
-      c.var.echo('hello') +
-        c.var.echo2('hello2') +
-        c.var.echo3('hello3') +
-        c.var.echo4('hello4') +
-        c.var.echo5('hello5') +
-        c.var.echo6('hello6') +
-        c.var.echo7('hello7')
-    )
-  })
+  app.use('/no-path/7').get(
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    mw7(),
+    (c) => {
+      return c.text(
+        c.var.echo('hello') +
+          c.var.echo2('hello2') +
+          c.var.echo3('hello3') +
+          c.var.echo4('hello4') +
+          c.var.echo5('hello5') +
+          c.var.echo6('hello6') +
+          c.var.echo7('hello7'),
+      )
+    },
+  )
 
-  app.use('/no-path/8').get(mw(), mw2(), mw3(), mw4(), mw5(), mw6(), mw7(), mw8(), (c) => {
-    return c.text(
-      c.var.echo('hello') +
-        c.var.echo2('hello2') +
-        c.var.echo3('hello3') +
-        c.var.echo4('hello4') +
-        c.var.echo5('hello5') +
-        c.var.echo6('hello6') +
-        c.var.echo7('hello7') +
-        c.var.echo8('hello8')
-    )
-  })
+  app.use('/no-path/8').get(
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    mw7(),
+    mw8(),
+    (c) => {
+      return c.text(
+        c.var.echo('hello') +
+          c.var.echo2('hello2') +
+          c.var.echo3('hello3') +
+          c.var.echo4('hello4') +
+          c.var.echo5('hello5') +
+          c.var.echo6('hello6') +
+          c.var.echo7('hello7') +
+          c.var.echo8('hello8'),
+      )
+    },
+  )
 
-  app.use('/no-path/9').get(mw(), mw2(), mw3(), mw4(), mw5(), mw6(), mw7(), mw8(), mw9(), (c) => {
-    return c.text(
-      c.var.echo('hello') +
-        c.var.echo2('hello2') +
-        c.var.echo3('hello3') +
-        c.var.echo4('hello4') +
-        c.var.echo5('hello5') +
-        c.var.echo6('hello6') +
-        c.var.echo7('hello7') +
-        c.var.echo8('hello8') +
-        c.var.echo9('hello9')
-    )
-  })
+  app.use('/no-path/9').get(
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    mw7(),
+    mw8(),
+    mw9(),
+    (c) => {
+      return c.text(
+        c.var.echo('hello') +
+          c.var.echo2('hello2') +
+          c.var.echo3('hello3') +
+          c.var.echo4('hello4') +
+          c.var.echo5('hello5') +
+          c.var.echo6('hello6') +
+          c.var.echo7('hello7') +
+          c.var.echo8('hello8') +
+          c.var.echo9('hello9'),
+      )
+    },
+  )
 
   app.use('/no-path/10').get(
     // @ts-expect-error The handlers are more than 10
@@ -3046,9 +3170,9 @@ describe('c.var - with testing types', () => {
           c.var.echo7('hello7') +
           c.var.echo8('hello8') +
           c.var.echo9('hello9') +
-          c.var.echo10('hello10')
+          c.var.echo10('hello10'),
       )
-    }
+    },
   )
 
   app.get('*', mw())
@@ -3062,12 +3186,15 @@ describe('c.var - with testing types', () => {
   })
 
   app.get('/path/3', mw(), mw2(), mw3(), (c) => {
-    return c.text(c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3'))
+    return c.text(
+      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3'),
+    )
   })
 
   app.get('/path/4', mw(), mw2(), mw3(), mw4(), (c) => {
     return c.text(
-      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3') + c.var.echo4('hello4')
+      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3') +
+        c.var.echo4('hello4'),
     )
   })
 
@@ -3077,7 +3204,7 @@ describe('c.var - with testing types', () => {
         c.var.echo2('hello2') +
         c.var.echo3('hello3') +
         c.var.echo4('hello4') +
-        c.var.echo5('hello5')
+        c.var.echo5('hello5'),
     )
   })
 
@@ -3088,7 +3215,7 @@ describe('c.var - with testing types', () => {
         c.var.echo3('hello3') +
         c.var.echo4('hello4') +
         c.var.echo5('hello5') +
-        c.var.echo6('hello6')
+        c.var.echo6('hello6'),
     )
   })
 
@@ -3100,62 +3227,98 @@ describe('c.var - with testing types', () => {
         c.var.echo4('hello4') +
         c.var.echo5('hello5') +
         c.var.echo6('hello6') +
-        c.var.echo7('hello7')
+        c.var.echo7('hello7'),
     )
   })
 
-  app.get('/path/8', mw(), mw2(), mw3(), mw4(), mw5(), mw6(), mw7(), mw8(), (c) => {
-    return c.text(
-      c.var.echo('hello') +
-        c.var.echo2('hello2') +
-        c.var.echo3('hello3') +
-        c.var.echo4('hello4') +
-        c.var.echo5('hello5') +
-        c.var.echo6('hello6') +
-        c.var.echo7('hello7') +
-        c.var.echo8('hello8')
-    )
-  })
+  app.get(
+    '/path/8',
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    mw7(),
+    mw8(),
+    (c) => {
+      return c.text(
+        c.var.echo('hello') +
+          c.var.echo2('hello2') +
+          c.var.echo3('hello3') +
+          c.var.echo4('hello4') +
+          c.var.echo5('hello5') +
+          c.var.echo6('hello6') +
+          c.var.echo7('hello7') +
+          c.var.echo8('hello8'),
+      )
+    },
+  )
 
-  app.get('/path/9', mw(), mw2(), mw3(), mw4(), mw5(), mw6(), mw7(), mw8(), mw9(), (c) => {
-    return c.text(
-      c.var.echo('hello') +
-        c.var.echo2('hello2') +
-        c.var.echo3('hello3') +
-        c.var.echo4('hello4') +
-        c.var.echo5('hello5') +
-        c.var.echo6('hello6') +
-        c.var.echo7('hello7') +
-        c.var.echo8('hello8') +
-        c.var.echo9('hello9')
-    )
-  })
+  app.get(
+    '/path/9',
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    mw7(),
+    mw8(),
+    mw9(),
+    (c) => {
+      return c.text(
+        c.var.echo('hello') +
+          c.var.echo2('hello2') +
+          c.var.echo3('hello3') +
+          c.var.echo4('hello4') +
+          c.var.echo5('hello5') +
+          c.var.echo6('hello6') +
+          c.var.echo7('hello7') +
+          c.var.echo8('hello8') +
+          c.var.echo9('hello9'),
+      )
+    },
+  )
 
   // @ts-expect-error
-  app.get('/path/10', mw(), mw2(), mw3(), mw4(), mw5(), mw6(), mw7(), mw8(), mw9(), mw10(), (c) => {
-    return c.text(
-      // @ts-expect-error
-      c.var.echo('hello') +
+  app.get(
+    '/path/10',
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    mw7(),
+    mw8(),
+    mw9(),
+    mw10(),
+    (c) => {
+      return c.text(
         // @ts-expect-error
-        c.var.echo2('hello2') +
-        // @ts-expect-error
-        c.var.echo3('hello3') +
-        // @ts-expect-error
-        c.var.echo4('hello4') +
-        // @ts-expect-error
-        c.var.echo5('hello5') +
-        // @ts-expect-error
-        c.var.echo6('hello6') +
-        // @ts-expect-error
-        c.var.echo7('hello7') +
-        // @ts-expect-error
-        c.var.echo8('hello8') +
-        // @ts-expect-error
-        c.var.echo9('hello9') +
-        // @ts-expect-error
-        c.var.echo10('hello10')
-    )
-  })
+        c.var.echo('hello') +
+          // @ts-expect-error
+          c.var.echo2('hello2') +
+          // @ts-expect-error
+          c.var.echo3('hello3') +
+          // @ts-expect-error
+          c.var.echo4('hello4') +
+          // @ts-expect-error
+          c.var.echo5('hello5') +
+          // @ts-expect-error
+          c.var.echo6('hello6') +
+          // @ts-expect-error
+          c.var.echo7('hello7') +
+          // @ts-expect-error
+          c.var.echo8('hello8') +
+          // @ts-expect-error
+          c.var.echo9('hello9') +
+          // @ts-expect-error
+          c.var.echo10('hello10'),
+      )
+    },
+  )
 
   app.on('GET', '/on/1', mw(), (c) => {
     return c.text(c.var.echo('hello'))
@@ -3166,12 +3329,15 @@ describe('c.var - with testing types', () => {
   })
 
   app.on('GET', '/on/3', mw(), mw2(), mw3(), (c) => {
-    return c.text(c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3'))
+    return c.text(
+      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3'),
+    )
   })
 
   app.on('GET', '/on/4', mw(), mw2(), mw3(), mw4(), (c) => {
     return c.text(
-      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3') + c.var.echo4('hello4')
+      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3') +
+        c.var.echo4('hello4'),
     )
   })
 
@@ -3181,7 +3347,7 @@ describe('c.var - with testing types', () => {
         c.var.echo2('hello2') +
         c.var.echo3('hello3') +
         c.var.echo4('hello4') +
-        c.var.echo5('hello5')
+        c.var.echo5('hello5'),
     )
   })
 
@@ -3192,48 +3358,84 @@ describe('c.var - with testing types', () => {
         c.var.echo3('hello3') +
         c.var.echo4('hello4') +
         c.var.echo5('hello5') +
-        c.var.echo6('hello6')
+        c.var.echo6('hello6'),
     )
   })
 
-  app.on('GET', '/on/7', mw(), mw2(), mw3(), mw4(), mw5(), mw6(), mw7(), (c) => {
-    return c.text(
-      c.var.echo('hello') +
-        c.var.echo2('hello2') +
-        c.var.echo3('hello3') +
-        c.var.echo4('hello4') +
-        c.var.echo5('hello5') +
-        c.var.echo6('hello6') +
-        c.var.echo7('hello7')
-    )
-  })
+  app.on(
+    'GET',
+    '/on/7',
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    mw7(),
+    (c) => {
+      return c.text(
+        c.var.echo('hello') +
+          c.var.echo2('hello2') +
+          c.var.echo3('hello3') +
+          c.var.echo4('hello4') +
+          c.var.echo5('hello5') +
+          c.var.echo6('hello6') +
+          c.var.echo7('hello7'),
+      )
+    },
+  )
 
-  app.on('GET', '/on/8', mw(), mw2(), mw3(), mw4(), mw5(), mw6(), mw7(), mw8(), (c) => {
-    return c.text(
-      c.var.echo('hello') +
-        c.var.echo2('hello2') +
-        c.var.echo3('hello3') +
-        c.var.echo4('hello4') +
-        c.var.echo5('hello5') +
-        c.var.echo6('hello6') +
-        c.var.echo7('hello7') +
-        c.var.echo8('hello8')
-    )
-  })
+  app.on(
+    'GET',
+    '/on/8',
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    mw7(),
+    mw8(),
+    (c) => {
+      return c.text(
+        c.var.echo('hello') +
+          c.var.echo2('hello2') +
+          c.var.echo3('hello3') +
+          c.var.echo4('hello4') +
+          c.var.echo5('hello5') +
+          c.var.echo6('hello6') +
+          c.var.echo7('hello7') +
+          c.var.echo8('hello8'),
+      )
+    },
+  )
 
-  app.on('GET', '/on/9', mw(), mw2(), mw3(), mw4(), mw5(), mw6(), mw7(), mw8(), mw9(), (c) => {
-    return c.text(
-      c.var.echo('hello') +
-        c.var.echo2('hello2') +
-        c.var.echo3('hello3') +
-        c.var.echo4('hello4') +
-        c.var.echo5('hello5') +
-        c.var.echo6('hello6') +
-        c.var.echo7('hello7') +
-        c.var.echo8('hello8') +
-        c.var.echo9('hello9')
-    )
-  })
+  app.on(
+    'GET',
+    '/on/9',
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    mw7(),
+    mw8(),
+    mw9(),
+    (c) => {
+      return c.text(
+        c.var.echo('hello') +
+          c.var.echo2('hello2') +
+          c.var.echo3('hello3') +
+          c.var.echo4('hello4') +
+          c.var.echo5('hello5') +
+          c.var.echo6('hello6') +
+          c.var.echo7('hello7') +
+          c.var.echo8('hello8') +
+          c.var.echo9('hello9'),
+      )
+    },
+  )
 
   // @ts-expect-error
   app.on(
@@ -3270,9 +3472,9 @@ describe('c.var - with testing types', () => {
           // @ts-expect-error
           c.var.echo9('hello9') +
           // @ts-expect-error
-          c.var.echo10('hello10')
+          c.var.echo10('hello10'),
       )
-    }
+    },
   )
 
   app.on(['GET', 'POST'], '/on/1', mw(), (c) => {
@@ -3284,12 +3486,15 @@ describe('c.var - with testing types', () => {
   })
 
   app.on(['GET', 'POST'], '/on/3', mw(), mw2(), mw3(), (c) => {
-    return c.text(c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3'))
+    return c.text(
+      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3'),
+    )
   })
 
   app.on(['GET', 'POST'], '/on/4', mw(), mw2(), mw3(), mw4(), (c) => {
     return c.text(
-      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3') + c.var.echo4('hello4')
+      c.var.echo('hello') + c.var.echo2('hello2') + c.var.echo3('hello3') +
+        c.var.echo4('hello4'),
     )
   })
 
@@ -3299,45 +3504,78 @@ describe('c.var - with testing types', () => {
         c.var.echo2('hello2') +
         c.var.echo3('hello3') +
         c.var.echo4('hello4') +
-        c.var.echo5('hello5')
+        c.var.echo5('hello5'),
     )
   })
 
-  app.on(['GET', 'POST'], '/on/6', mw(), mw2(), mw3(), mw4(), mw5(), mw6(), (c) => {
-    return c.text(
-      c.var.echo('hello') +
-        c.var.echo2('hello2') +
-        c.var.echo3('hello3') +
-        c.var.echo4('hello4') +
-        c.var.echo5('hello5') +
-        c.var.echo6('hello6')
-    )
-  })
+  app.on(
+    ['GET', 'POST'],
+    '/on/6',
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    (c) => {
+      return c.text(
+        c.var.echo('hello') +
+          c.var.echo2('hello2') +
+          c.var.echo3('hello3') +
+          c.var.echo4('hello4') +
+          c.var.echo5('hello5') +
+          c.var.echo6('hello6'),
+      )
+    },
+  )
 
-  app.on(['GET', 'POST'], '/on/7', mw(), mw2(), mw3(), mw4(), mw5(), mw6(), mw7(), (c) => {
-    return c.text(
-      c.var.echo('hello') +
-        c.var.echo2('hello2') +
-        c.var.echo3('hello3') +
-        c.var.echo4('hello4') +
-        c.var.echo5('hello5') +
-        c.var.echo6('hello6') +
-        c.var.echo7('hello7')
-    )
-  })
+  app.on(
+    ['GET', 'POST'],
+    '/on/7',
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    mw7(),
+    (c) => {
+      return c.text(
+        c.var.echo('hello') +
+          c.var.echo2('hello2') +
+          c.var.echo3('hello3') +
+          c.var.echo4('hello4') +
+          c.var.echo5('hello5') +
+          c.var.echo6('hello6') +
+          c.var.echo7('hello7'),
+      )
+    },
+  )
 
-  app.on(['GET', 'POST'], '/on/8', mw(), mw2(), mw3(), mw4(), mw5(), mw6(), mw7(), mw8(), (c) => {
-    return c.text(
-      c.var.echo('hello') +
-        c.var.echo2('hello2') +
-        c.var.echo3('hello3') +
-        c.var.echo4('hello4') +
-        c.var.echo5('hello5') +
-        c.var.echo6('hello6') +
-        c.var.echo7('hello7') +
-        c.var.echo8('hello8')
-    )
-  })
+  app.on(
+    ['GET', 'POST'],
+    '/on/8',
+    mw(),
+    mw2(),
+    mw3(),
+    mw4(),
+    mw5(),
+    mw6(),
+    mw7(),
+    mw8(),
+    (c) => {
+      return c.text(
+        c.var.echo('hello') +
+          c.var.echo2('hello2') +
+          c.var.echo3('hello3') +
+          c.var.echo4('hello4') +
+          c.var.echo5('hello5') +
+          c.var.echo6('hello6') +
+          c.var.echo7('hello7') +
+          c.var.echo8('hello8'),
+      )
+    },
+  )
 
   app.on(
     ['GET', 'POST'],
@@ -3361,9 +3599,9 @@ describe('c.var - with testing types', () => {
           c.var.echo6('hello6') +
           c.var.echo7('hello7') +
           c.var.echo8('hello8') +
-          c.var.echo9('hello9')
+          c.var.echo9('hello9'),
       )
-    }
+    },
   )
 
   // @ts-expect-error
@@ -3401,9 +3639,9 @@ describe('c.var - with testing types', () => {
           // @ts-expect-error
           c.var.echo9('hello9') +
           // @ts-expect-error
-          c.var.echo10('hello10')
+          c.var.echo10('hello10'),
       )
-    }
+    },
   )
 
   it('Should return the correct response - no-path', async () => {

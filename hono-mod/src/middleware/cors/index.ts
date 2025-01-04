@@ -7,7 +7,10 @@ import type { Context } from '../../context'
 import type { MiddlewareHandler } from '../../types'
 
 type CORSOptions = {
-  origin: string | string[] | ((origin: string, c: Context) => string | undefined | null)
+  origin:
+    | string
+    | string[]
+    | ((origin: string, c: Context) => string | undefined | null)
   allowMethods?: string[]
   allowHeaders?: string[]
   maxAge?: number

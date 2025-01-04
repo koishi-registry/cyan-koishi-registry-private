@@ -2,7 +2,9 @@ import type { Params, Result, Router } from '../../router'
 import { METHOD_NAME_ALL, UnsupportedPathError } from '../../router'
 import { checkOptionalParameter } from '../../utils/url'
 
-type RegExpMatchArrayWithIndices = RegExpMatchArray & { indices: [number, number][] }
+type RegExpMatchArrayWithIndices = RegExpMatchArray & {
+  indices: [number, number][]
+}
 
 const emptyParams = Object.create(null)
 
@@ -14,7 +16,9 @@ export class LinearRouter<T> implements Router<T> {
 
   add(method: string, path: string, handler: T) {
     for (
-      let i = 0, paths = checkOptionalParameter(path) || [path], len = paths.length;
+      let i = 0,
+        paths = checkOptionalParameter(path) || [path],
+        len = paths.length;
       i < len;
       i++
     ) {
@@ -40,7 +44,8 @@ export class LinearRouter<T> implements Router<T> {
           }
         } else if (hasStar && !hasLabel) {
           const endsWithStar = routePath.charCodeAt(routePath.length - 1) === 42
-          const parts = (endsWithStar ? routePath.slice(0, -2) : routePath).split(splitByStarRe)
+          const parts = (endsWithStar ? routePath.slice(0, -2) : routePath)
+            .split(splitByStarRe)
 
           const lastIndex = parts.length - 1
           for (let j = 0, pos = 0, len = parts.length; j < len; j++) {
@@ -88,8 +93,13 @@ export class LinearRouter<T> implements Router<T> {
                 const openBracePos = name.indexOf('{')
                 const pattern = name.slice(openBracePos + 1, -1)
                 const restPath = path.slice(pos + 1)
-                const match = new RegExp(pattern, 'd').exec(restPath) as RegExpMatchArrayWithIndices
-                if (!match || match.indices[0][0] !== 0 || match.indices[0][1] === 0) {
+                const match = new RegExp(pattern, 'd').exec(
+                  restPath,
+                ) as RegExpMatchArrayWithIndices
+                if (
+                  !match || match.indices[0][0] !== 0 ||
+                  match.indices[0][1] === 0
+                ) {
                   continue ROUTES_LOOP
                 }
                 name = name.slice(0, openBracePos)

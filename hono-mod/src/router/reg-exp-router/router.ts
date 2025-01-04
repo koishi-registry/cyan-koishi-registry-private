@@ -21,11 +21,12 @@ const nullMatcher: Matcher<any> = [/^$/, [], Object.create(null)]
 let wildcardRegExpCache: Record<string, RegExp> = Object.create(null)
 function buildWildcardRegExp(path: string): RegExp {
   return (wildcardRegExpCache[path] ??= new RegExp(
-    path === '*'
-      ? ''
-      : `^${path.replace(/\/\*$|([.\\+*[^\]$()])/g, (_, metaChar) =>
-          metaChar ? `\\${metaChar}` : '(?:|/.*)'
-        )}$`
+    path === '*' ? '' : `^${
+      path.replace(
+        /\/\*$|([.\\+*[^\]$()])/g,
+        (_, metaChar) => metaChar ? `\\${metaChar}` : '(?:|/.*)',
+      )
+    }$`,
   ))
 }
 
@@ -34,7 +35,7 @@ function clearWildcardRegExpCache() {
 }
 
 function buildMatcherFromPreprocessedRoutes<T>(
-  routes: [string, HandlerWithMetadata<T>[]][]
+  routes: [string, HandlerWithMetadata<T>[]][],
 ): Matcher<T> {
   const trie = new Trie()
   const handlerData: HandlerData<T>[] = []
@@ -44,7 +45,12 @@ function buildMatcherFromPreprocessedRoutes<T>(
 
   const routesWithStaticPathFlag = routes
     .map(
-      (route) => [!/\*|\/:/.test(route[0]), ...route] as [boolean, string, HandlerWithMetadata<T>[]]
+      (route) =>
+        [!/\*|\/:/.test(route[0]), ...route] as [
+          boolean,
+          string,
+          HandlerWithMetadata<T>[],
+        ],
     )
     .sort(([isStaticA, pathA], [isStaticB, pathB]) =>
       isStaticA ? 1 : isStaticB ? -1 : pathA.length - pathB.length
@@ -54,7 +60,10 @@ function buildMatcherFromPreprocessedRoutes<T>(
   for (let i = 0, j = -1, len = routesWithStaticPathFlag.length; i < len; i++) {
     const [pathErrorCheckOnly, path, handlers] = routesWithStaticPathFlag[i]
     if (pathErrorCheckOnly) {
-      staticMap[path] = [handlers.map(([h]) => [h, Object.create(null)]), emptyParam]
+      staticMap[path] = [
+        handlers.map(([h]) => [h, Object.create(null)]),
+        emptyParam,
+      ]
     } else {
       j++
     }
@@ -106,7 +115,7 @@ function buildMatcherFromPreprocessedRoutes<T>(
 
 function findMiddleware<T>(
   middleware: Record<string, T[]> | undefined,
-  path: string
+  path: string,
 ): T[] | undefined {
   if (!middleware) {
     return undefined
@@ -158,14 +167,12 @@ export class RegExpRouter<T> implements Router<T> {
       const re = buildWildcardRegExp(path)
       if (method === METHOD_NAME_ALL) {
         Object.keys(middleware).forEach((m) => {
-          middleware[m][path] ||=
-            findMiddleware(middleware[m], path) ||
+          middleware[m][path] ||= findMiddleware(middleware[m], path) ||
             findMiddleware(middleware[METHOD_NAME_ALL], path) ||
             []
         })
       } else {
-        middleware[method][path] ||=
-          findMiddleware(middleware[method], path) ||
+        middleware[method][path] ||= findMiddleware(middleware[method], path) ||
           findMiddleware(middleware[METHOD_NAME_ALL], path) ||
           []
       }
@@ -180,7 +187,7 @@ export class RegExpRouter<T> implements Router<T> {
       Object.keys(routes).forEach((m) => {
         if (method === METHOD_NAME_ALL || method === m) {
           Object.keys(routes[m]).forEach(
-            (p) => re.test(p) && routes[m][p].push([handler, paramCount])
+            (p) => re.test(p) && routes[m][p].push([handler, paramCount]),
           )
         }
       })
@@ -211,7 +218,8 @@ export class RegExpRouter<T> implements Router<T> {
     const matchers = this.#buildAllMatchers()
 
     this.match = (method, path) => {
-      const matcher = (matchers[method] || matchers[METHOD_NAME_ALL]) as Matcher<T>
+      const matcher =
+        (matchers[method] || matchers[METHOD_NAME_ALL]) as Matcher<T>
 
       const staticMatch = matcher[2][path]
       if (staticMatch) {
@@ -249,7 +257,6 @@ export class RegExpRouter<T> implements Router<T> {
     const routes: [string, HandlerWithMetadata<T>[]][] = []
 
     let hasOwnRoute = method === METHOD_NAME_ALL
-
     ;[this.#middleware!, this.#routes!].forEach((r) => {
       const ownRoute = r[method]
         ? Object.keys(r[method]).map((path) => [path, r[method][path]])
@@ -259,10 +266,12 @@ export class RegExpRouter<T> implements Router<T> {
         routes.push(...(ownRoute as [string, HandlerWithMetadata<T>[]][]))
       } else if (method !== METHOD_NAME_ALL) {
         routes.push(
-          ...(Object.keys(r[METHOD_NAME_ALL]).map((path) => [path, r[METHOD_NAME_ALL][path]]) as [
+          ...(Object.keys(r[METHOD_NAME_ALL]).map((
+            path,
+          ) => [path, r[METHOD_NAME_ALL][path]]) as [
             string,
-            HandlerWithMetadata<T>[]
-          ][])
+            HandlerWithMetadata<T>[],
+          ][]),
         )
       }
     })

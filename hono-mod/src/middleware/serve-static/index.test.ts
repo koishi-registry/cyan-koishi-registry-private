@@ -37,7 +37,9 @@ describe('Serve Static Middleware', () => {
     expect(res.headers.get('Content-Encoding')).toBeNull()
     expect(res.headers.get('Content-Type')).toMatch(/^text\/html/)
     expect(await res.text()).toBe('Hello in ./static/hello.html')
-    expect(res.headers.get('X-Custom')).toBe('Found the file at ./static/hello.html')
+    expect(res.headers.get('X-Custom')).toBe(
+      'Found the file at ./static/hello.html',
+    )
   })
 
   it('Should return 200 response - /static/sub', async () => {
@@ -93,7 +95,7 @@ describe('Serve Static Middleware', () => {
       baseServeStatic({
         getContent,
         precompressed: true,
-      })
+      }),
     )
 
     const res = await app.request('/static/hello.html', {
@@ -113,7 +115,7 @@ describe('Serve Static Middleware', () => {
       baseServeStatic({
         getContent,
         precompressed: true,
-      })
+      }),
     )
 
     const res = await app.request('/static/hello.html', {
@@ -133,7 +135,7 @@ describe('Serve Static Middleware', () => {
       baseServeStatic({
         getContent,
         precompressed: true,
-      })
+      }),
     )
 
     const res = await app.request('/static/hello.unknown', {
@@ -153,7 +155,7 @@ describe('Serve Static Middleware', () => {
       baseServeStatic({
         getContent,
         precompressed: true,
-      })
+      }),
     )
 
     const res = await app.request('/static/not-found.txt', {
@@ -173,7 +175,7 @@ describe('Serve Static Middleware', () => {
       baseServeStatic({
         getContent,
         precompressed: true,
-      })
+      }),
     )
 
     const res = await app.request('/static/hello.html', {
@@ -193,7 +195,7 @@ describe('Serve Static Middleware', () => {
       baseServeStatic({
         getContent,
         precompressed: true,
-      })
+      }),
     )
 
     const res = await app.request('/static/hello.jpg', {
@@ -216,7 +218,7 @@ describe('Serve Static Middleware', () => {
         getContent: async () => {
           return response
         },
-      })
+      }),
     )
 
     const res = await app.fetch({
@@ -242,7 +244,9 @@ describe('Serve Static Middleware', () => {
       app.get('/static/*', serveStatic)
 
       const res = await app.request('/static/html/hello.html')
-      expect(await res.text()).toBe('Hello in /home/hono/child/static/html/hello.html')
+      expect(await res.text()).toBe(
+        'Hello in /home/hono/child/static/html/hello.html',
+      )
     })
 
     it('Should traverse the directories with absolute root path', async () => {
@@ -255,7 +259,9 @@ describe('Serve Static Middleware', () => {
       app.get('/static/*', serveStatic)
 
       const res = await app.request('/static/html/hello.html')
-      expect(await res.text()).toBe('Hello in /home/parent/static/html/hello.html')
+      expect(await res.text()).toBe(
+        'Hello in /home/parent/static/html/hello.html',
+      )
     })
 
     it('Should treat the root path includes .. as relative path', async () => {
@@ -268,7 +274,9 @@ describe('Serve Static Middleware', () => {
       app.get('/static/*', serveStatic)
 
       const res = await app.request('/static/html/hello.html')
-      expect(await res.text()).toBe('Hello in ./../home/hono/static/html/hello.html')
+      expect(await res.text()).toBe(
+        'Hello in ./../home/hono/static/html/hello.html',
+      )
     })
 
     it('Should not allow directory traversal with . as relative path', async () => {

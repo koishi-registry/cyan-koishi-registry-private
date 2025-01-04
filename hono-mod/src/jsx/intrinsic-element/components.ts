@@ -1,6 +1,6 @@
 import { raw } from '../../helper/html'
 import type { HtmlEscapedCallback, HtmlEscapedString } from '../../utils/html'
-import { JSXNode, getNameSpaceContext } from '../base'
+import { getNameSpaceContext, JSXNode } from '../base'
 import type { Child, Props } from '../base'
 import { toArray } from '../children'
 import { PERMALINK } from '../constants'
@@ -17,10 +17,9 @@ const insertIntoHead: (
   tagName: string,
   tag: string,
   props: Props,
-  precedence: string | undefined
+  precedence: string | undefined,
 ) => HtmlEscapedCallback =
-  (tagName, tag, props, precedence) =>
-  ({ buffer, context }): undefined => {
+  (tagName, tag, props, precedence) => ({ buffer, context }): undefined => {
     if (!buffer) {
       return
     }
@@ -75,10 +74,18 @@ const insertIntoHead: (
     }
   }
 
-const returnWithoutSpecialBehavior = (tag: string, children: Child, props: Props) =>
-  raw(new JSXNode(tag, props, toArray(children ?? [])).toString())
+const returnWithoutSpecialBehavior = (
+  tag: string,
+  children: Child,
+  props: Props,
+) => raw(new JSXNode(tag, props, toArray(children ?? [])).toString())
 
-const documentMetadataTag = (tag: string, children: Child, props: Props, sort: boolean) => {
+const documentMetadataTag = (
+  tag: string,
+  children: Child,
+  props: Props,
+  sort: boolean,
+) => {
   if ('itemProp' in props) {
     return returnWithoutSpecialBehavior(tag, children, props)
   }
@@ -90,7 +97,8 @@ const documentMetadataTag = (tag: string, children: Child, props: Props, sort: b
     restProps[dataPrecedenceAttr] = precedence
   }
 
-  const string = new JSXNode(tag, restProps, toArray(children || [])).toString()
+  const string = new JSXNode(tag, restProps, toArray(children || []))
+    .toString()
 
   if (string instanceof Promise) {
     return string.then((resString) =>
@@ -112,7 +120,7 @@ export const title: FC<PropsWithChildren> = ({ children, ...props }) => {
       return new JSXNode(
         'title',
         props,
-        toArray(children ?? []) as Child[]
+        toArray(children ?? []) as Child[],
       ) as unknown as HtmlEscapedString
     }
   }
@@ -145,10 +153,13 @@ export const style: FC<PropsWithChildren<IntrinsicElements['style']>> = ({
   delete props.href
   return documentMetadataTag('style', children, props, true)
 }
-export const link: FC<PropsWithChildren<IntrinsicElements['link']>> = ({ children, ...props }) => {
+export const link: FC<PropsWithChildren<IntrinsicElements['link']>> = (
+  { children, ...props },
+) => {
   if (
     ['onLoad', 'onError'].some((k) => k in props) ||
-    (props.rel === 'stylesheet' && (!('precedence' in props) || 'disabled' in props))
+    (props.rel === 'stylesheet' &&
+      (!('precedence' in props) || 'disabled' in props))
   ) {
     return returnWithoutSpecialBehavior('link', children, props)
   }
@@ -162,7 +173,10 @@ export const meta: FC<PropsWithChildren> = ({ children, ...props }) => {
   return documentMetadataTag('meta', children, props, false)
 }
 
-const newJSXNode = (tag: string, { children, ...props }: PropsWithChildren<unknown>) =>
+const newJSXNode = (
+  tag: string,
+  { children, ...props }: PropsWithChildren<unknown>,
+) =>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new JSXNode(tag, props, toArray(children ?? []) as Child[]) as any
 export const form: FC<
@@ -172,7 +186,9 @@ export const form: FC<
   }>
 > = (props) => {
   if (typeof props.action === 'function') {
-    props.action = PERMALINK in props.action ? (props.action[PERMALINK] as string) : undefined
+    props.action = PERMALINK in props.action
+      ? (props.action[PERMALINK] as string)
+      : undefined
   }
   return newJSXNode('form', props)
 }
@@ -181,11 +197,12 @@ const formActionableElement = (
   tag: string,
   props: PropsWithChildren<{
     formAction?: Function | string
-  }>
+  }>,
 ) => {
   if (typeof props.formAction === 'function') {
-    props.formAction =
-      PERMALINK in props.formAction ? (props.formAction[PERMALINK] as string) : undefined
+    props.formAction = PERMALINK in props.formAction
+      ? (props.formAction[PERMALINK] as string)
+      : undefined
   }
   return newJSXNode(tag, props)
 }

@@ -10,17 +10,17 @@ import { createContext } from '../context'
 
 type FormStatus =
   | {
-      pending: false
-      data: null
-      method: null
-      action: null
-    }
+    pending: false
+    data: null
+    method: null
+    action: null
+  }
   | {
-      pending: true
-      data: FormData
-      method: 'get' | 'post'
-      action: string | ((formData: FormData) => void | Promise<void>)
-    }
+    pending: true
+    data: FormData
+    method: 'get' | 'post'
+    action: string | ((formData: FormData) => void | Promise<void>)
+  }
 export const FormContext: Context<FormStatus> = createContext<FormStatus>({
   pending: false,
   data: null,
@@ -51,7 +51,7 @@ export const useFormStatus = (): FormStatus => {
  */
 export const useOptimistic = <T, N>(
   state: T,
-  updateState: (currentState: T, action: N) => T
+  updateState: (currentState: T, action: N) => T,
 ): [T, (action: N) => void] => {
   const [optimisticState, setOptimisticState] = useState(state)
   if (actions.size > 0) {
@@ -79,13 +79,12 @@ export const useOptimistic = <T, N>(
 export const useActionState = <T>(
   fn: Function,
   initialState: T,
-  permalink?: string
+  permalink?: string,
 ): [T, Function] => {
   const [state, setState] = useState(initialState)
   const actionState = async (data: FormData) => {
     setState(await fn(state, data))
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(actionState as any)[PERMALINK] = permalink
   return [state, actionState]
 }

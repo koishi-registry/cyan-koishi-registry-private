@@ -6,9 +6,13 @@ describe('StreamingApi', () => {
     const api = new StreamingApi(writable, readable)
     const reader = api.responseReadable.getReader()
     api.write('foo')
-    expect((await reader.read()).value).toEqual(new TextEncoder().encode('foo'))
+    expect((await reader.read()).value).toEqual(
+      new TextEncoder().encode('foo'),
+    )
     api.write('bar')
-    expect((await reader.read()).value).toEqual(new TextEncoder().encode('bar'))
+    expect((await reader.read()).value).toEqual(
+      new TextEncoder().encode('bar'),
+    )
   })
 
   it('write(Uint8Array)', async () => {
@@ -26,15 +30,18 @@ describe('StreamingApi', () => {
     const api = new StreamingApi(writable, readable)
     const reader = api.responseReadable.getReader()
     api.writeln('foo')
-    expect((await reader.read()).value).toEqual(new TextEncoder().encode('foo\n'))
+    expect((await reader.read()).value).toEqual(
+      new TextEncoder().encode('foo\n'),
+    )
     api.writeln('bar')
-    expect((await reader.read()).value).toEqual(new TextEncoder().encode('bar\n'))
+    expect((await reader.read()).value).toEqual(
+      new TextEncoder().encode('bar\n'),
+    )
   })
 
   it('pipe()', async () => {
-    const { readable: senderReadable, writable: senderWritable } = new TransformStream()
-
-    // send data to readable in other scope
+    const { readable: senderReadable, writable: senderWritable } =
+      new TransformStream() // send data to readable in other scope
     ;(async () => {
       const writer = senderWritable.getWriter()
       await writer.write(new TextEncoder().encode('foo'))
@@ -42,19 +49,22 @@ describe('StreamingApi', () => {
       // await writer.close()
     })()
 
-    const { readable: receiverReadable, writable: receiverWritable } = new TransformStream()
+    const { readable: receiverReadable, writable: receiverWritable } =
+      new TransformStream()
 
-    const api = new StreamingApi(receiverWritable, receiverReadable)
-
-    // pipe readable to api in other scope
+    const api = new StreamingApi(receiverWritable, receiverReadable) // pipe readable to api in other scope
     ;(async () => {
       await api.pipe(senderReadable)
     })()
 
     // read data from api
     const reader = api.responseReadable.getReader()
-    expect((await reader.read()).value).toEqual(new TextEncoder().encode('foo'))
-    expect((await reader.read()).value).toEqual(new TextEncoder().encode('bar'))
+    expect((await reader.read()).value).toEqual(
+      new TextEncoder().encode('foo'),
+    )
+    expect((await reader.read()).value).toEqual(
+      new TextEncoder().encode('bar'),
+    )
   })
 
   it('close()', async () => {

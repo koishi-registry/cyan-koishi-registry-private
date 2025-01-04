@@ -15,7 +15,12 @@ export class SSEStreamingApi extends StreamingApi {
   }
 
   async writeSSE(message: SSEMessage) {
-    const data = await resolveCallback(message.data, HtmlEscapedCallbackPhase.Stringify, false, {})
+    const data = await resolveCallback(
+      message.data,
+      HtmlEscapedCallbackPhase.Stringify,
+      false,
+      {},
+    )
     const dataLines = (data as string)
       .split('\n')
       .map((line) => {
@@ -23,15 +28,14 @@ export class SSEStreamingApi extends StreamingApi {
       })
       .join('\n')
 
-    const sseData =
-      [
-        message.event && `event: ${message.event}`,
-        dataLines,
-        message.id && `id: ${message.id}`,
-        message.retry && `retry: ${message.retry}`,
-      ]
-        .filter(Boolean)
-        .join('\n') + '\n\n'
+    const sseData = [
+      message.event && `event: ${message.event}`,
+      dataLines,
+      message.id && `id: ${message.id}`,
+      message.retry && `retry: ${message.retry}`,
+    ]
+      .filter(Boolean)
+      .join('\n') + '\n\n'
 
     await this.write(sseData)
   }
@@ -40,7 +44,7 @@ export class SSEStreamingApi extends StreamingApi {
 const run = async (
   stream: SSEStreamingApi,
   cb: (stream: SSEStreamingApi) => Promise<void>,
-  onError?: (e: Error, stream: SSEStreamingApi) => Promise<void>
+  onError?: (e: Error, stream: SSEStreamingApi) => Promise<void>,
 ): Promise<void> => {
   try {
     await cb(stream)
@@ -60,11 +64,14 @@ const run = async (
   }
 }
 
-const contextStash: WeakMap<ReadableStream, Context> = new WeakMap<ReadableStream, Context>()
+const contextStash: WeakMap<ReadableStream, Context> = new WeakMap<
+  ReadableStream,
+  Context
+>()
 export const streamSSE = (
   c: Context,
   cb: (stream: SSEStreamingApi) => Promise<void>,
-  onError?: (e: Error, stream: SSEStreamingApi) => Promise<void>
+  onError?: (e: Error, stream: SSEStreamingApi) => Promise<void>,
 ): Response => {
   const { readable, writable } = new TransformStream()
   const stream = new SSEStreamingApi(writable, readable)

@@ -1,6 +1,6 @@
 import Router from 'npm:@medley/router'
 import type { RouterInterface } from './tool.mts'
-import { routes, handler } from './tool.mts'
+import { handler, routes } from './tool.mts'
 
 const name = '@medley/router'
 const router = new Router()

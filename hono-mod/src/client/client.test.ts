@@ -1,16 +1,25 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { HttpResponse, http } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { expectTypeOf, vi } from 'vitest'
 import { upgradeWebSocket } from '../adapter/deno/websocket'
 import { Hono } from '../hono'
 import { parse } from '../utils/cookie'
-import type { Equal, Expect, JSONValue, SimplifyDeepArray } from '../utils/types'
+import type {
+  Equal,
+  Expect,
+  JSONValue,
+  SimplifyDeepArray,
+} from '../utils/types'
 import { validator } from '../validator'
 import { hc } from './client'
-import type { ClientResponse, InferRequestType, InferResponseType } from './types'
+import type {
+  ClientResponse,
+  InferRequestType,
+  InferResponseType,
+} from './types'
 
 describe('Basic - JSON', () => {
   const app = new Hono()
@@ -46,7 +55,7 @@ describe('Basic - JSON', () => {
             title: 'dummy',
           },
         })
-      }
+      },
     )
     .get('/hello-not-found', (c) => c.notFound())
     .get('/null', (c) => c.json(null))
@@ -87,8 +96,10 @@ describe('Basic - JSON', () => {
       return HttpResponse.json(true)
     }),
     http.get('http://localhost/api/generic', async () => {
-      return HttpResponse.json(Math.random() > 0.5 ? Boolean(Math.random()) : Math.random())
-    })
+      return HttpResponse.json(
+        Math.random() > 0.5 ? Boolean(Math.random()) : Math.random(),
+      )
+    }),
   )
 
   beforeAll(() => server.listen())
@@ -100,7 +111,9 @@ describe('Basic - JSON', () => {
     title: 'Hello! Hono!',
   }
 
-  const client = hc<AppType>('http://localhost', { headers: { 'x-hono': 'hono' } })
+  const client = hc<AppType>('http://localhost', {
+    headers: { 'x-hono': 'hono' },
+  })
 
   it('Should get 200 response', async () => {
     const res = await client.posts.$post(
@@ -113,7 +126,7 @@ describe('Basic - JSON', () => {
           debug: 'true',
         },
       },
-      {}
+      {},
     )
 
     expect(res.ok).toBe(true)
@@ -145,8 +158,10 @@ describe('Basic - JSON', () => {
       .get('/api/string', (c) => c.json('a-string'))
       .get('/api/number', (c) => c.json(37))
       .get('/api/boolean', (c) => c.json(true))
-      .get('/api/generic', (c) =>
-        c.json(Math.random() > 0.5 ? Boolean(Math.random()) : Math.random())
+      .get(
+        '/api/generic',
+        (c) =>
+          c.json(Math.random() > 0.5 ? Boolean(Math.random()) : Math.random()),
       )
     type AppType = typeof route
     const client = hc<AppType>('http://localhost')
@@ -165,10 +180,13 @@ describe('Basic - JSON', () => {
     type booleanVerify = Expect<Equal<true, typeof booleanRes>>
     expect(booleanRes).toBe(true)
     type genericVerify = Expect<Equal<number | boolean, typeof genericRes>>
-    expect(typeof genericRes === 'number' || typeof genericRes === 'boolean').toBe(true)
+    expect(typeof genericRes === 'number' || typeof genericRes === 'boolean')
+      .toBe(true)
 
     // using .text() on json endpoint should return string
-    type textTest = Expect<Equal<Promise<string>, ReturnType<typeof genericFetch.text>>>
+    type textTest = Expect<
+      Equal<Promise<string>, ReturnType<typeof genericFetch.text>>
+    >
   })
 })
 
@@ -187,7 +205,7 @@ describe('Basic - query, queries, form, path params, header and cookie', () => {
           tag: ['fake'],
           filter: 'fake',
         })
-      }
+      },
     )
     .put(
       '/posts/:id',
@@ -199,7 +217,7 @@ describe('Basic - query, queries, form, path params, header and cookie', () => {
       (c) => {
         const data = c.req.valid('form')
         return c.json(data)
-      }
+      },
     )
     .get(
       '/header',
@@ -211,7 +229,7 @@ describe('Basic - query, queries, form, path params, header and cookie', () => {
       (c) => {
         const data = c.req.valid('header')
         return c.json(data)
-      }
+      },
     )
     .get(
       '/cookie',
@@ -223,7 +241,7 @@ describe('Basic - query, queries, form, path params, header and cookie', () => {
       (c) => {
         const data = c.req.valid('cookie')
         return c.json(data)
-      }
+      },
     )
 
   const server = setupServer(
@@ -259,7 +277,7 @@ describe('Basic - query, queries, form, path params, header and cookie', () => {
       const obj = parse(request.headers.get('cookie') || '')
       const value = obj['hello']
       return HttpResponse.json({ hello: value })
-    })
+    }),
   )
 
   beforeAll(() => server.listen())
@@ -332,7 +350,7 @@ describe('Form - Multiple Values', () => {
     http.post('http://localhost/multiple-values', async ({ request }) => {
       const data = await request.formData()
       return HttpResponse.json(data.getAll('key'))
-    })
+    }),
   )
 
   beforeAll(() => server.listen())
@@ -377,7 +395,7 @@ describe('Infer the response/request type', () => {
       c.json({
         id: 123,
         title: 'Morning!',
-      })
+      }),
   )
 
   type AppType = typeof route
@@ -482,7 +500,7 @@ describe('Merge path with `app.route()`', () => {
       return HttpResponse.json({
         ok: true,
       })
-    })
+    }),
   )
 
   beforeAll(() => server.listen())
@@ -553,10 +571,16 @@ describe('Merge path with `app.route()`', () => {
       l4: DeepInterface
     }
     type verifyDeepInterface = Expect<
-      Equal<SimplifyDeepArray<DeepInterface> extends JSONValue ? true : false, true>
+      Equal<
+        SimplifyDeepArray<DeepInterface> extends JSONValue ? true : false,
+        true
+      >
     >
     type verifyExtraDeepInterface = Expect<
-      Equal<SimplifyDeepArray<ExtraDeepInterface> extends JSONValue ? true : false, true>
+      Equal<
+        SimplifyDeepArray<ExtraDeepInterface> extends JSONValue ? true : false,
+        true
+      >
     >
   })
 
@@ -579,16 +603,29 @@ describe('Merge path with `app.route()`', () => {
 
     // A few more types only tests
     type verifyNestedArrayTyped = Expect<
-      Equal<SimplifyDeepArray<[string, Results]> extends JSONValue ? true : false, true>
+      Equal<
+        SimplifyDeepArray<[string, Results]> extends JSONValue ? true : false,
+        true
+      >
     >
     type verifyNestedArrayInterfaceArray = Expect<
-      Equal<SimplifyDeepArray<[string, Result[]]> extends JSONValue ? true : false, true>
+      Equal<
+        SimplifyDeepArray<[string, Result[]]> extends JSONValue ? true : false,
+        true
+      >
     >
     type verifyExtraNestedArrayTyped = Expect<
-      Equal<SimplifyDeepArray<[string, Results[]]> extends JSONValue ? true : false, true>
+      Equal<
+        SimplifyDeepArray<[string, Results[]]> extends JSONValue ? true : false,
+        true
+      >
     >
     type verifyExtraNestedArrayInterfaceArray = Expect<
-      Equal<SimplifyDeepArray<[string, Result[][]]> extends JSONValue ? true : false, true>
+      Equal<
+        SimplifyDeepArray<[string, Result[][]]> extends JSONValue ? true
+          : false,
+        true
+      >
     >
   })
 
@@ -635,8 +672,8 @@ describe('Merge path with `app.route()`', () => {
         '',
         new Hono().get('', async (c) => {
           return c.json({ name: 'hono' })
-        })
-      )
+        }),
+      ),
     )
     const client = hc<typeof routes>('http://localhost')
 
@@ -737,7 +774,9 @@ describe('Response with different status codes', () => {
   it('all', async () => {
     const res = await client.index.$get()
     const json = await res.json()
-    expectTypeOf(json).toEqualTypeOf<{ data: string } | { message: string } | null>()
+    expectTypeOf(json).toEqualTypeOf<
+      { data: string } | { message: string } | null
+    >()
   })
 
   it('status 200', async () => {
@@ -794,11 +833,11 @@ describe('Infer the response type with different status codes', () => {
     type Actual = InferResponseType<typeof req>
     type Expected =
       | {
-          data: string
-        }
+        data: string
+      }
       | {
-          message: string
-        }
+        message: string
+      }
       | null
     type verify = Expect<Equal<Expected, Actual>>
   })
@@ -817,7 +856,10 @@ describe('Infer the response type with different status codes', () => {
 describe('$url() with a param option', () => {
   const app = new Hono()
     .get('/posts/:id/comments', (c) => c.json({ ok: true }))
-    .get('/something/:firstId/:secondId/:version?', (c) => c.json({ ok: true }))
+    .get(
+      '/something/:firstId/:secondId/:version?',
+      (c) => c.json({ ok: true }),
+    )
   type AppType = typeof app
   const client = hc<AppType>('http://localhost')
 
@@ -853,7 +895,7 @@ describe('$url() with a query option', () => {
     validator('query', () => {
       return {} as { filter: 'test' }
     }),
-    (c) => c.json({ ok: true })
+    (c) => c.json({ ok: true }),
   )
   type AppType = typeof app
   const client = hc<AppType>('http://localhost')
@@ -896,7 +938,7 @@ describe('Dynamic headers', () => {
         requestDynamic,
       }
       return HttpResponse.json(payload)
-    })
+    }),
   )
 
   beforeAll(() => server.listen())
@@ -960,7 +1002,7 @@ describe('RequestInit work as expected', () => {
       return HttpResponse.text('Should not be here', {
         status: 400,
       })
-    })
+    }),
   )
 
   beforeAll(() => server.listen())
@@ -975,13 +1017,17 @@ describe('RequestInit work as expected', () => {
   })
 
   it('Should overwrite method and fail', async () => {
-    const res = await client.headers.$get(undefined, { init: { method: 'POST' } })
+    const res = await client.headers.$get(undefined, {
+      init: { method: 'POST' },
+    })
 
     expect(res.ok).toBe(false)
   })
 
   it('Should clear headers', async () => {
-    const res = await client.headers.$get(undefined, { init: { headers: undefined } })
+    const res = await client.headers.$get(undefined, {
+      init: { headers: undefined },
+    })
 
     expect(res.ok).toBe(true)
     const data = await res.json()
@@ -1007,7 +1053,9 @@ describe('RequestInit work as expected', () => {
   })
 
   it('deepMerge should works and not unset credentials', async () => {
-    const res = await client.credentials.$get(undefined, { init: { headers: { hi: 'hello' } } })
+    const res = await client.credentials.$get(undefined, {
+      init: { headers: { hi: 'hello' } },
+    })
 
     expect(res.ok).toBe(true)
     const data = await res.text()
@@ -1015,7 +1063,9 @@ describe('RequestInit work as expected', () => {
   })
 
   it('Should unset credentials', async () => {
-    const res = await client.credentials.$get(undefined, { init: { credentials: undefined } })
+    const res = await client.credentials.$get(undefined, {
+      init: { credentials: undefined },
+    })
 
     expect(res.ok).toBe(true)
     const data = await res.text()
@@ -1035,7 +1085,7 @@ describe('WebSocket URL Protocol Translation', () => {
       onClose: () => {
         console.log('Connection closed')
       },
-    }))
+    })),
   )
 
   type AppType = typeof route
@@ -1089,7 +1139,7 @@ describe('WebSocket URL Protocol Translation with Query Parameters', () => {
       onClose: () => {
         console.log('Connection closed')
       },
-    }))
+    })),
   )
 
   type AppType = typeof route
@@ -1116,7 +1166,9 @@ describe('WebSocket URL Protocol Translation with Query Parameters', () => {
         tag: ['a', 'b'],
       },
     })
-    expect(webSocketMock).toHaveBeenCalledWith('ws://localhost/index?id=123&type=test&tag=a&tag=b')
+    expect(webSocketMock).toHaveBeenCalledWith(
+      'ws://localhost/index?id=123&type=test&tag=a&tag=b',
+    )
   })
 
   it('Translates HTTPS to wss and includes query parameters', async () => {
@@ -1127,7 +1179,9 @@ describe('WebSocket URL Protocol Translation with Query Parameters', () => {
         type: 'secure',
       },
     })
-    expect(webSocketMock).toHaveBeenCalledWith('wss://localhost/index?id=456&type=secure')
+    expect(webSocketMock).toHaveBeenCalledWith(
+      'wss://localhost/index?id=456&type=secure',
+    )
   })
 
   it('Keeps ws unchanged and includes query parameters', async () => {
@@ -1138,7 +1192,9 @@ describe('WebSocket URL Protocol Translation with Query Parameters', () => {
         type: 'plain',
       },
     })
-    expect(webSocketMock).toHaveBeenCalledWith('ws://localhost/index?id=789&type=plain')
+    expect(webSocketMock).toHaveBeenCalledWith(
+      'ws://localhost/index?id=789&type=plain',
+    )
   })
 
   it('Keeps wss unchanged and includes query parameters', async () => {
@@ -1149,7 +1205,9 @@ describe('WebSocket URL Protocol Translation with Query Parameters', () => {
         type: 'secure',
       },
     })
-    expect(webSocketMock).toHaveBeenCalledWith('wss://localhost/index?id=1011&type=secure')
+    expect(webSocketMock).toHaveBeenCalledWith(
+      'wss://localhost/index?id=1011&type=secure',
+    )
   })
 })
 
@@ -1186,14 +1244,17 @@ describe('Text response', () => {
     }),
     http.get('http://localhost/api', async ({ request }) => {
       return HttpResponse.json(obj)
-    })
+    }),
   )
 
   beforeAll(() => server.listen())
   afterEach(() => server.resetHandlers())
   afterAll(() => server.close())
 
-  const app = new Hono().get('/about/me', (c) => c.text(text)).get('/api', (c) => c.json(obj))
+  const app = new Hono().get('/about/me', (c) => c.text(text)).get(
+    '/api',
+    (c) => c.json(obj),
+  )
   const client = hc<typeof app>('http://localhost/')
 
   it('Should be never with res.json() - /about/me', async () => {
@@ -1225,7 +1286,7 @@ describe('Redirect response - only types', () => {
   const server = setupServer(
     http.get('http://localhost/', async () => {
       return HttpResponse.redirect('/')
-    })
+    }),
   )
 
   beforeAll(() => server.listen())
@@ -1252,8 +1313,8 @@ describe('Redirect response - only types', () => {
     type Actual = InferResponseType<typeof req>
     type Expected =
       | {
-          ok: boolean
-        }
+        ok: boolean
+      }
       | undefined
     type verify = Expect<Equal<Expected, Actual>>
   })
@@ -1286,7 +1347,7 @@ describe('WebSocket Provider Integration', () => {
       onClose() {
         console.log('Connection closed')
       },
-    }))
+    })),
   )
 
   type AppType = typeof route

@@ -13,7 +13,7 @@ describe('Server-Timing API', () => {
     '*',
     timing({
       totalDescription,
-    })
+    }),
   )
   app.get('/', (c) => c.text('/'))
   app.get('/api', async (c) => {
@@ -39,15 +39,18 @@ describe('Server-Timing API', () => {
     const res = await app.request('http://localhost/')
     expect(res).not.toBeNull()
     expect(res.headers.has('server-timing')).toBeTruthy()
-    expect(res.headers.get('server-timing')?.includes('total;dur=')).toBeTruthy()
-    expect(res.headers.get('server-timing')?.includes(totalDescription)).toBeTruthy()
+    expect(res.headers.get('server-timing')?.includes('total;dur='))
+      .toBeTruthy()
+    expect(res.headers.get('server-timing')?.includes(totalDescription))
+      .toBeTruthy()
   })
 
   it('Should contain value metrics', async () => {
     const res = await app.request('http://localhost/api')
     expect(res).not.toBeNull()
     expect(res.headers.has('server-timing')).toBeTruthy()
-    expect(res.headers.get('server-timing')?.includes(`${name};dur=`)).toBeTruthy()
+    expect(res.headers.get('server-timing')?.includes(`${name};dur=`))
+      .toBeTruthy()
     expect(res.headers.get('server-timing')?.includes(name)).toBeTruthy()
   })
 
@@ -56,7 +59,9 @@ describe('Server-Timing API', () => {
     expect(res).not.toBeNull()
     expect(res.headers.has('server-timing')).toBeTruthy()
     expect(
-      res.headers.get('server-timing')?.includes(`${region};desc="${regionDesc}"`)
+      res.headers.get('server-timing')?.includes(
+        `${region};desc="${regionDesc}"`,
+      ),
     ).toBeTruthy()
     expect(res.headers.get('server-timing')?.includes(region)).toBeTruthy()
     expect(res.headers.get('server-timing')?.includes(regionDesc)).toBeTruthy()
@@ -67,7 +72,8 @@ describe('Server-Timing API', () => {
     const res = await app.request('/sub')
     expect(res.status).toBe(200)
     expect(res.headers.has('server-timing')).toBeTruthy()
-    expect(res.headers.get('server-timing')?.includes(totalDescription)).toBeTruthy()
+    expect(res.headers.get('server-timing')?.includes(totalDescription))
+      .toBeTruthy()
     expect(consoleWarnSpy).not.toHaveBeenCalled()
     consoleWarnSpy.mockRestore()
   })
@@ -80,7 +86,7 @@ describe('Server-Timing API', () => {
         '*',
         timing({
           crossOrigin: false,
-        })
+        }),
       )
 
       crossOriginApp.get('/', (c) => c.text('/'))
@@ -99,7 +105,7 @@ describe('Server-Timing API', () => {
         '*',
         timing({
           crossOrigin: true,
-        })
+        }),
       )
 
       crossOriginApp.get('/', (c) => c.text('/'))
@@ -119,7 +125,7 @@ describe('Server-Timing API', () => {
         '*',
         timing({
           crossOrigin: 'https://example.com',
-        })
+        }),
       )
 
       crossOriginApp.get('/', (c) => c.text('/'))
@@ -129,7 +135,9 @@ describe('Server-Timing API', () => {
       expect(res).not.toBeNull()
       expect(res.headers.has('server-timing')).toBeTruthy()
       expect(res.headers.has('timing-allow-origin')).toBeTruthy()
-      expect(res.headers.get('timing-allow-origin')).toBe('https://example.com')
+      expect(res.headers.get('timing-allow-origin')).toBe(
+        'https://example.com',
+      )
     })
 
     it('Should set Timing-Allow-Origin to the return value of crossOrigin when it is a function', async () => {
@@ -139,7 +147,7 @@ describe('Server-Timing API', () => {
         '*',
         timing({
           crossOrigin: (c) => c.req.header('origin') ?? '*',
-        })
+        }),
       )
 
       crossOriginApp.get('/', (c) => c.text('/'))
@@ -153,7 +161,9 @@ describe('Server-Timing API', () => {
       expect(res).not.toBeNull()
       expect(res.headers.has('server-timing')).toBeTruthy()
       expect(res.headers.has('timing-allow-origin')).toBeTruthy()
-      expect(res.headers.get('timing-allow-origin')).toBe('https://example.com')
+      expect(res.headers.get('timing-allow-origin')).toBe(
+        'https://example.com',
+      )
     })
   })
 })

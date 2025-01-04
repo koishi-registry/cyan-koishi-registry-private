@@ -1,5 +1,9 @@
 import type { LambdaEvent } from './handler'
-import { getProcessor, isContentEncodingBinary, isContentTypeBinary } from './handler'
+import {
+  getProcessor,
+  isContentEncodingBinary,
+  isContentTypeBinary,
+} from './handler'
 
 describe('isContentTypeBinary', () => {
   it('Should determine whether it is binary', () => {
@@ -98,7 +102,7 @@ describe('EventProcessor.createRequest', () => {
 
     expect(request.method).toEqual('GET')
     expect(request.url).toEqual(
-      'https://id.execute-api.us-east-1.amazonaws.com/my/path?parameter1=value1&parameter1=value2&parameter2=value'
+      'https://id.execute-api.us-east-1.amazonaws.com/my/path?parameter1=value1&parameter1=value2&parameter2=value',
     )
     expect(Object.fromEntries(request.headers)).toEqual({
       'content-type': 'application/json',
@@ -159,7 +163,7 @@ describe('EventProcessor.createRequest', () => {
 
     expect(request.method).toEqual('POST')
     expect(request.url).toEqual(
-      'https://id.execute-api.us-east-1.amazonaws.com/my/path?parameter1=value1&parameter1=value2&parameter2=value'
+      'https://id.execute-api.us-east-1.amazonaws.com/my/path?parameter1=value1&parameter1=value2&parameter2=value',
     )
     expect(Object.fromEntries(request.headers)).toEqual({
       'content-type': 'application/json',

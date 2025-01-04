@@ -23,19 +23,24 @@ export type {
   Env,
   ErrorHandler,
   Handler,
+  Input,
   MiddlewareHandler,
   Next,
   NotFoundHandler,
-  ValidationTargets,
-  Input,
   Schema,
   ToSchema,
   TypedResponse,
+  ValidationTargets,
 } from './types'
 /**
  * Types for context, context variable map, context renderer, and execution context.
  */
-export type { Context, ContextVariableMap, ContextRenderer, ExecutionContext } from './context'
+export type {
+  Context,
+  ContextRenderer,
+  ContextVariableMap,
+  ExecutionContext,
+} from './context'
 /**
  * Type for HonoRequest.
  */
@@ -43,7 +48,11 @@ export type { HonoRequest } from './request'
 /**
  * Types for inferring request and response types and client request options.
  */
-export type { InferRequestType, InferResponseType, ClientRequestOptions } from './client'
+export type {
+  ClientRequestOptions,
+  InferRequestType,
+  InferResponseType,
+} from './client'
 
 /**
  * Hono framework for building web applications.

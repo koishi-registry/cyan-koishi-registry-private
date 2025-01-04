@@ -1,4 +1,4 @@
-import { run, group, bench } from 'mitata'
+import { bench, group, run } from 'mitata'
 
 bench('noop', () => {})
 
@@ -8,7 +8,10 @@ group('getPath', () => {
   bench('slice + indexOf : w/o decodeURI', () => {
     const url = request.url
     const queryIndex = url.indexOf('?', 8)
-    return url.slice(url.indexOf('/', 8), queryIndex === -1 ? undefined : queryIndex)
+    return url.slice(
+      url.indexOf('/', 8),
+      queryIndex === -1 ? undefined : queryIndex,
+    )
   })
 
   bench('regexp : w/o decodeURI', () => {
@@ -19,7 +22,10 @@ group('getPath', () => {
   bench('slice + indexOf', () => {
     const url = request.url
     const queryIndex = url.indexOf('?', 8)
-    const path = url.slice(url.indexOf('/', 8), queryIndex === -1 ? undefined : queryIndex)
+    const path = url.slice(
+      url.indexOf('/', 8),
+      queryIndex === -1 ? undefined : queryIndex,
+    )
     return path.includes('%') ? decodeURIComponent(path) : path
   })
 
@@ -38,7 +44,9 @@ group('getPath', () => {
         break
       }
     }
-    return hasPercentEncoding ? decodeURIComponent(url.slice(start, i)) : url.slice(start, i)
+    return hasPercentEncoding
+      ? decodeURIComponent(url.slice(start, i))
+      : url.slice(start, i)
   })
 
   bench('slice + for-loop + immediate return', () => {
@@ -52,8 +60,13 @@ group('getPath', () => {
         // If the path contains percent encoding, use `indexOf()` to find '?' and return the result immediately.
         // Although this is a performance disadvantage, it is acceptable since we prefer cases that do not include percent encoding.
         const queryIndex = url.indexOf('?', i)
-        const path = url.slice(start, queryIndex === -1 ? undefined : queryIndex)
-        return decodeURI(path.includes('%25') ? path.replace(/%25/g, '%2525') : path)
+        const path = url.slice(
+          start,
+          queryIndex === -1 ? undefined : queryIndex,
+        )
+        return decodeURI(
+          path.includes('%25') ? path.replace(/%25/g, '%2525') : path,
+        )
       } else if (charCode === 63) {
         // '?'
         break

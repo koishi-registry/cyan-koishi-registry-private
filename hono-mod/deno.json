@@ -95,4 +95,24 @@
     "./utils/url": "./src/utils/url.ts",
     "./utils/ipaddr": "./src/utils/ipaddr.ts"
   },
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-sloppy-imports",
+        "require-await",
+        "no-explicit-any",
+        "no-node-globals",
+        "ban-ts-comment",
+        "no-empty",
+        "no-unused-vars",
+        "verbatim-module-syntax",
+        "no-async-promise-executor",
+        "no-empty-interface",
+        "prefer-const",
+        "no-process-globals",
+        "no-console",
+        "no-this-alias"
+      ]
+    }
+  }
 }

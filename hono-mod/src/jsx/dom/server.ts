@@ -18,7 +18,10 @@ export interface RenderToStringOptions {
  * @param options Options for rendering.
  * @returns Rendered string.
  */
-const renderToString = (element: Child, options: RenderToStringOptions = {}): string => {
+const renderToString = (
+  element: Child,
+  options: RenderToStringOptions = {},
+): string => {
   if (Object.keys(options).length > 0) {
     console.warn('options are not supported yet')
   }
@@ -49,7 +52,7 @@ export interface RenderToReadableStreamOptions {
  */
 const renderToReadableStream = async (
   element: Child,
-  options: RenderToReadableStreamOptions = {}
+  options: RenderToReadableStreamOptions = {},
 ): Promise<ReadableStream<Uint8Array>> => {
   if (Object.keys(options).some((key) => key !== 'onError')) {
     console.warn('options are not supported yet, except onError')
@@ -59,10 +62,13 @@ const renderToReadableStream = async (
     element = element?.toString() ?? ''
   }
 
-  return renderToReadableStreamHono(element as HtmlEscapedString, options.onError)
+  return renderToReadableStreamHono(
+    element as HtmlEscapedString,
+    options.onError,
+  )
 }
 
-export { renderToString, renderToReadableStream, version }
+export { renderToReadableStream, renderToString, version }
 export default {
   renderToString,
   renderToReadableStream,

@@ -1,6 +1,8 @@
 // provide utility functions for css helper both on server and client
 export const PSEUDO_GLOBAL_SELECTOR = ':-hono-global'
-export const isPseudoGlobalSelectorRe = new RegExp(`^${PSEUDO_GLOBAL_SELECTOR}{(.*)}$`)
+export const isPseudoGlobalSelectorRe = new RegExp(
+  `^${PSEUDO_GLOBAL_SELECTOR}{(.*)}$`,
+)
 export const DEFAULT_STYLE_ID = 'hono-css'
 
 export const SELECTOR: unique symbol = Symbol()
@@ -59,23 +61,26 @@ const minifyCssRe: RegExp = new RegExp(
     '(' + cssStringReStr + ')', // $1: quoted string
 
     '(?:' +
-      [
-        '^\\s+', // head whitespace
-        '\\/\\*.*?\\*\\/\\s*', // multi-line comment
-        '\\/\\/.*\\n\\s*', // single-line comment
-        '\\s+$', // tail whitespace
-      ].join('|') +
-      ')',
+    [
+      '^\\s+', // head whitespace
+      '\\/\\*.*?\\*\\/\\s*', // multi-line comment
+      '\\/\\/.*\\n\\s*', // single-line comment
+      '\\s+$', // tail whitespace
+    ].join('|') +
+    ')',
 
     '\\s*;\\s*(}|$)\\s*', // $2: trailing semicolon
     '\\s*([{};:,])\\s*', // $3: whitespace around { } : , ;
     '(\\s)\\s+', // $4: 2+ spaces
   ].join('|'),
-  'g'
+  'g',
 )
 
 export const minify = (css: string): string => {
-  return css.replace(minifyCssRe, (_, $1, $2, $3, $4) => $1 || $2 || $3 || $4 || '')
+  return css.replace(
+    minifyCssRe,
+    (_, $1, $2, $3, $4) => $1 || $2 || $3 || $4 || '',
+  )
 }
 
 type CssVariableBasicType =
@@ -88,11 +93,14 @@ type CssVariableBasicType =
   | undefined
 type CssVariableAsyncType = Promise<CssVariableBasicType>
 type CssVariableArrayType = (CssVariableBasicType | CssVariableAsyncType)[]
-export type CssVariableType = CssVariableBasicType | CssVariableAsyncType | CssVariableArrayType
+export type CssVariableType =
+  | CssVariableBasicType
+  | CssVariableAsyncType
+  | CssVariableArrayType
 
 export const buildStyleString = (
   strings: TemplateStringsArray,
-  values: CssVariableType[]
+  values: CssVariableType[],
 ): [string, string, CssClassName[], string[]] => {
   const selectors: CssClassName[] = []
   const externalClassNames: string[] = []
@@ -102,7 +110,9 @@ export const buildStyleString = (
   for (let i = 0, len = strings.length; i < len; i++) {
     styleString += strings[i]
     let vArray = values[i]
-    if (typeof vArray === 'boolean' || vArray === null || vArray === undefined) {
+    if (
+      typeof vArray === 'boolean' || vArray === null || vArray === undefined
+    ) {
       continue
     }
 
@@ -124,7 +134,9 @@ export const buildStyleString = (
         styleString += value
       } else if ((value as CssEscapedString)[CSS_ESCAPED]) {
         styleString += (value as CssEscapedString)[CSS_ESCAPED]
-      } else if ((value as CssClassName)[CLASS_NAME].startsWith('@keyframes ')) {
+      } else if (
+        (value as CssClassName)[CLASS_NAME].startsWith('@keyframes ')
+      ) {
         selectors.push(value as CssClassName)
         styleString += ` ${(value as CssClassName)[CLASS_NAME].substring(11)} `
       } else {
@@ -134,7 +146,9 @@ export const buildStyleString = (
           value = `.${(value as CssClassName)[CLASS_NAME]}`
         } else {
           selectors.push(...(value as CssClassName)[SELECTORS])
-          externalClassNames.push(...(value as CssClassName)[EXTERNAL_CLASS_NAMES])
+          externalClassNames.push(
+            ...(value as CssClassName)[EXTERNAL_CLASS_NAMES],
+          )
           value = (value as CssClassName)[STYLE_STRING]
           const valueLen = value.length
           if (valueLen > 0) {
@@ -154,16 +168,20 @@ export const buildStyleString = (
 
 export const cssCommon = (
   strings: TemplateStringsArray,
-  values: CssVariableType[]
+  values: CssVariableType[],
 ): CssClassName => {
-  let [label, thisStyleString, selectors, externalClassNames] = buildStyleString(strings, values)
+  let [label, thisStyleString, selectors, externalClassNames] =
+    buildStyleString(strings, values)
   const isPseudoGlobal = isPseudoGlobalSelectorRe.exec(thisStyleString)
   if (isPseudoGlobal) {
     thisStyleString = isPseudoGlobal[1]
   }
-  const selector = (isPseudoGlobal ? PSEUDO_GLOBAL_SELECTOR : '') + toHash(label + thisStyleString)
+  const selector = (isPseudoGlobal ? PSEUDO_GLOBAL_SELECTOR : '') +
+    toHash(label + thisStyleString)
   const className = (
-    isPseudoGlobal ? selectors.map((s) => s[CLASS_NAME]) : [selector, ...externalClassNames]
+    isPseudoGlobal
+      ? selectors.map((s) => s[CLASS_NAME])
+      : [selector, ...externalClassNames]
   ).join(' ')
 
   return {
@@ -176,7 +194,7 @@ export const cssCommon = (
 }
 
 export const cxCommon = (
-  args: (string | boolean | null | undefined | CssClassName)[]
+  args: (string | boolean | null | undefined | CssClassName)[],
 ): (string | boolean | null | undefined | CssClassName)[] => {
   for (let i = 0, len = args.length; i < len; i++) {
     const arg = args[i]
@@ -217,7 +235,7 @@ type ViewTransitionType = {
 let viewTransitionNameIndex = 0
 export const viewTransitionCommon: ViewTransitionType = ((
   strings: TemplateStringsArray | CssClassName | undefined,
-  values: CssVariableType[]
+  values: CssVariableType[],
 ): CssClassName => {
   if (!strings) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -234,7 +252,7 @@ export const viewTransitionCommon: ViewTransitionType = ((
   content[CLASS_NAME] = PSEUDO_GLOBAL_SELECTOR + content[CLASS_NAME]
   content[STYLE_STRING] = content[STYLE_STRING].replace(
     /(?<=::view-transition(?:[a-z-]*)\()(?=\))/g,
-    transitionName
+    transitionName,
   )
   res[CLASS_NAME] = res[SELECTOR] = transitionName
   res[SELECTORS] = [...content[SELECTORS], content]

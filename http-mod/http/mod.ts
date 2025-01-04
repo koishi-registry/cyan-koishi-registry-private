@@ -1,4 +1,5 @@
-import { Context, Schema, Service } from 'cordis'
+import { Context, Service } from 'cordis'
+import { Schema } from '@cordisjs/plugin-schema'
 import { Awaitable, Binary, defineProperty, Dict, isNullable } from 'cosmokit'
 import { loadFile, lookup } from './adapter.ts'
 import { ReadableStream } from 'node:stream/web'
@@ -17,9 +18,18 @@ declare module 'cordis' {
   }
 
   interface Events {
-    'http/file'(this: HTTP, url: string, options: FileOptions): Awaitable<FileResponse | undefined>
+    'http/file'(
+      this: HTTP,
+      url: string,
+      options: FileOptions,
+    ): Awaitable<FileResponse | undefined>
     'http/config'(this: HTTP, config: HTTP.Config): void
-    'http/fetch-init'(this: HTTP, url: URL, init: RequestInit, config: HTTP.Config): void
+    'http/fetch-init'(
+      this: HTTP,
+      url: URL,
+      init: RequestInit,
+      config: HTTP.Config,
+    ): void
     'http/after-fetch'(this: HTTP, data: HTTP.AfterFetch): void
     // 'http/websocket-init'(this: HTTP, url: URL, init: WebSocketInit, config: HTTP.Config): void
   }
@@ -54,16 +64,26 @@ function encodeRequest(data: any): [string | null, any] {
 
 export namespace HTTP {
   export type Method =
-    | 'get' | 'GET'
-    | 'delete' | 'DELETE'
-    | 'head' | 'HEAD'
-    | 'options' | 'OPTIONS'
-    | 'post' | 'POST'
-    | 'put' | 'PUT'
-    | 'patch' | 'PATCH'
-    | 'purge' | 'PURGE'
-    | 'link' | 'LINK'
-    | 'unlink' | 'UNLINK'
+    | 'get'
+    | 'GET'
+    | 'delete'
+    | 'DELETE'
+    | 'head'
+    | 'HEAD'
+    | 'options'
+    | 'OPTIONS'
+    | 'post'
+    | 'POST'
+    | 'put'
+    | 'PUT'
+    | 'patch'
+    | 'PATCH'
+    | 'purge'
+    | 'PURGE'
+    | 'link'
+    | 'LINK'
+    | 'unlink'
+    | 'UNLINK'
 
   export interface ResponseTypes {
     json: any
@@ -75,14 +95,28 @@ export namespace HTTP {
   }
 
   export interface Request1 {
-    <K extends keyof ResponseTypes>(url: string, config: HTTP.RequestConfig & { responseType: K }): Promise<ResponseTypes[K]>
-    <T = any>(url: string, config: HTTP.RequestConfig & { responseType: Decoder<T> }): Promise<T>
+    <K extends keyof ResponseTypes>(
+      url: string,
+      config: HTTP.RequestConfig & { responseType: K },
+    ): Promise<ResponseTypes[K]>
+    <T = any>(
+      url: string,
+      config: HTTP.RequestConfig & { responseType: Decoder<T> },
+    ): Promise<T>
     <T = any>(url: string, config?: HTTP.RequestConfig): Promise<T>
   }
 
   export interface Request2 {
-    <K extends keyof ResponseTypes>(url: string, data: any, config: HTTP.RequestConfig & { responseType: K }): Promise<ResponseTypes[K]>
-    <T = any>(url: string, data: any, config: HTTP.RequestConfig & { responseType: Decoder<T> }): Promise<T>
+    <K extends keyof ResponseTypes>(
+      url: string,
+      data: any,
+      config: HTTP.RequestConfig & { responseType: K },
+    ): Promise<ResponseTypes[K]>
+    <T = any>(
+      url: string,
+      data: any,
+      config: HTTP.RequestConfig & { responseType: Decoder<T> },
+    ): Promise<T>
     <T = any>(url: string, data?: any, config?: HTTP.RequestConfig): Promise<T>
   }
 
@@ -141,9 +175,19 @@ export interface FileResponse {
 }
 
 export interface HTTP {
-  <K extends keyof HTTP.ResponseTypes>(url: string, config: HTTP.RequestConfig & { responseType: K }): Promise<HTTP.Response<HTTP.ResponseTypes[K]>>
-  <T = any>(url: string | URL, config?: HTTP.RequestConfig): Promise<HTTP.Response<T>>
-  <T = any>(method: HTTP.Method, url: string | URL, config?: HTTP.RequestConfig): Promise<HTTP.Response<T>>
+  <K extends keyof HTTP.ResponseTypes>(
+    url: string,
+    config: HTTP.RequestConfig & { responseType: K },
+  ): Promise<HTTP.Response<HTTP.ResponseTypes[K]>>
+  <T = any>(
+    url: string | URL,
+    config?: HTTP.RequestConfig,
+  ): Promise<HTTP.Response<T>>
+  <T = any>(
+    method: HTTP.Method,
+    url: string | URL,
+    config?: HTTP.RequestConfig,
+  ): Promise<HTTP.Response<T>>
   config: HTTP.Config
   get: HTTP.Request1
   delete: HTTP.Request1
@@ -161,17 +205,30 @@ export class HTTP extends Service {
     const require = createRequire(import.meta.url)
 
     for (const method of ['get', 'delete'] as const) {
-      defineProperty(HTTP.prototype, method, async function (this: HTTP, url: string, config?: HTTP.Config) {
-        const response = await this(url, { method, ...config })
-        return response.data
-      })
+      defineProperty(
+        HTTP.prototype,
+        method,
+        async function (this: HTTP, url: string, config?: HTTP.Config) {
+          const response = await this(url, { method, ...config })
+          return response.data
+        },
+      )
     }
 
     for (const method of ['patch', 'post', 'put'] as const) {
-      defineProperty(HTTP.prototype, method, async function (this: HTTP, url: string, data?: any, config?: HTTP.Config) {
-        const response = await this(url, { method, data, ...config })
-        return response.data
-      })
+      defineProperty(
+        HTTP.prototype,
+        method,
+        async function (
+          this: HTTP,
+          url: string,
+          data?: any,
+          config?: HTTP.Config,
+        ) {
+          const response = await this(url, { method, data, ...config })
+          return response.data
+        },
+      )
     }
   }
 
@@ -213,7 +270,10 @@ export class HTTP extends Service {
     },
   })
 
-  decoder<K extends keyof HTTP.ResponseTypes>(type: K, decoder: HTTP.Decoder<HTTP.ResponseTypes[K]>) {
+  decoder<K extends keyof HTTP.ResponseTypes>(
+    type: K,
+    decoder: HTTP.Decoder<HTTP.ResponseTypes[K]>,
+  ) {
     return this.ctx.effect(() => {
       this._decoders[type] = decoder
       return () => delete this._decoders[type]
@@ -238,7 +298,11 @@ export class HTTP extends Service {
     return result
   }
 
-  resolveURL(url: string | URL, config: HTTP.RequestConfig, isWebSocket = false) {
+  resolveURL(
+    url: string | URL,
+    config: HTTP.RequestConfig,
+    isWebSocket = false,
+  ) {
     try {
       url = new URL(url, config.baseURL)
     } catch (error) {
@@ -314,13 +378,23 @@ export class HTTP extends Service {
 
       this.ctx.emit(this, 'http/fetch-init', url, init, config)
       const raw = await fetch(url, init).catch((cause) => {
-        this.ctx.emit(this, 'http/after-fetch', { url, init, config, error: cause })
+        this.ctx.emit(this, 'http/after-fetch', {
+          url,
+          init,
+          config,
+          error: cause,
+        })
         if (HTTP.Error.is(cause)) throw cause
         const error = new HTTP.Error(`fetch ${url} failed`)
         error.cause = cause
         throw error
       }) as unknown as globalThis.Response
-      this.ctx.emit(this, 'http/after-fetch', { url, init, config, result: raw })
+      this.ctx.emit(this, 'http/after-fetch', {
+        url,
+        init,
+        config,
+        result: raw,
+      })
 
       const response: HTTP.Response = {
         data: null,
@@ -331,7 +405,8 @@ export class HTTP extends Service {
       }
 
       // we don't use `raw.ok` because it may be a 3xx redirect
-      const validateStatus = config.validateStatus ?? (status => status < 400)
+      const validateStatus = config.validateStatus ??
+        ((status) => status < 400)
       if (!validateStatus(raw.status)) {
         const error = new HTTP.Error(raw.statusText)
         error.response = response
@@ -367,10 +442,19 @@ export class HTTP extends Service {
   }
 
   /** @deprecated use `ctx.http()` instead */
-  axios<T = any>(config: { url: string } & HTTP.RequestConfig): Promise<HTTP.Response<T>>
-  axios<T = any>(url: string, config?: HTTP.RequestConfig): Promise<HTTP.Response<T>>
+  axios<T = any>(
+    config: { url: string } & HTTP.RequestConfig,
+  ): Promise<HTTP.Response<T>>
+  axios<T = any>(
+    url: string,
+    config?: HTTP.RequestConfig,
+  ): Promise<HTTP.Response<T>>
   axios(...args: any[]) {
-    this.ctx.emit(this.ctx, 'internal/warning', 'ctx.http.axios() is deprecated, use ctx.http() instead')
+    this.ctx.emit(
+      this.ctx,
+      'internal/warning',
+      'ctx.http.axios() is deprecated, use ctx.http() instead',
+    )
     if (typeof args[0] === 'string') {
       return this(args[0], args[1])
     } else {
@@ -379,7 +463,7 @@ export class HTTP extends Service {
   }
 
   ws(url: string | URL, _config?: HTTP.Config) {
-    throw new Error("Not implemented")
+    throw new Error('Not implemented')
     // const config = this.resolveConfig(_config)
     // url = this.resolveURL(url, config, true)
     // const headers = new Headers(config.headers)
@@ -398,7 +482,11 @@ export class HTTP extends Service {
     // return socket
   }
 
-  async file(this: HTTP, url: string, options: FileOptions = {}): Promise<FileResponse> {
+  async file(
+    this: HTTP,
+    url: string,
+    options: FileOptions = {},
+  ): Promise<FileResponse> {
     const task = await this.ctx.serial(this, 'http/file', url, options)
     if (task) return task
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types

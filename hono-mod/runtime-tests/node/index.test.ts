@@ -56,7 +56,7 @@ describe('Basic Auth Middleware', () => {
     basicAuth({
       username,
       password,
-    })
+    }),
   )
 
   app.get('/auth/*', () => new Response('auth'))
@@ -71,7 +71,10 @@ describe('Basic Auth Middleware', () => {
 
   it('Should authorize, return 200 Response', async () => {
     const credential = 'aG9uby11c2VyLWE6aG9uby1wYXNzd29yZC1h'
-    const res = await request(server).get('/auth/a').set('Authorization', `Basic ${credential}`)
+    const res = await request(server).get('/auth/a').set(
+      'Authorization',
+      `Basic ${credential}`,
+    )
     expect(res.status).toBe(200)
     expect(res.text).toBe('auth')
   })
@@ -94,7 +97,10 @@ describe('JWT Auth Middleware', () => {
   it('Should authorize, return 200 Response', async () => {
     const credential =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXNzYWdlIjoiaGVsbG8gd29ybGQifQ.B54pAqIiLbu170tGQ1rY06Twv__0qSHTA0ioQPIOvFE'
-    const res = await request(server).get('/jwt/a').set('Authorization', `Bearer ${credential}`)
+    const res = await request(server).get('/jwt/a').set(
+      'Authorization',
+      `Bearer ${credential}`,
+    )
     expect(res.status).toBe(200)
     expect(res.text).toBe('auth')
   })
@@ -207,32 +213,36 @@ describe('streamSSE', () => {
 })
 
 describe('compress', async () => {
-  const cssContent = Array.from({ length: 60 }, () => 'body { color: red; }').join('\n')
-  const [externalServer, serverInfo] = await new Promise<[Server, AddressInfo]>((resolve) => {
-    const externalApp = new Hono()
-    externalApp.get('/style.css', (c) =>
-      c.text(cssContent, {
-        headers: {
-          'Content-Type': 'text/css',
+  const cssContent = Array.from({ length: 60 }, () => 'body { color: red; }')
+    .join('\n')
+  const [externalServer, serverInfo] = await new Promise<[Server, AddressInfo]>(
+    (resolve) => {
+      const externalApp = new Hono()
+      externalApp.get('/style.css', (c) =>
+        c.text(cssContent, {
+          headers: {
+            'Content-Type': 'text/css',
+          },
+        }))
+      const server = serve(
+        {
+          fetch: externalApp.fetch,
+          port: 0,
+          hostname: '0.0.0.0',
         },
-      })
-    )
-    const server = serve(
-      {
-        fetch: externalApp.fetch,
-        port: 0,
-        hostname: '0.0.0.0',
-      },
-      (serverInfo) => {
-        resolve([server as Server, serverInfo])
-      }
-    )
-  })
+        (serverInfo) => {
+          resolve([server as Server, serverInfo])
+        },
+      )
+    },
+  )
 
   const app = new Hono()
   app.use(compress())
   app.get('/fetch/:file', (c) => {
-    return fetch(`http://${serverInfo.address}:${serverInfo.port}/${c.req.param('file')}`)
+    return fetch(
+      `http://${serverInfo.address}:${serverInfo.port}/${c.req.param('file')}`,
+    )
   })
   const server = createAdaptorServer(app)
 

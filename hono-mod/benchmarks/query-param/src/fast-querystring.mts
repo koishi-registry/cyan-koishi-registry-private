@@ -8,5 +8,5 @@ const getQueryStringFromURL = (url: string): string => {
 
 export default (url, key?) => {
   const data = parse(getQueryStringFromURL(url))
-  return key !== undefined ? data[key] : data 
+  return key !== undefined ? data[key] : data
 }

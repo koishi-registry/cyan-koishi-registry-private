@@ -29,7 +29,8 @@ describe('replaceUrlParams', () => {
   })
 
   it('Should replace correctly when there is regex pattern', () => {
-    const url = 'http://localhost/posts/:postId{[abc]+}/comments/:commentId{[0-9]+}'
+    const url =
+      'http://localhost/posts/:postId{[abc]+}/comments/:commentId{[0-9]+}'
     const params = {
       postId: 'abc',
       commentId: '456',
@@ -39,7 +40,8 @@ describe('replaceUrlParams', () => {
   })
 
   it('Should replace correctly when there is regex pattern with length limit', () => {
-    const url = 'http://localhost/year/:year{[1-9]{1}[0-9]{3}}/month/:month{[0-9]{2}}'
+    const url =
+      'http://localhost/year/:year{[1-9]{1}[0-9]{3}}/month/:month{[0-9]{2}}'
     const params = {
       year: '2024',
       month: '2',
@@ -130,8 +132,8 @@ describe('deepMerge', () => {
     expect(
       deepMerge(
         { headers: { hono: '1' }, timeout: 2, params: {} },
-        { headers: { hono: '2', demo: 2 }, params: undefined }
-      )
+        { headers: { hono: '2', demo: 2 }, params: undefined },
+      ),
     ).toStrictEqual({
       params: undefined,
       headers: { hono: '2', demo: 2 },

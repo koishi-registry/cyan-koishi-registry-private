@@ -22,13 +22,18 @@ export const runTest = ({
   newRouter: <T>() => Router<T>
 }) => {
   describe('Common', () => {
-    type Match = (method: string, path: string) => { handler: string; params: Params }[]
+    type Match = (
+      method: string,
+      path: string,
+    ) => { handler: string; params: Params }[]
     let router: Router<string>
     let match: Match
 
     beforeEach(({ task, skip: skipTask }) => {
       const suites = getSuiteHierarchy(task.suite)
-      const name = [...suites.slice(2).map((s) => s.name), task.name].join(' > ')
+      const name = [...suites.slice(2).map((s) => s.name), task.name].join(
+        ' > ',
+      )
       const isSkip = skip.find((s) => s.tests.includes(name))
       if (isSkip) {
         console.log(`Skip: ${isSkip.reason}`)
@@ -42,12 +47,12 @@ export const runTest = ({
         const res = matchRes.map((r) =>
           stash
             ? {
-                handler: r[0],
-                params: Object.keys(r[1]).reduce((acc, key) => {
-                  acc[key] = stash[(r[1] as ParamIndexMap)[key]]
-                  return acc
-                }, Object.create(null) as Params),
-              }
+              handler: r[0],
+              params: Object.keys(r[1]).reduce((acc, key) => {
+                acc[key] = stash[(r[1] as ParamIndexMap)[key]]
+                return acc
+              }, Object.create(null) as Params),
+            }
             : { handler: r[0], params: r[1] as Params }
         )
         return res

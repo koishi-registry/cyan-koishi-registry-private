@@ -7,13 +7,12 @@ import { render as renderPreact } from './preact'
 import { render as renderReact } from './react'
 
 const suite = new Suite()
-
 ;[renderHono, renderReact, renderPreact, renderNano].forEach((render) => {
   const html = render()
   const doc = parse(html)
   if (doc.querySelector('p#c').textContent !== '3\nc') {
     throw new Error('Invalid output')
-  } 
+  }
 })
 
 suite

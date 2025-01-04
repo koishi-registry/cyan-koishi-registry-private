@@ -14,30 +14,30 @@ export const globalContexts: Context<unknown>[] = []
 
 export const createContext = <T>(defaultValue: T): Context<T> => {
   const values = [defaultValue]
-  const context: Context<T> = ((props): HtmlEscapedString | Promise<HtmlEscapedString> => {
-    values.push(props.value)
-    let string
-    try {
-      string = props.children
-        ? (Array.isArray(props.children)
+  const context: Context<T> =
+    ((props): HtmlEscapedString | Promise<HtmlEscapedString> => {
+      values.push(props.value)
+      let string
+      try {
+        string = props.children
+          ? (Array.isArray(props.children)
             ? new JSXFragmentNode('', {}, props.children)
-            : props.children
-          ).toString()
-        : ''
-    } finally {
-      values.pop()
-    }
+            : props.children).toString()
+          : ''
+      } finally {
+        values.pop()
+      }
 
-    if (string instanceof Promise) {
-      return string.then((resString) => raw(resString, (resString as HtmlEscapedString).callbacks))
-    } else {
-      return raw(string)
-    }
-  }) as Context<T>
+      if (string instanceof Promise) {
+        return string.then((resString) =>
+          raw(resString, (resString as HtmlEscapedString).callbacks)
+        )
+      } else {
+        return raw(string)
+      }
+    }) as Context<T>
   context.values = values
-  context.Provider = context
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context.Provider = context // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(context as any)[DOM_RENDERER] = createContextProviderFunction(values)
 
   globalContexts.push(context as Context<unknown>)

@@ -57,7 +57,10 @@ export const appendTrailingSlash = (): MiddlewareHandler => {
   return async function appendTrailingSlash(c, next) {
     await next()
 
-    if (c.res.status === 404 && c.req.method === 'GET' && c.req.path.at(-1) !== '/') {
+    if (
+      c.res.status === 404 && c.req.method === 'GET' &&
+      c.req.path.at(-1) !== '/'
+    ) {
       const url = new URL(c.req.url)
       url.pathname += '/'
 

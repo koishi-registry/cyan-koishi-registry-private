@@ -26,7 +26,7 @@ describe('Basic Auth by Middleware', () => {
     basicAuth({
       username,
       password,
-    })
+    }),
   )
   // Test multiple handlers
   app.use('/auth/*', async (c, next) => {
@@ -39,7 +39,7 @@ describe('Basic Auth by Middleware', () => {
     basicAuth({
       username: username,
       password: unicodePassword,
-    })
+    }),
   )
 
   app.use(
@@ -52,8 +52,8 @@ describe('Basic Auth by Middleware', () => {
       {
         username: usernameC,
         password: passwordC,
-      }
-    )
+      },
+    ),
   )
 
   app.use(
@@ -61,8 +61,9 @@ describe('Basic Auth by Middleware', () => {
     basicAuth({
       username: username,
       password: password,
-      hashFunction: (data: string) => createHash('sha256').update(data).digest('hex'),
-    })
+      hashFunction: (data: string) =>
+        createHash('sha256').update(data).digest('hex'),
+    }),
   )
 
   app.use('/nested/*', async (c, next) => {
@@ -89,7 +90,7 @@ describe('Basic Auth by Middleware', () => {
       username,
       password,
       invalidUserMessage: 'Custom unauthorized message as string',
-    })
+    }),
   )
 
   app.use(
@@ -98,7 +99,7 @@ describe('Basic Auth by Middleware', () => {
       username,
       password,
       invalidUserMessage: { message: 'Custom unauthorized message as object' },
-    })
+    }),
   )
 
   app.use(
@@ -106,8 +107,9 @@ describe('Basic Auth by Middleware', () => {
     basicAuth({
       username,
       password,
-      invalidUserMessage: () => 'Custom unauthorized message as function string',
-    })
+      invalidUserMessage: () =>
+        'Custom unauthorized message as function string',
+    }),
   )
 
   app.use(
@@ -115,8 +117,10 @@ describe('Basic Auth by Middleware', () => {
     basicAuth({
       username,
       password,
-      invalidUserMessage: () => ({ message: 'Custom unauthorized message as function object' }),
-    })
+      invalidUserMessage: () => ({
+        message: 'Custom unauthorized message as function object',
+      }),
+    }),
   )
 
   app.get('/auth/*', (c) => {
@@ -175,7 +179,9 @@ describe('Basic Auth by Middleware', () => {
   })
 
   it('Should authorize', async () => {
-    const credential = Buffer.from(username + ':' + password).toString('base64')
+    const credential = Buffer.from(username + ':' + password).toString(
+      'base64',
+    )
 
     const req = new Request('http://localhost/auth/a')
     req.headers.set('Authorization', `Basic ${credential}`)
@@ -188,7 +194,9 @@ describe('Basic Auth by Middleware', () => {
   })
 
   it('Should authorize Unicode', async () => {
-    const credential = Buffer.from(username + ':' + unicodePassword).toString('base64')
+    const credential = Buffer.from(username + ':' + unicodePassword).toString(
+      'base64',
+    )
 
     const req = new Request('http://localhost/auth-unicode/a')
     req.headers.set('Authorization', `Basic ${credential}`)
@@ -200,7 +208,9 @@ describe('Basic Auth by Middleware', () => {
   })
 
   it('Should authorize multiple users', async () => {
-    let credential = Buffer.from(usernameB + ':' + passwordB).toString('base64')
+    let credential = Buffer.from(usernameB + ':' + passwordB).toString(
+      'base64',
+    )
 
     let req = new Request('http://localhost/auth-multi/b')
     req.headers.set('Authorization', `Basic ${credential}`)
@@ -222,7 +232,9 @@ describe('Basic Auth by Middleware', () => {
   })
 
   it('Should authorize with sha256 function override', async () => {
-    const credential = Buffer.from(username + ':' + password).toString('base64')
+    const credential = Buffer.from(username + ':' + password).toString(
+      'base64',
+    )
 
     const req = new Request('http://localhost/auth-override-func/a')
     req.headers.set('Authorization', `Basic ${credential}`)
@@ -234,7 +246,9 @@ describe('Basic Auth by Middleware', () => {
   })
 
   it('Should authorize - nested', async () => {
-    const credential = Buffer.from(username + ':' + password).toString('base64')
+    const credential = Buffer.from(username + ':' + password).toString(
+      'base64',
+    )
 
     const req = new Request('http://localhost/nested')
     req.headers.set('Authorization', `Basic ${credential}`)
@@ -258,7 +272,8 @@ describe('Basic Auth by Middleware', () => {
   })
 
   it('Should authorize - verifyUser', async () => {
-    const credential = Buffer.from('dynamic-user' + ':' + 'hono-password').toString('base64')
+    const credential = Buffer.from('dynamic-user' + ':' + 'hono-password')
+      .toString('base64')
 
     const req = new Request('http://localhost/verify-user')
     req.headers.set('Authorization', `Basic ${credential}`)
@@ -282,7 +297,9 @@ describe('Basic Auth by Middleware', () => {
   })
 
   it('Should not authorize - custom invalid user message as string', async () => {
-    const req = new Request('http://localhost/auth-custom-invalid-user-message-string')
+    const req = new Request(
+      'http://localhost/auth-custom-invalid-user-message-string',
+    )
     const res = await app.request(req)
     expect(res).not.toBeNull()
     expect(res.status).toBe(401)
@@ -291,31 +308,47 @@ describe('Basic Auth by Middleware', () => {
   })
 
   it('Should not authorize - custom invalid user message as object', async () => {
-    const req = new Request('http://localhost/auth-custom-invalid-user-message-object')
+    const req = new Request(
+      'http://localhost/auth-custom-invalid-user-message-object',
+    )
     const res = await app.request(req)
     expect(res).not.toBeNull()
     expect(res.status).toBe(401)
-    expect(res.headers.get('Content-Type')).toMatch('application/json; charset=UTF-8')
+    expect(res.headers.get('Content-Type')).toMatch(
+      'application/json; charset=UTF-8',
+    )
     expect(handlerExecuted).toBeFalsy()
-    expect(await res.text()).toBe('{"message":"Custom unauthorized message as object"}')
+    expect(await res.text()).toBe(
+      '{"message":"Custom unauthorized message as object"}',
+    )
   })
 
   it('Should not authorize - custom invalid user message as function string', async () => {
-    const req = new Request('http://localhost/auth-custom-invalid-user-message-function-string')
+    const req = new Request(
+      'http://localhost/auth-custom-invalid-user-message-function-string',
+    )
     const res = await app.request(req)
     expect(res).not.toBeNull()
     expect(res.status).toBe(401)
     expect(handlerExecuted).toBeFalsy()
-    expect(await res.text()).toBe('Custom unauthorized message as function string')
+    expect(await res.text()).toBe(
+      'Custom unauthorized message as function string',
+    )
   })
 
   it('Should not authorize - custom invalid user message as function object', async () => {
-    const req = new Request('http://localhost/auth-custom-invalid-user-message-function-object')
+    const req = new Request(
+      'http://localhost/auth-custom-invalid-user-message-function-object',
+    )
     const res = await app.request(req)
     expect(res).not.toBeNull()
     expect(res.status).toBe(401)
-    expect(res.headers.get('Content-Type')).toMatch('application/json; charset=UTF-8')
+    expect(res.headers.get('Content-Type')).toMatch(
+      'application/json; charset=UTF-8',
+    )
     expect(handlerExecuted).toBeFalsy()
-    expect(await res.text()).toBe('{"message":"Custom unauthorized message as function object"}')
+    expect(await res.text()).toBe(
+      '{"message":"Custom unauthorized message as function object"}',
+    )
   })
 })

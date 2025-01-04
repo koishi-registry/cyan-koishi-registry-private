@@ -53,8 +53,7 @@ describe('Compress Middleware', () => {
       for (let i = 0; i < 10000; i++) {
         await stream.write('chunk ')
       }
-    })
-  )
+    }))
   app.get('/already-compressed-stream', (c) =>
     stream(c, async (stream) => {
       c.header('Content-Type', 'text/plain')
@@ -63,14 +62,13 @@ describe('Compress Middleware', () => {
       for (let i = 0; i < 10000; i++) {
         await stream.write(new Uint8Array([0, 1, 2, 3, 4, 5])) // Simulated compressed data
       }
-    })
-  )
+    }))
   app.notFound((c) => c.text('Custom NotFound', 404))
 
   const testCompression = async (
     path: string,
     acceptEncoding: string,
-    expectedEncoding: string | null
+    expectedEncoding: string | null,
   ) => {
     const req = new Request(`http://localhost${path}`, {
       method: 'GET',
@@ -152,7 +150,11 @@ describe('Compress Middleware', () => {
     })
 
     it('should not compress already compressed streaming responses', async () => {
-      const res = await testCompression('/already-compressed-stream', 'gzip', 'br')
+      const res = await testCompression(
+        '/already-compressed-stream',
+        'gzip',
+        'br',
+      )
       expect((await res.arrayBuffer()).byteLength).toBe(60000)
     })
   })
@@ -181,7 +183,9 @@ describe('Compress Middleware', () => {
 })
 
 async function decompressResponse(res: Response): Promise<string> {
-  const decompressedStream = res.body!.pipeThrough(new DecompressionStream('gzip'))
+  const decompressedStream = res.body!.pipeThrough(
+    new DecompressionStream('gzip'),
+  )
   const decompressedResponse = new Response(decompressedStream)
   return await decompressedResponse.text()
 }

@@ -2,7 +2,8 @@ import type { Context } from '../../context'
 import { Hono } from '../../hono'
 import { requestId } from '.'
 
-const regexUUIDv4 = /([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})/
+const regexUUIDv4 =
+  /([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})/
 
 describe('Request ID Middleware', () => {
   const app = new Hono()
@@ -56,9 +57,15 @@ describe('Request ID Middleware with custom generator', () => {
   }
   const app = new Hono()
   app.use('/word', requestId({ generator: generateWord }))
-  app.use('/doubleRequestId', requestId({ generator: generateDoubleRequestId }))
+  app.use(
+    '/doubleRequestId',
+    requestId({ generator: generateDoubleRequestId }),
+  )
   app.get('/word', (c) => c.text(c.get('requestId') ?? 'No Request ID'))
-  app.get('/doubleRequestId', (c) => c.text(c.get('requestId') ?? 'No Request ID'))
+  app.get(
+    '/doubleRequestId',
+    (c) => c.text(c.get('requestId') ?? 'No Request ID'),
+  )
   it('Should return custom request id', async () => {
     const res = await app.request('http://localhost/word')
     expect(res).not.toBeNull()

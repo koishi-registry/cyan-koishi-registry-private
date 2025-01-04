@@ -1,10 +1,17 @@
 /** @jsxImportSource ../ */
 import { JSDOM } from 'jsdom'
-import { ErrorBoundary as ErrorBoundaryCommon, Suspense as SuspenseCommon } from '..' // for common
+import {
+  ErrorBoundary as ErrorBoundaryCommon,
+  Suspense as SuspenseCommon,
+} from '..' // for common
 // run tests by old style jsx default
 // hono/jsx/jsx-runtime and hono/jsx/dom/jsx-runtime are tested in their respective settings
 import { use, useState } from '../hooks'
-import { ErrorBoundary as ErrorBoundaryDom, Suspense as SuspenseDom, render } from '.' // for dom
+import {
+  ErrorBoundary as ErrorBoundaryDom,
+  render,
+  Suspense as SuspenseDom,
+} from '.' // for dom
 
 runner('Common', SuspenseCommon, ErrorBoundaryCommon)
 runner('DOM', SuspenseDom, ErrorBoundaryDom)
@@ -12,7 +19,7 @@ runner('DOM', SuspenseDom, ErrorBoundaryDom)
 function runner(
   name: string,
   Suspense: typeof SuspenseDom,
-  ErrorBoundary: typeof ErrorBoundaryDom
+  ErrorBoundary: typeof ErrorBoundaryDom,
 ) {
   describe(name, () => {
     beforeAll(() => {
@@ -62,7 +69,9 @@ function runner(
 
       it('with use() update', async () => {
         const counterMap: Record<number, Promise<number>> = {}
-        const getCounter = (count: number) => (counterMap[count] ||= Promise.resolve(count + 1))
+        const getCounter = (
+          count: number,
+        ) => (counterMap[count] ||= Promise.resolve(count + 1))
         const Content = ({ count }: { count: number }) => {
           const num = use(getCounter(count))
           return (
@@ -102,7 +111,9 @@ function runner(
           return <p>{num}</p>
         }
         let resolve2: (value: number) => void = () => {}
-        const promise2 = new Promise<number>((_resolve) => (resolve2 = _resolve))
+        const promise2 = new Promise<number>((
+          _resolve,
+        ) => (resolve2 = _resolve))
         const Content2 = () => {
           const num = use(promise2)
           return <p>{num}</p>
@@ -139,7 +150,9 @@ function runner(
           const [show, setShow] = useState(false)
           return (
             <div>
-              <button onClick={() => setShow((s) => !s)}>{show ? 'Hide' : 'Show'}</button>
+              <button onClick={() => setShow((s) => !s)}>
+                {show ? 'Hide' : 'Show'}
+              </button>
               {show && (
                 <Suspense fallback={<div>Loading...</div>}>
                   <Content />
@@ -153,13 +166,17 @@ function runner(
         expect(root.innerHTML).toBe('<div><button>Show</button></div>')
         root.querySelector('button')?.click()
         await Promise.resolve()
-        expect(root.innerHTML).toBe('<div><button>Hide</button><div>Loading...</div></div>')
+        expect(root.innerHTML).toBe(
+          '<div><button>Hide</button><div>Loading...</div></div>',
+        )
         root.querySelector('button')?.click()
         await Promise.resolve()
         expect(root.innerHTML).toBe('<div><button>Show</button></div>')
         root.querySelector('button')?.click()
         await Promise.resolve()
-        expect(root.innerHTML).toBe('<div><button>Hide</button><div>Loading...</div></div>')
+        expect(root.innerHTML).toBe(
+          '<div><button>Hide</button><div>Loading...</div></div>',
+        )
         resolve(2)
         await Promise.resolve()
         await Promise.resolve()
@@ -194,7 +211,9 @@ function runner(
         expect(root.innerHTML).toBe('<div><button>Show</button></div>')
         root.querySelector('button')?.click()
         await Promise.resolve()
-        expect(root.innerHTML).toBe('<div><div>Loading...</div><button>Show</button></div>')
+        expect(root.innerHTML).toBe(
+          '<div><div>Loading...</div><button>Show</button></div>',
+        )
         resolve(2)
         await Promise.resolve()
         await Promise.resolve()
@@ -232,13 +251,17 @@ function runner(
         expect(root.innerHTML).toBe('<div><div>Loading...</div></div>')
         await Promise.resolve()
         await Promise.resolve()
-        expect(root.innerHTML).toBe('<div><p>0</p><button>Increment</button></div>')
+        expect(root.innerHTML).toBe(
+          '<div><p>0</p><button>Increment</button></div>',
+        )
         root.querySelector('button')?.click()
         await Promise.resolve()
         expect(root.innerHTML).toBe('<div><div>Loading...</div></div>')
         await Promise.resolve()
         await Promise.resolve()
-        expect(root.innerHTML).toBe('<div><p>1</p><button>Increment</button></div>')
+        expect(root.innerHTML).toBe(
+          '<div><p>1</p><button>Increment</button></div>',
+        )
       })
     })
 

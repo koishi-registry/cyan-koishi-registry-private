@@ -2,7 +2,7 @@
 import { JSDOM } from 'jsdom'
 // run tests by old style jsx default
 // hono/jsx/jsx-runtime and hono/jsx/dom/jsx-runtime are tested in their respective settings
-import { ErrorBoundary, Suspense, render } from '../dom'
+import { ErrorBoundary, render, Suspense } from '../dom'
 import {
   createRef,
   forwardRef,
@@ -312,7 +312,9 @@ describe('Hooks', () => {
     it('deferred', async () => {
       const promiseMap = {} as Record<number, Promise<number>>
       const getPromise = (count: number) => {
-        return (promiseMap[count] ||= new Promise((r) => setTimeout(() => r(count + 1))))
+        return (promiseMap[count] ||= new Promise((r) =>
+          setTimeout(() => r(count + 1))
+        ))
       }
       const ShowCount = ({ count }: { count: number }) => {
         if (count === 0) {
@@ -355,7 +357,9 @@ describe('Hooks', () => {
     it('initial value', async () => {
       const promiseMap = {} as Record<number, Promise<number>>
       const getPromise = (count: number) => {
-        return (promiseMap[count] ||= new Promise((r) => setTimeout(() => r(count + 1))))
+        return (promiseMap[count] ||= new Promise((r) =>
+          setTimeout(() => r(count + 1))
+        ))
       }
       const ShowCount = ({ count }: { count: number }) => {
         if (count === 0 || count === 99) {
@@ -381,7 +385,9 @@ describe('Hooks', () => {
         )
       }
       render(<App />, root)
-      expect(root.innerHTML).toBe('<div><button>+1</button></div><div>99</div>')
+      expect(root.innerHTML).toBe(
+        '<div><button>+1</button></div><div>99</div>',
+      )
       await new Promise((r) => setTimeout(r))
       await new Promise((r) => setTimeout(r))
       await new Promise((r) => setTimeout(r))
@@ -404,10 +410,12 @@ describe('Hooks', () => {
 
     it('supported browser', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(dom.window.document as any).startViewTransition = vi.fn((cb: Function) => {
-        Promise.resolve().then(() => cb())
-        return { finished: Promise.resolve() }
-      })
+      ;(dom.window.document as any).startViewTransition = vi.fn(
+        (cb: Function) => {
+          Promise.resolve().then(() => cb())
+          return { finished: Promise.resolve() }
+        },
+      )
 
       const App = () => {
         const [count, setCount] = useState(0)
@@ -464,10 +472,12 @@ describe('Hooks', () => {
 
     it('with useTransition()', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(dom.window.document as any).startViewTransition = vi.fn((cb: Function) => {
-        Promise.resolve().then(() => cb())
-        return { finished: Promise.resolve() }
-      })
+      ;(dom.window.document as any).startViewTransition = vi.fn(
+        (cb: Function) => {
+          Promise.resolve().then(() => cb())
+          return { finished: Promise.resolve() }
+        },
+      )
 
       let called = 0
       const App = () => {
@@ -513,8 +523,7 @@ describe('Hooks', () => {
     it('supported browser', async () => {
       let resolved: (() => void) | undefined
       const promise = new Promise<void>((r) => (resolved = r))
-      let called = 0
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let called = 0 // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(global.document as any).startViewTransition = vi.fn((cb: Function) => {
         Promise.resolve().then(() => cb())
         return { finished: promise }
@@ -646,7 +655,7 @@ describe('Hooks', () => {
               console.log('focus')
             },
           }),
-          []
+          [],
         )
         return <div />
       }
@@ -707,7 +716,11 @@ describe('Hooks', () => {
       const getSnapshot = vi.fn(() => count++)
       const getServerSnapshot = vi.fn(() => 100)
       const SubApp = () => {
-        const count = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+        const count = useSyncExternalStore(
+          subscribe,
+          getSnapshot,
+          getServerSnapshot,
+        )
         return <div>{count}</div>
       }
       const App = () => {

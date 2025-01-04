@@ -3,8 +3,8 @@ import type { Result } from './router'
 import type {
   Input,
   InputToDataByTarget,
-  ParamKeyToRecord,
   ParamKeys,
+  ParamKeyToRecord,
   RemoveQuestion,
   RouterRoute,
   ValidationTargets,
@@ -13,7 +13,12 @@ import { parseBody } from './utils/body'
 import type { BodyData, ParseBodyOptions } from './utils/body'
 import type { CustomHeader, RequestHeader } from './utils/headers'
 import type { Simplify, UnionToIntersection } from './utils/types'
-import { decodeURIComponent_, getQueryParam, getQueryParams, tryDecode } from './utils/url'
+import {
+  decodeURIComponent_,
+  getQueryParam,
+  getQueryParams,
+  tryDecode,
+} from './utils/url'
 
 type Body = {
   json: any
@@ -24,7 +29,8 @@ type Body = {
 }
 type BodyCache = Partial<Body & { parsedBody: BodyData }>
 
-const tryDecodeURIComponent = (str: string) => tryDecode(str, decodeURIComponent_)
+const tryDecodeURIComponent = (str: string) =>
+  tryDecode(str, decodeURIComponent_)
 
 export class HonoRequest<P extends string = '/', I extends Input['out'] = {}> {
   /**
@@ -64,7 +70,7 @@ export class HonoRequest<P extends string = '/', I extends Input['out'] = {}> {
   constructor(
     request: Request,
     path: string = '/',
-    matchResult: Result<[unknown, RouterRoute]> = [[]]
+    matchResult: Result<[unknown, RouterRoute]> = [[]],
   ) {
     this.raw = request
     this.path = path
@@ -84,12 +90,16 @@ export class HonoRequest<P extends string = '/', I extends Input['out'] = {}> {
    * const { id, comment_id } = c.req.param()
    * ```
    */
-  param<P2 extends ParamKeys<P> = ParamKeys<P>>(key: P2 extends `${infer _}?` ? never : P2): string
+  param<P2 extends ParamKeys<P> = ParamKeys<P>>(
+    key: P2 extends `${infer _}?` ? never : P2,
+  ): string
   param<P2 extends RemoveQuestion<ParamKeys<P>> = RemoveQuestion<ParamKeys<P>>>(
-    key: P2
+    key: P2,
   ): string | undefined
   param(key: string): string | undefined
-  param<P2 extends string = P>(): Simplify<UnionToIntersection<ParamKeyToRecord<ParamKeys<P2>>>>
+  param<P2 extends string = P>(): Simplify<
+    UnionToIntersection<ParamKeyToRecord<ParamKeys<P2>>>
+  >
   param(key?: string): unknown {
     return key ? this.#getDecodedParam(key) : this.#getAllDecodedParams()
   }
@@ -97,7 +107,9 @@ export class HonoRequest<P extends string = '/', I extends Input['out'] = {}> {
   #getDecodedParam(key: string): string | undefined {
     const paramKey = this.#matchResult[0][this.routeIndex][1][key]
     const param = this.#getParamValue(paramKey)
-    return param ? (/\%/.test(param) ? tryDecodeURIComponent(param) : param) : undefined
+    return param
+      ? (/\%/.test(param) ? tryDecodeURIComponent(param) : param)
+      : undefined
   }
 
   #getAllDecodedParams(): Record<string, string> {
@@ -105,7 +117,9 @@ export class HonoRequest<P extends string = '/', I extends Input['out'] = {}> {
 
     const keys = Object.keys(this.#matchResult[0][this.routeIndex][1])
     for (const key of keys) {
-      const value = this.#getParamValue(this.#matchResult[0][this.routeIndex][1][key])
+      const value = this.#getParamValue(
+        this.#matchResult[0][this.routeIndex][1][key],
+      )
       if (value && typeof value === 'string') {
         decoded[key] = /\%/.test(value) ? tryDecodeURIComponent(value) : value
       }
@@ -115,7 +129,9 @@ export class HonoRequest<P extends string = '/', I extends Input['out'] = {}> {
   }
 
   #getParamValue(paramKey: any): string | undefined {
-    return this.#matchResult[1] ? this.#matchResult[1][paramKey as any] : paramKey
+    return this.#matchResult[1]
+      ? this.#matchResult[1][paramKey as any]
+      : paramKey
   }
 
   /**
@@ -200,10 +216,15 @@ export class HonoRequest<P extends string = '/', I extends Input['out'] = {}> {
    * })
    * ```
    */
-  async parseBody<Options extends Partial<ParseBodyOptions>, T extends BodyData<Options>>(
-    options?: Options
+  async parseBody<
+    Options extends Partial<ParseBodyOptions>,
+    T extends BodyData<Options>,
+  >(
+    options?: Options,
   ): Promise<T>
-  async parseBody<T extends BodyData>(options?: Partial<ParseBodyOptions>): Promise<T>
+  async parseBody<T extends BodyData>(
+    options?: Partial<ParseBodyOptions>,
+  ): Promise<T>
   async parseBody(options?: Partial<ParseBodyOptions>) {
     return (this.bodyCache.parsedBody ??= await parseBody(this, options))
   }
@@ -218,12 +239,14 @@ export class HonoRequest<P extends string = '/', I extends Input['out'] = {}> {
 
     const anyCachedKey = Object.keys(bodyCache)[0]
     if (anyCachedKey) {
-      return (bodyCache[anyCachedKey as keyof Body] as Promise<BodyInit>).then((body) => {
-        if (anyCachedKey === 'json') {
-          body = JSON.stringify(body)
-        }
-        return new Response(body)[key]()
-      })
+      return (bodyCache[anyCachedKey as keyof Body] as Promise<BodyInit>).then(
+        (body) => {
+          if (anyCachedKey === 'json') {
+            body = JSON.stringify(body)
+          }
+          return new Response(body)[key]()
+        },
+      )
     }
 
     return (bodyCache[key] = raw[key]())
@@ -323,7 +346,9 @@ export class HonoRequest<P extends string = '/', I extends Input['out'] = {}> {
    *
    * @see https://hono.dev/docs/api/request#valid
    */
-  valid<T extends keyof I & keyof ValidationTargets>(target: T): InputToDataByTarget<I, T>
+  valid<T extends keyof I & keyof ValidationTargets>(
+    target: T,
+  ): InputToDataByTarget<I, T>
   valid(target: keyof ValidationTargets) {
     return this.#validatedData[target] as unknown
   }
@@ -401,6 +426,7 @@ export class HonoRequest<P extends string = '/', I extends Input['out'] = {}> {
    * ```
    */
   get routePath(): string {
-    return this.#matchResult[0].map(([[, route]]) => route)[this.routeIndex].path
+    return this.#matchResult[0].map(([[, route]]) => route)[this.routeIndex]
+      .path
   }
 }

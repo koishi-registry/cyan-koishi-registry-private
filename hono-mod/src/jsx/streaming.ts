@@ -79,7 +79,7 @@ export const Suspense: FC<PropsWithChildren<{ fallback: any }>> = async ({
           if (buffer) {
             buffer[0] = buffer[0].replace(
               new RegExp(`<template id="H:${index}"></template>.*?<!--/\\$-->`),
-              content
+              content,
             )
           }
           let html = buffer
@@ -102,7 +102,12 @@ d.replaceWith(c.content)
           }
 
           if (phase === HtmlEscapedCallbackPhase.Stream) {
-            html = await resolveCallback(html, HtmlEscapedCallbackPhase.BeforeStream, true, context)
+            html = await resolveCallback(
+              html,
+              HtmlEscapedCallbackPhase.BeforeStream,
+              true,
+              context,
+            )
           }
 
           return raw(html, callbacks)
@@ -123,21 +128,23 @@ const textEncoder = new TextEncoder()
  */
 export const renderToReadableStream = (
   content: HtmlEscapedString | JSXNode | Promise<HtmlEscapedString>,
-  onError: (e: unknown) => string | void = console.trace
+  onError: (e: unknown) => string | void = console.trace,
 ): ReadableStream<Uint8Array> => {
   const reader = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
         if (content instanceof JSXNode) {
           // aJSXNode.toString() returns a string or Promise<string> and string is already escaped
-          content = content.toString() as HtmlEscapedString | Promise<HtmlEscapedString>
+          content = content.toString() as
+            | HtmlEscapedString
+            | Promise<HtmlEscapedString>
         }
         const context = typeof content === 'object' ? content : {}
         const resolved = await resolveCallback(
           content,
           HtmlEscapedCallbackPhase.BeforeStream,
           true,
-          context
+          context,
         )
         controller.enqueue(textEncoder.encode(resolved))
 
@@ -156,16 +163,18 @@ export const renderToReadableStream = (
                   res,
                   HtmlEscapedCallbackPhase.BeforeStream,
                   true,
-                  context
+                  context,
                 )
                 ;(res as HtmlEscapedString).callbacks
-                  ?.map((c) => c({ phase: HtmlEscapedCallbackPhase.Stream, context }))
+                  ?.map((c) =>
+                    c({ phase: HtmlEscapedCallbackPhase.Stream, context })
+                  )
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   .filter<Promise<string>>(Boolean as any)
                   .forEach(then)
                 resolvedCount++
                 controller.enqueue(textEncoder.encode(res))
-              })
+              }),
           )
         }
         ;(resolved as HtmlEscapedString).callbacks

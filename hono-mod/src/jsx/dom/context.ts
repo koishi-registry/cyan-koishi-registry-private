@@ -33,8 +33,7 @@ export const createContextProviderFunction =
       }),
       props: {},
     })
-    const res = { tag: '', props, type: '' }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const res = { tag: '', props, type: '' } // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(res as any)[DOM_ERROR_HANDLER] = (err: unknown) => {
       values.pop()
       throw err
@@ -44,7 +43,9 @@ export const createContextProviderFunction =
 
 export const createContext = <T>(defaultValue: T): Context<T> => {
   const values = [defaultValue]
-  const context: Context<T> = createContextProviderFunction(values) as Context<T>
+  const context: Context<T> = createContextProviderFunction(values) as Context<
+    T
+  >
   context.values = values
   context.Provider = context
   globalContexts.push(context as Context<unknown>)

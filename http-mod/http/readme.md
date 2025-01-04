@@ -2,8 +2,9 @@
 
 Fetch-based axios-style HTTP client.
 
-> "und" comes from undici, an HTTP/1.1 client officially supported by Node.js team.
-> 
+> "und" comes from undici, an HTTP/1.1 client officially supported by Node.js
+> team.
+>
 > "ios" comes from axios, a popular HTTP client for browser and Node.js.
 
 ## Features
@@ -32,7 +33,10 @@ const { status, data } = await http('https://example.com', { method: 'GET' })
 
 ```ts
 interface HTTP {
-  <K extends keyof ResponseTypes>(url: string, config: Config & { responseType: K }): Promise<Response<ResponseTypes[K]>>
+  <K extends keyof ResponseTypes>(
+    url: string,
+    config: Config & { responseType: K },
+  ): Promise<Response<ResponseTypes[K]>>
   <T = any>(url: string | URL, config?: Config): Promise<Response<T>>
 }
 ```
@@ -49,7 +53,10 @@ interface HTTP {
 }
 
 interface Request1 {
-  <K extends keyof ResponseTypes>(url: string, config: Config & { responseType: K }): Promise<ResponseTypes[K]>
+  <K extends keyof ResponseTypes>(
+    url: string,
+    config: Config & { responseType: K },
+  ): Promise<ResponseTypes[K]>
   <T = any>(url: string, config?: Config): Promise<T>
 }
 ```
@@ -66,7 +73,11 @@ interface HTTP {
 }
 
 interface Request2 {
-  <K extends keyof ResponseTypes>(url: string, data: any, config: Config & { responseType: K }): Promise<ResponseTypes[K]>
+  <K extends keyof ResponseTypes>(
+    url: string,
+    data: any,
+    config: Config & { responseType: K },
+  ): Promise<ResponseTypes[K]>
   <T = any>(url: string, data?: any, config?: Config): Promise<T>
 }
 ```
@@ -82,9 +93,12 @@ interface HTTP {
 Open a WebSocket connection.
 
 > [!NOTE]
-> 
-> Currently we will use [`ws`](https://github.com/websockets/ws) package to polyfill [`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) in Node.js.
-> 
+>
+> Currently we will use [`ws`](https://github.com/websockets/ws) package to
+> polyfill
+> [`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) in
+> Node.js.
+>
 > Once Node.js has a stable WebSocket API, we will switch to it.
 
 ### Config
@@ -105,25 +119,30 @@ interface Config {
 
 #### config.baseURL
 
-The base URL of the request. If it is set, the `url` will be resolved against it.
+The base URL of the request. If it is set, the `url` will be resolved against
+it.
 
 See [URL#base](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL#base).
 
 #### config.method
 
-See [fetch#method](https://developer.mozilla.org/en-US/docs/Web/API/fetch#method).
+See
+[fetch#method](https://developer.mozilla.org/en-US/docs/Web/API/fetch#method).
 
 #### config.headers
 
-See [fetch#headers](https://developer.mozilla.org/en-US/docs/Web/API/fetch#headers).
+See
+[fetch#headers](https://developer.mozilla.org/en-US/docs/Web/API/fetch#headers).
 
 #### config.redirect
 
-See [fetch#redirect](https://developer.mozilla.org/en-US/docs/Web/API/fetch#redirect).
+See
+[fetch#redirect](https://developer.mozilla.org/en-US/docs/Web/API/fetch#redirect).
 
 #### config.keepAlive
 
-See [fetch#keepalive](https://developer.mozilla.org/en-US/docs/Web/API/fetch#keepalive).
+See
+[fetch#keepalive](https://developer.mozilla.org/en-US/docs/Web/API/fetch#keepalive).
 
 #### config.params
 
@@ -162,8 +181,9 @@ The request timeout in milliseconds.
 #### config.proxyAgent
 
 > [!NOTE]
-> 
-> In order to use a proxy agent, you need to install `@cordisjs/plugin-proxy-agent`.
+>
+> In order to use a proxy agent, you need to install
+> `@cordisjs/plugin-proxy-agent`.
 
 ### Response
 
@@ -178,15 +198,18 @@ interface Response<T> {
 
 #### response.status
 
-See [Response#status](https://developer.mozilla.org/en-US/docs/Web/API/Response/status).
+See
+[Response#status](https://developer.mozilla.org/en-US/docs/Web/API/Response/status).
 
 #### response.statusText
 
-See [Response#statusText](https://developer.mozilla.org/en-US/docs/Web/API/Response/statusText).
+See
+[Response#statusText](https://developer.mozilla.org/en-US/docs/Web/API/Response/statusText).
 
 #### response.headers
 
-See [Response#headers](https://developer.mozilla.org/en-US/docs/Web/API/Response/headers).
+See
+[Response#headers](https://developer.mozilla.org/en-US/docs/Web/API/Response/headers).
 
 #### response.data
 

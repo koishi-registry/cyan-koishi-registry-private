@@ -78,7 +78,7 @@ describe('Basic Streaming Helper', () => {
       async () => {
         throw new Error('error')
       },
-      onError
+      onError,
     )
     if (!res.body) {
       throw new Error('Body is null')

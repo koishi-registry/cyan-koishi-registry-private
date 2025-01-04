@@ -14,12 +14,18 @@ const initHono = (hono) => {
   hono.get('/user', (c) => c.text('User'))
   hono.get('/user/comments', (c) => c.text('User Comments'))
   hono.get('/user/avatar', (c) => c.text('User Avatar'))
-  hono.get('/user/lookup/email/:address', (c) => c.text('User Lookup Email Address'))
+  hono.get(
+    '/user/lookup/email/:address',
+    (c) => c.text('User Lookup Email Address'),
+  )
   hono.get('/event/:id', (c) => c.text('Event'))
   hono.get('/event/:id/comments', (c) => c.text('Event Comments'))
   hono.post('/event/:id/comments', (c) => c.text('POST Event Comments'))
   hono.post('/status', (c) => c.text('Status'))
-  hono.get('/very/deeply/nested/route/hello/there', (c) => c.text('Very Deeply Nested Route'))
+  hono.get(
+    '/very/deeply/nested/route/hello/there',
+    (c) => c.text('Very Deeply Nested Route'),
+  )
   hono.get('/user/lookup/username/:username', (c) => {
     return c.text(`Hello ${c.req.param('username')}`)
   })
@@ -33,14 +39,20 @@ const ittyRouter = IttyRouter()
 ittyRouter.get('/user', () => new Response('User'))
 ittyRouter.get('/user/comments', () => new Response('User Comments'))
 ittyRouter.get('/user/avatar', () => new Response('User Avatar'))
-ittyRouter.get('/user/lookup/email/:address', () => new Response('User Lookup Email Address'))
+ittyRouter.get(
+  '/user/lookup/email/:address',
+  () => new Response('User Lookup Email Address'),
+)
 ittyRouter.get('/event/:id', () => new Response('Event'))
 ittyRouter.get('/event/:id/comments', () => new Response('Event Comments'))
-ittyRouter.post('/event/:id/comments', () => new Response('POST Event Comments'))
+ittyRouter.post(
+  '/event/:id/comments',
+  () => new Response('POST Event Comments'),
+)
 ittyRouter.post('/status', () => new Response('Status'))
 ittyRouter.get(
   '/very/deeply/nested/route/hello/there',
-  () => new Response('Very Deeply Nested Route')
+  () => new Response('Very Deeply Nested Route'),
 )
 ittyRouter.get('/user/lookup/username/:username', ({ params }) => {
   return new Response(`Hello ${params.username}`, {
@@ -90,23 +102,43 @@ sunderApp.use(sunderRouter.middleware)
 // worktop
 const worktopRouter = new WorktopRouter()
 worktopRouter.add('GET', '/user', async (req, res) => res.send(200, 'User'))
-worktopRouter.add('GET', '/user/comments', (req, res) => res.send(200, 'User Comments'))
-worktopRouter.add('GET', '/user/avatar', (req, res) => res.send(200, 'User Avatar'))
-worktopRouter.add('GET', '/user/lookup/email/:address', (req, res) =>
-  res.send(200, 'User Lookup Email Address')
+worktopRouter.add(
+  'GET',
+  '/user/comments',
+  (req, res) => res.send(200, 'User Comments'),
+)
+worktopRouter.add(
+  'GET',
+  '/user/avatar',
+  (req, res) => res.send(200, 'User Avatar'),
+)
+worktopRouter.add(
+  'GET',
+  '/user/lookup/email/:address',
+  (req, res) => res.send(200, 'User Lookup Email Address'),
 )
 worktopRouter.add('GET', '/event/:id', (req, res) => res.send(200, 'Event'))
-worktopRouter.add('POST', '/event/:id/comments', (req, res) => res.send(200, 'POST Event Comments'))
-worktopRouter.add('POST', '/status', (req, res) => res.send(200, 'Status'))
-worktopRouter.add('GET', '/very/deeply/nested/route/hello/there', (req, res) =>
-  res.send(200, 'Very Deeply Nested Route')
+worktopRouter.add(
+  'POST',
+  '/event/:id/comments',
+  (req, res) => res.send(200, 'POST Event Comments'),
 )
-worktopRouter.add('GET', '/user/lookup/username/:username', (req, res) =>
-  res.send(200, `Hello ${req.params.username}`)
+worktopRouter.add('POST', '/status', (req, res) => res.send(200, 'Status'))
+worktopRouter.add(
+  'GET',
+  '/very/deeply/nested/route/hello/there',
+  (req, res) => res.send(200, 'Very Deeply Nested Route'),
+)
+worktopRouter.add(
+  'GET',
+  '/user/lookup/username/:username',
+  (req, res) => res.send(200, `Hello ${req.params.username}`),
 )
 
 // Request Object
-const request = new Request('http://localhost/user/lookup/username/hey', { method: 'GET' })
+const request = new Request('http://localhost/user/lookup/username/hey', {
+  method: 'GET',
+})
 
 makeEdgeEnv()
 

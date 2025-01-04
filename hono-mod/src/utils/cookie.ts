@@ -30,20 +30,33 @@ export type CookiePrefixOptions = 'host' | 'secure'
 
 export type CookieConstraint<Name> = Name extends `__Secure-${string}`
   ? CookieOptions & SecureCookieConstraint
-  : Name extends `__Host-${string}`
-  ? CookieOptions & HostCookieConstraint
+  : Name extends `__Host-${string}` ? CookieOptions & HostCookieConstraint
   : CookieOptions
 
 const algorithm = { name: 'HMAC', hash: 'SHA-256' }
 
-const getCryptoKey = async (secret: string | BufferSource): Promise<CryptoKey> => {
-  const secretBuf = typeof secret === 'string' ? new TextEncoder().encode(secret) : secret
-  return await crypto.subtle.importKey('raw', secretBuf, algorithm, false, ['sign', 'verify'])
+const getCryptoKey = async (
+  secret: string | BufferSource,
+): Promise<CryptoKey> => {
+  const secretBuf = typeof secret === 'string'
+    ? new TextEncoder().encode(secret)
+    : secret
+  return await crypto.subtle.importKey('raw', secretBuf, algorithm, false, [
+    'sign',
+    'verify',
+  ])
 }
 
-const makeSignature = async (value: string, secret: string | BufferSource): Promise<string> => {
+const makeSignature = async (
+  value: string,
+  secret: string | BufferSource,
+): Promise<string> => {
   const key = await getCryptoKey(secret)
-  const signature = await crypto.subtle.sign(algorithm.name, key, new TextEncoder().encode(value))
+  const signature = await crypto.subtle.sign(
+    algorithm.name,
+    key,
+    new TextEncoder().encode(value),
+  )
   // the returned base64 encoded signature will always be 44 characters long and end with one or two equal signs
   return btoa(String.fromCharCode(...new Uint8Array(signature)))
 }
@@ -51,7 +64,7 @@ const makeSignature = async (value: string, secret: string | BufferSource): Prom
 const verifySignature = async (
   base64Signature: string,
   value: string,
-  secret: CryptoKey
+  secret: CryptoKey,
 ): Promise<boolean> => {
   try {
     const signatureBinStr = atob(base64Signature)
@@ -59,7 +72,12 @@ const verifySignature = async (
     for (let i = 0, len = signatureBinStr.length; i < len; i++) {
       signature[i] = signatureBinStr.charCodeAt(i)
     }
-    return await crypto.subtle.verify(algorithm, secret, signature, new TextEncoder().encode(value))
+    return await crypto.subtle.verify(
+      algorithm,
+      secret,
+      signature,
+      new TextEncoder().encode(value),
+    )
   } catch {
     return false
   }
@@ -91,7 +109,9 @@ export const parse = (cookie: string, name?: string): Cookie => {
     }
 
     const cookieName = pairStr.substring(0, valueStartPos).trim()
-    if ((name && name !== cookieName) || !validCookieNameRegEx.test(cookieName)) {
+    if (
+      (name && name !== cookieName) || !validCookieNameRegEx.test(cookieName)
+    ) {
       continue
     }
 
@@ -113,7 +133,7 @@ export const parse = (cookie: string, name?: string): Cookie => {
 export const parseSigned = async (
   cookie: string,
   secret: string | BufferSource,
-  name?: string
+  name?: string,
 ): Promise<SignedCookie> => {
   const parsedCookie: SignedCookie = {}
   const secretKey = await getCryptoKey(secret)
@@ -137,7 +157,11 @@ export const parseSigned = async (
   return parsedCookie
 }
 
-const _serialize = (name: string, value: string, opt: CookieOptions = {}): string => {
+const _serialize = (
+  name: string,
+  value: string,
+  opt: CookieOptions = {},
+): string => {
   let cookie = `${name}=${value}`
 
   if (name.startsWith('__Secure-') && !opt.secure) {
@@ -167,7 +191,7 @@ const _serialize = (name: string, value: string, opt: CookieOptions = {}): strin
       // FIXME: replace link to RFC
       // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis-13#section-4.1.2.2
       throw new Error(
-        'Cookies Max-Age SHOULD NOT be greater than 400 days (34560000 seconds) in duration.'
+        'Cookies Max-Age SHOULD NOT be greater than 400 days (34560000 seconds) in duration.',
       )
     }
     cookie += `; Max-Age=${opt.maxAge | 0}`
@@ -186,7 +210,7 @@ const _serialize = (name: string, value: string, opt: CookieOptions = {}): strin
       // FIXME: replace link to RFC
       // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis-13#section-4.1.2.1
       throw new Error(
-        'Cookies Expires SHOULD NOT be greater than 400 days (34560000 seconds) in the future.'
+        'Cookies Expires SHOULD NOT be greater than 400 days (34560000 seconds) in the future.',
       )
     }
     cookie += `; Expires=${opt.expires.toUTCString()}`
@@ -201,7 +225,9 @@ const _serialize = (name: string, value: string, opt: CookieOptions = {}): strin
   }
 
   if (opt.sameSite) {
-    cookie += `; SameSite=${opt.sameSite.charAt(0).toUpperCase() + opt.sameSite.slice(1)}`
+    cookie += `; SameSite=${
+      opt.sameSite.charAt(0).toUpperCase() + opt.sameSite.slice(1)
+    }`
   }
 
   if (opt.partitioned) {
@@ -219,7 +245,7 @@ const _serialize = (name: string, value: string, opt: CookieOptions = {}): strin
 export const serialize = <Name extends string>(
   name: Name,
   value: string,
-  opt?: CookieConstraint<Name>
+  opt?: CookieConstraint<Name>,
 ): string => {
   value = encodeURIComponent(value)
   return _serialize(name, value, opt)
@@ -229,7 +255,7 @@ export const serializeSigned = async (
   name: string,
   value: string,
   secret: string | BufferSource,
-  opt: CookieOptions = {}
+  opt: CookieOptions = {},
 ): Promise<string> => {
   const signature = await makeSignature(value, secret)
   value = `${value}.${signature}`

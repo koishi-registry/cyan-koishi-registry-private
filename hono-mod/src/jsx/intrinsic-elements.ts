@@ -149,16 +149,32 @@ export namespace JSX {
     onChangeCapture?: (event: Event) => void
   }
 
-  export interface HTMLAttributes extends JSXAttributes, EventAttributes, AnyAttributes {
+  export interface HTMLAttributes
+    extends JSXAttributes, EventAttributes, AnyAttributes {
     accesskey?: string | undefined
-    autocapitalize?: 'off' | 'none' | 'on' | 'sentences' | 'words' | 'characters' | undefined
+    autocapitalize?:
+      | 'off'
+      | 'none'
+      | 'on'
+      | 'sentences'
+      | 'words'
+      | 'characters'
+      | undefined
     autofocus?: boolean | undefined
     class?: string | Promise<string> | undefined
     contenteditable?: boolean | 'inherit' | undefined
     contextmenu?: string | undefined
     dir?: string | undefined
     draggable?: 'true' | 'false' | boolean | undefined
-    enterkeyhint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | undefined
+    enterkeyhint?:
+      | 'enter'
+      | 'done'
+      | 'go'
+      | 'next'
+      | 'previous'
+      | 'search'
+      | 'send'
+      | undefined
     hidden?: boolean | undefined
     id?: string | undefined
     inert?: boolean | undefined
@@ -203,7 +219,9 @@ export namespace JSX {
     | 'strict-origin-when-cross-origin'
     | 'unsafe-url'
 
-  type HTMLAttributeAnchorTarget = StringLiteralUnion<'_self' | '_blank' | '_parent' | '_top'>
+  type HTMLAttributeAnchorTarget = StringLiteralUnion<
+    '_self' | '_blank' | '_parent' | '_top'
+  >
 
   interface AnchorHTMLAttributes extends HTMLAttributes {
     download?: string | boolean | undefined
@@ -446,7 +464,9 @@ export namespace JSX {
   type AutoFillSection = `section-${string}`
   type AutoFill =
     | AutoFillBase
-    | `${OptionalPrefixToken<AutoFillSection>}${OptionalPrefixToken<AutoFillAddressKind>}${AutoFillField}${OptionalPostfixToken<AutoFillCredentialField>}`
+    | `${OptionalPrefixToken<AutoFillSection>}${OptionalPrefixToken<
+      AutoFillAddressKind
+    >}${AutoFillField}${OptionalPostfixToken<AutoFillCredentialField>}`
 
   interface InputHTMLAttributes extends HTMLAttributes {
     accept?: string | undefined
@@ -679,7 +699,9 @@ export namespace JSX {
     /**
      * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type
      */
-    type?: StringLiteralUnion<'' | 'text/javascript' | 'importmap' | 'module'> | undefined
+    type?:
+      | StringLiteralUnion<'' | 'text/javascript' | 'importmap' | 'module'>
+      | undefined
 
     // React 19 compatibility
     crossOrigin?: CrossOrigin
@@ -702,7 +724,9 @@ export namespace JSX {
     value?: string | ReadonlyArray<string> | number | undefined
   }
 
-  type MediaMime = BaseMime & (`image/${string}` | `audio/${string}` | `video/${string}`)
+  type MediaMime =
+    & BaseMime
+    & (`image/${string}` | `audio/${string}` | `video/${string}`)
   interface SourceHTMLAttributes extends HTMLAttributes {
     height?: number | string | undefined
     media?: string | undefined

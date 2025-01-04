@@ -1,5 +1,8 @@
 import { toSSG as baseToSSG } from '../../helper/ssg/index'
-import type { FileSystemModule, ToSSGAdaptorInterface } from '../../helper/ssg/index'
+import type {
+  FileSystemModule,
+  ToSSGAdaptorInterface,
+} from '../../helper/ssg/index'
 
 /**
  * @experimental
@@ -8,8 +11,9 @@ import type { FileSystemModule, ToSSGAdaptorInterface } from '../../helper/ssg/i
  */
 export const denoFileSystemModule: FileSystemModule = {
   writeFile: async (path, data) => {
-    const uint8Data =
-      typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data)
+    const uint8Data = typeof data === 'string'
+      ? new TextEncoder().encode(data)
+      : new Uint8Array(data)
     await Deno.writeFile(path, uint8Data)
   },
   mkdir: async (path, options) => {

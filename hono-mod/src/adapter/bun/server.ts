@@ -17,7 +17,7 @@ export interface BunServer {
     req: Request,
     options?: {
       data: T
-    }
+    },
   ): boolean
 }
 
