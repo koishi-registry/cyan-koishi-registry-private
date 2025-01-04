@@ -19,7 +19,7 @@ declare module 'cordis' {
   }
 }
 
-type WebSocketCallback = (socket: WebSocket, wsContext: WSContext) => void
+export type WebSocketCallback = (socket: WebSocket, wsContext: WSContext) => void
 
 export class Server extends Hono {
   override router: TrieRouter<
@@ -90,9 +90,9 @@ export class Server extends Hono {
     const self = this
 
     ctx.on('internal/listener', function (name: string, listener: Function) {
-      // deno-lint-ignore no-explicit-any
       if (
-        name !== 'server/ready' || !(self as any)[Context.filter]?.(this) ||
+      // deno-lint-ignore no-explicit-any
+        name !== 'server/ready' || (self as any)[Context.filter]?.(this) ||
         !self.port
       ) return
       listener()
@@ -100,14 +100,14 @@ export class Server extends Hono {
     })
   }
 
-  ws(path: string, callback?: WebSocketCallback) {
+  ws(path: string, callback: WebSocketCallback) {
     this.get(
       path,
       upgradeWebSocket((_c) => {
         return {
           onOpen: (_, wsContext) => {
             this.ctx.on('dispose', () => wsContext.close())
-            callback?.(wsContext.raw!, wsContext)
+            callback(wsContext.raw!, wsContext)
           },
         }
       }),

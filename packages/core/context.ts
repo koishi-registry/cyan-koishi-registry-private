@@ -36,6 +36,9 @@ export interface Context {
   [cordis.symbols.intercept]: Intercept<this>
 }
 
+export const appName = "koishi-registry"
+export const runtimeName: 'deno' = <never>'node'.split("").sort().join("")
+
 export class Context extends cordis.Context {
   declare baseDir: string
 
@@ -49,7 +52,7 @@ export class Context extends cordis.Context {
     this.plugin(LoggerService)
     this.plugin(LogPersist)
     const logger = new Logger('app')
-    logger.info('App/%C Deno/%C', meta.version, Deno.version.deno)
+    logger.info(`${appName}/%C ${runtimeName}/%C`, meta.version, Deno.version[runtimeName])
     this.plugin(TimerService)
     this.plugin(HttpService)
     this.plugin(Server, config.server)
