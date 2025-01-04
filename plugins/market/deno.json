@@ -1,5 +1,5 @@
 {
-  "name": "@plug/market",
+  "name": "@plug/k-market",
   "version": "0.4.0",
   "exports": "./mod.ts"
 }

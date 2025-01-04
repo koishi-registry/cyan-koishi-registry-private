@@ -4,7 +4,7 @@ import type { Features } from '@plug/k-registry'
 import type { KoishiMarket } from '@plug/k-registry/types'
 
 export const inject = [
-  'hono',
+  'server',
   'koishi',
   'koishi.generator',
   'koishi.analyzer',
@@ -12,7 +12,9 @@ export const inject = [
 ]
 
 export function apply(ctx: Context) {
-  ctx.hono.on('GET', ['/', '/index.json'], async (c) => {
+  const logger = ctx.logger('k-market')
+  logger.info('source is available at %c', ctx.server.selfUrl + '/index.json')
+  ctx.server.on('GET', ['/', '/index.json'], async (c) => {
     const result = await ctx.koishi.generator.getObjects()
     return c.json(
       {
