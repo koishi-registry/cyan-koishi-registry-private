@@ -75,7 +75,7 @@ const styles = computed(() => ({
 
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 .layout-container {
   position: fixed;

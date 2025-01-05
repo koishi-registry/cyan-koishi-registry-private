@@ -1,0 +1,3 @@
+[submodule "cordis"]
+	path = cordis
+	url = https://github.com/cordenoverse/cordis
