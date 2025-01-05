@@ -1,8 +1,8 @@
-import { Ref, ref, shallowReactive } from 'vue'
-import { Context } from '../context'
+import { type Ref, ref, shallowReactive } from 'vue'
+import type { Context } from '../context'
 import { Service } from '../utils'
-import { EffectScope } from 'cordis'
-import { defineProperty, Dict } from 'cosmokit'
+import type { EffectScope } from 'cordis'
+import { defineProperty, type Dict } from 'cosmokit'
 import { clientId } from '../data'
 
 declare module '../context' {
@@ -44,13 +44,13 @@ defineProperty(jsLoader, 'reusable', true)
 defineProperty(cssLoader, 'reusable', true)
 
 const loaders: Dict<LoaderFactory> = {
-  async [`.css`](ctx, url) {
+  async [`.css`](ctx: Context, url: string) {
     const link = document.createElement('link')
     link.rel = 'stylesheet'
     link.href = url
     return ctx.plugin(cssLoader, link as any)
   },
-  async [``](ctx, url) {
+  async [``](ctx: Context, url: string) {
     const exports = await import(/* @vite-ignore */ url)
     return ctx.plugin(jsLoader, exports)
   },
@@ -68,7 +68,7 @@ export default class LoaderService extends Service {
 
   public entries: Dict<LoadState> = shallowReactive({})
 
-  constructor(ctx: Context) {
+  constructor(public ctx: Context) {
     super(ctx, '$loader')
 
     ctx.on('entry:update', ({ id, data }) => {
@@ -99,7 +99,7 @@ export default class LoaderService extends Service {
       const { serverId, entries } = value
       clientId.value = value.clientId
       if (this.id && serverId && this.id !== serverId as unknown) {
-        return window.location.reload()
+        return globalThis.location.reload()
       }
       this.id = serverId
 

@@ -1,4 +1,4 @@
-import { Context } from '@p/core'
+import type { Context } from '@p/core'
 import { Storage } from '@p/storage'
 
 declare module '@p/storage' {

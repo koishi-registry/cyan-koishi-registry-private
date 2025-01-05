@@ -1,20 +1,20 @@
 import * as cordis from 'cordis'
 import type { ClientEvents } from '@web/plug-webui'
 import {
-  App,
-  Component,
+  type App,
+  type Component,
   createApp,
   customRef,
-  DefineComponent,
+  type DefineComponent,
   defineComponent,
   h,
   inject,
-  InjectionKey,
+  type InjectionKey,
   markRaw,
   onErrorCaptured,
   onScopeDispose,
   provide,
-  Ref,
+  type Ref,
   ref,
   resolveComponent,
 } from 'vue'
@@ -114,8 +114,8 @@ export class Context extends cordis.Context {
     options?: boolean | AddEventListenerOptions,
   ) {
     return this.effect(() => {
-      window.addEventListener(type, listener, options)
-      return () => window.removeEventListener(type, listener, options)
+      globalThis.addEventListener(type, listener, options)
+      return () => globalThis.removeEventListener(type, listener, options)
     })
   }
 
@@ -126,7 +126,7 @@ export class Context extends cordis.Context {
     if (!this.$entry) return component
     return markRaw(defineComponent((props, { slots }) => {
       provide(kContext, this)
-      onErrorCaptured((e, instance, info) => {
+      onErrorCaptured((_e, _instance, _info) => {
         return this.scope.uid !== null
       })
       return () => h(component, props, slots)

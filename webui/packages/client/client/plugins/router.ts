@@ -1,16 +1,22 @@
 import {
   createRouter,
   createWebHistory,
-  RouteLocation,
+  type RouteLocation,
   START_LOCATION,
 } from 'vue-router'
-import { Context } from '../context'
+import type { Context } from '../context'
 import { insert, Service } from '../utils'
-import { Component, MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
+import {
+  type Component,
+  type MaybeRefOrGetter,
+  reactive,
+  ref,
+  toValue,
+} from 'vue'
 import { global } from '../data'
-import { Dict, omit, remove } from 'cosmokit'
-import { Disposable } from 'cordis'
-import { SlotOptions } from '../components'
+import { type Dict, omit, remove } from 'cosmokit'
+import type { Disposable } from 'cordis'
+import type { SlotOptions } from '../components'
 
 declare module 'vue-router' {
   interface RouteMeta {

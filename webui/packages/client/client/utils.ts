@@ -1,6 +1,6 @@
 import { getCurrentScope, markRaw, onScopeDispose } from 'vue'
 import * as cordis from 'cordis'
-import { Context } from './context'
+import type { Context } from './context'
 
 export abstract class Service<C extends Context = Context>
   extends cordis.Service<C> {}

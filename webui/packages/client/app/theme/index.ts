@@ -1,4 +1,4 @@
-import { Context, useConfig } from '@web/client'
+import { type Context, useConfig } from '@web/client'
 import { useRouter } from 'vue-router'
 import App from './index.vue'
 

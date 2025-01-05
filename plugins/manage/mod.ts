@@ -1,4 +1,4 @@
-import { Context } from '@p/core'
+import type { Context } from '@p/core'
 import { bearerAuth } from 'hono/bearer-auth'
 import { verify } from 'paseto-ts/v4'
 import type {} from '@plug/koishi'

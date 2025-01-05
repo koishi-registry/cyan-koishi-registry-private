@@ -1,6 +1,6 @@
-import { Context } from '@p/core'
+import type { Context } from '@p/core'
 import { Service } from 'cordis'
-import { Awaitable } from 'cosmokit'
+import type { Awaitable } from 'cosmokit'
 
 export abstract class Storage extends Service {
   protected constructor(ctx: Context, name: string) {

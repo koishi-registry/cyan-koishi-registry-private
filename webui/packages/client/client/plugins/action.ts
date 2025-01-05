@@ -1,14 +1,14 @@
 import {
   markRaw,
-  MaybeRefOrGetter,
+  type MaybeRefOrGetter,
   reactive,
   shallowReactive,
   toValue,
 } from 'vue'
-import { Context, useContext } from '../context'
-import { Dict, Intersect, remove } from 'cosmokit'
+import { type Context, useContext } from '../context'
+import { type Dict, type Intersect, remove } from 'cosmokit'
 import { insert, Service } from '../utils'
-import { ActionContext } from '..'
+import type { ActionContext } from '..'
 
 declare module '../context' {
   interface Context {

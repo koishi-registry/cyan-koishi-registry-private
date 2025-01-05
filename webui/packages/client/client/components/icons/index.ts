@@ -1,4 +1,11 @@
-import { App, Component, defineComponent, h, markRaw, reactive } from 'vue'
+import {
+  type App,
+  type Component,
+  defineComponent,
+  h,
+  markRaw,
+  reactive,
+} from 'vue'
 import ActivityDefault from './activity/default.vue'
 import ActivityEllipsis from './activity/ellipsis.vue'
 import ActivityHome from './activity/home.vue'

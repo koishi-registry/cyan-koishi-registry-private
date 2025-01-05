@@ -1,7 +1,7 @@
 import { watchEffect } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { useConfig } from './setting'
-import { Context } from '../context'
+import type { Context } from '../context'
 import { Service } from '../utils'
 
 declare module '../context' {

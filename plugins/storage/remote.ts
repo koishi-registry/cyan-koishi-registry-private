@@ -30,7 +30,7 @@ export class StorageRemoteStorage extends Storage {
     throw new Error('Not implemented')
   }
 
-  override setRaw(_key: string, value: string): void {
+  override setRaw(_key: string, _value: string): void {
     throw new Error('Not implemented')
   }
 

@@ -68,8 +68,8 @@ export type EventBodyOf<T extends Record<string, any>> = {
 
 type Stringify<T> = T extends string ? T : never
 
-// deno-lint-ignore no-explicit-any
 export type RequestBodyOf<
+  // deno-lint-ignore no-explicit-any
   T extends Record<K, any>,
   K extends string = Stringify<keyof T>,
 > = {
@@ -80,8 +80,8 @@ export type RequestBodyOf<
   }
 }
 
-// deno-lint-ignore no-explicit-any
 export type ResponseBodyOf<
+  // deno-lint-ignore no-explicit-any
   T extends Record<K, any>,
   K extends string = Stringify<keyof T>,
 > = {

@@ -1,7 +1,7 @@
 import type { ClientConfig, Events, WebSocket } from '@cordisjs/plugin-webui'
 import type { Promisify } from 'cosmokit'
 import { markRaw, ref } from 'vue'
-import { Context } from './context'
+import type { Context } from './context'
 import { root } from '.'
 
 declare const CLIENT_CONFIG: ClientConfig

@@ -2,9 +2,16 @@ import { type Context, Service } from '@p/core'
 import { Schema } from '@cordisjs/plugin-schema'
 import trimEnd from 'lodash.trimend'
 import type { Awaitable, Dict } from 'cosmokit'
-import { compare, parse, parseRange, Range, rangeIntersects } from '@std/semver'
+import {
+  compare,
+  parse,
+  parseRange,
+  type Range,
+  rangeIntersects,
+} from '@std/semver'
 import { Ensure, type RemotePackage } from '@koishijs/registry'
 import type { KoishiMarket, NpmRegistry } from './types.ts'
+import type {} from '@plug/koishi'
 import { type Features, SimpleAnalyzer } from '@plug/k-analyzer'
 import type CacheService from '@plug/cache'
 import type { Caches } from '@plug/cache'
@@ -41,7 +48,7 @@ export function shortnameOf(name: string) { // get shortname of a koishi plugin 
   )
 }
 
-declare module './types.ts' {
+declare module '@plug/koishi' {
   export interface Koishi {
     generator: RegistryGenerator
     meta: KoishiMeta
@@ -65,7 +72,7 @@ declare module '@p/core' {
   }
 }
 
-declare module '../cache.ts' {
+declare module '@plug/cache' {
   interface Caches {
     koishi: {
       registry: {
@@ -359,7 +366,7 @@ export class RegistryGenerator extends Service {
     const meta = versions[versions.length - 1]
 
     const links: Dict<string> = {
-      npm: `${this.options.npmURL}/${packageName}`,
+      npm: `${this.options.npmURL}/package/${packageName}`,
     }
 
     if (pack?.bugs?.url) {

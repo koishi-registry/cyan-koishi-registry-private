@@ -1,5 +1,5 @@
-import type { CommunicationService } from '../mod.ts'
-import { Awaitable } from 'cosmokit'
+import type {} from '../mod.ts'
+import type { Awaitable } from 'cosmokit'
 
 export type Handler = (message: unknown, handle?: unknown) => Awaitable<void>
 

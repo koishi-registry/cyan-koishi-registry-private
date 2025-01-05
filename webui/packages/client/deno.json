@@ -4,6 +4,7 @@
   "exports": {
     "./lib": "./mod.ts",
     ".": "./client/index.ts",
+    "./global": "./global.d.ts",
     "./deno.json": "./deno.json"
   },
   "imports": {
@@ -24,6 +25,21 @@
     "xss": "npm:xss@^1.0.15"
   },
   "compilerOptions": {
-    "types": ["@web/client/global"]
+    "types": ["@web/client/global"],
+    "lib": ["ES2022", "DOM"]
+  },
+  "unstable": ["sloppy-imports"],
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-namespace",
+        "ban-types",
+        "no-slow-types",
+        "no-explicit-any",
+        "require-await",
+        "no-sloppy-imports",
+        "no-empty-interface"
+      ]
+    }
   }
 }

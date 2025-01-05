@@ -1,4 +1,4 @@
-import { App } from 'vue'
+import type { App } from 'vue'
 import Card from './card.vue'
 import Content from './content.vue'
 import Empty from './empty.vue'

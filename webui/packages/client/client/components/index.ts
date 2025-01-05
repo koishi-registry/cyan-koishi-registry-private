@@ -1,4 +1,4 @@
-import { App } from 'vue'
+import type { App } from 'vue'
 import Markdown from 'marked-vue'
 import components from '../../../components/client/index.ts'
 

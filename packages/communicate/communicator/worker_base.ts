@@ -1,4 +1,4 @@
-import { Handler } from './base.ts'
+import type { Handler } from './base.ts'
 
 declare global {
   interface Window {

@@ -1,4 +1,4 @@
-import { App, defineComponent, h } from 'vue'
+import { type App, defineComponent, h } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useContext } from '../context'
 

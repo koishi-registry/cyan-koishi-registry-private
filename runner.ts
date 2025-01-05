@@ -7,6 +7,7 @@ import { CommunicationService } from './packages/communicate/mod.ts'
 import { ChildProcess } from 'node:child_process'
 import { noop } from 'cosmokit'
 
+// This make sure Vite is happy.
 await run(Deno.execPath(), 'i', '--node-modules-dir=auto').toStdout()
 
 const PING_TIMEOUT = 10000
@@ -58,12 +59,12 @@ function createWorker() {
 
   cp.on('exit', (code, signal) => {
     if (shouldExit(code, signal)) {
-      Deno.exit(code)
+      Deno.exit(code ?? void 0)
     }
     createWorker()
   })
 
-  let dispose: () => void | null = app.setInterval(async () => {
+  let dispose: (() => void) | null = app.setInterval(async () => {
     const promise = new Promise((resolve) => {
       fork.call('ping')
         .then(resolve)

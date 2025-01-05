@@ -1,4 +1,4 @@
-import { Context } from '@web/client'
+import type { Context } from '@web/client'
 import Home from './home.vue'
 
 export default function (ctx: Context) {

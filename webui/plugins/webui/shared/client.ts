@@ -1,4 +1,4 @@
-import { type Context } from 'cordis'
+import type { Context } from 'cordis'
 import { Logger } from '@cordisjs/plugin-logger'
 import type { WebSocket } from './types.ts'
 import { mapValues } from 'cosmokit'

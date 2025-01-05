@@ -1,5 +1,11 @@
 import { useContext } from '../context'
-import { App, Component, DefineComponent, defineComponent, h } from 'vue'
+import {
+  type App,
+  type Component,
+  type DefineComponent,
+  defineComponent,
+  h,
+} from 'vue'
 
 export interface SlotItem {
   order?: number
@@ -50,7 +56,7 @@ const KSlotItem = defineComponent({
   props: {
     order: Number,
   },
-  setup(props, { slots }) {
+  setup(_props, { slots }) {
     return () => slots.default?.()
   },
 })

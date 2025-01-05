@@ -1,9 +1,9 @@
-import { Context } from '@p/core'
+import type { Context } from '@p/core'
 import { Schema } from '@cordisjs/plugin-schema'
 import { join, resolve } from '@std/path'
 import { ensureDirSync, walkSync } from '@std/fs'
 import Logger from 'reggol'
-import { Dict, noop, remove, Time } from 'cosmokit'
+import { type Dict, noop, remove, Time } from 'cosmokit'
 import { createRegExp, digit, oneOrMore } from 'magic-regexp'
 
 export const name = 'logging-persist'

@@ -1,4 +1,4 @@
-import { App } from 'vue'
+import type { App } from 'vue'
 import Button from './k-button.vue'
 import Hint from './k-hint.vue'
 import Tab from './k-tab.vue'

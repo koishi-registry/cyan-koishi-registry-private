@@ -1,6 +1,6 @@
 import { parse, parseRange, satisfies } from '@std/semver'
 import { HTTP } from '@cordisjs/plugin-http'
-import { Context, Service } from '@p/core'
+import { type Context, Service } from '@p/core'
 import trim from 'lodash.trim'
 import trimEnd from 'lodash.trimend'
 import { Schema } from '@cordisjs/plugin-schema'

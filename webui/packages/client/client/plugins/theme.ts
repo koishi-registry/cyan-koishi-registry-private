@@ -1,17 +1,9 @@
-import { Dict } from 'cosmokit'
+import type { Dict } from 'cosmokit'
 import { Schema } from '@web/components'
-import { Context } from '../context'
-import {
-  Component,
-  computed,
-  markRaw,
-  reactive,
-  Ref,
-  ref,
-  watchEffect,
-} from 'vue'
+import type { Context } from '../context'
+import { type Component, computed, markRaw, reactive, watchEffect } from 'vue'
 import { useConfig } from './setting'
-import { Service, tryOnScopeDispose } from '../utils'
+import { Service } from '../utils'
 import { usePreferredDark } from '@vueuse/core'
 
 declare module '../context' {
@@ -89,7 +81,7 @@ export default class ThemeService extends Service {
     ctx.effect(() =>
       watchEffect(() => {
         if (!config.value.theme) return
-        const root = window.document.querySelector('html')!
+        const root = globalThis.document.querySelector('html')!
         root.setAttribute('theme', config.value.theme[colorMode.value])
         if (colorMode.value === 'dark') {
           root.classList.add('dark')
