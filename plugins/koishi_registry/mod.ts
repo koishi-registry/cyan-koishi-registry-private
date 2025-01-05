@@ -11,6 +11,7 @@ import {
 } from '@std/semver'
 import { Ensure, type RemotePackage } from '@koishijs/registry'
 import type { KoishiMarket, NpmRegistry } from './types.ts'
+import type {} from '@plug/npm'
 import type {} from '@plug/koishi'
 import { type Features, SimpleAnalyzer } from '@plug/k-analyzer'
 import type CacheService from '@plug/cache'

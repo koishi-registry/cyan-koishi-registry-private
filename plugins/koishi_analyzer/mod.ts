@@ -13,7 +13,7 @@ declare module '@plug/koishi' {
   }
 }
 
-declare module 'cordis' {
+declare module '@p/core' {
   export interface Events {
     'analyzer/is-insecure'(
       context: AnalyzerContext,
