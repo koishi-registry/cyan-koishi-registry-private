@@ -10,6 +10,7 @@
 *.swp
 
 ### Koishi Registry
-cache/
-data/
+/cache/
+/data/
+deno.lock
 !/webui/packages/
