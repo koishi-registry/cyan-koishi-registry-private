@@ -12,7 +12,7 @@
         <span></span>
       </div>
     </div>
-    <div class="left font-bold mb-2 text-2xl">
+    <div class="left">
       <slot name="left">{{ route.name }}</slot>
     </div>
     <div class="right">

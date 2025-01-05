@@ -286,7 +286,8 @@ class DenoWebUI extends WebUI {
           )
         )
         req.method = c.req.method
-        req.url = c.req.path
+        const url = new URL(c.req.url)
+        req.url = url.pathname + url.search
         req.headers = Object.fromEntries(c.req.raw.headers.entries())
         this.vite.middlewares(req, res, next)
       })

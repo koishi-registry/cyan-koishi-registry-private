@@ -1,5 +1,7 @@
 import { Context } from 'cordis'
 import { delay } from '@std/async'
+import { ensureSymlink } from '@std/fs'
+import { resolve, join } from '@std/path'
 import TimerService from '@cordisjs/plugin-timer'
 import LoggerService from '@cordisjs/plugin-logger'
 import { run } from 'https://deno.land/x/proc@0.22.1/mod.ts'
@@ -17,6 +19,34 @@ const app = new Context()
 
 await app.plugin(TimerService)
 await app.plugin(LoggerService)
+
+async function linkPackage(meta_path: string) {
+  const { default: meta } = await import(
+    meta_path,
+    { with: { type: 'json' } }
+    )
+  if (!meta.name) return false
+
+  await ensureSymlink(
+    Deno.lstatSync(meta_path).isDirectory ? meta_path : join(meta_path, ".."),
+    resolve('node_modules/', meta.name),
+  ).catch(noop)
+  return true
+}
+
+export async function linkPackagesFrom(directory: string, metaFile: string = 'deno.json') {
+  await Promise.all(await Array.fromAsync(Deno.readDir(directory))
+    .then(
+      entries => entries.map(entry => linkPackage(resolve(directory, entry.name, metaFile)))
+    )
+  )
+}
+
+await linkPackagesFrom('packages/')
+await linkPackagesFrom('plugins/')
+await linkPackagesFrom(join("webui/packages"))
+await linkPackagesFrom(join("webui/plugins"))
+await linkPackagesFrom('cordis/packages', 'package.json')
 
 await new Promise<void>((resolve) => {
   app.plugin(CommunicationService).then(resolve)

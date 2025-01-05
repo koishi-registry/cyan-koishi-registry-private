@@ -11,7 +11,6 @@
     "@std/semver": "jsr:@std/semver@^1.0.3",
     "avsc": "npm:avsc@^5.7.7",
     "bson": "npm:bson@^6.10.1",
-    "cordis": "npm:cordis@4.0.0-alpha.0",
     "cosmokit": "npm:cosmokit@^1.6.3",
     "inaba": "npm:inaba@^1.1.1",
     "lodash.merge": "npm:lodash.merge@^4.6.2",

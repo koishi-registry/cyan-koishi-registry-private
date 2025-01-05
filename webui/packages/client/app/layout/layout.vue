@@ -4,7 +4,7 @@
       <slot name="left"></slot>
     </aside>
 
-    <div class="main-container m-3">
+    <div class="main-container">
       <div class="aside-mask" @click="isLeftAsideOpen = !isLeftAsideOpen"></div>
       <layout-header
           v-model:isLeftAsideOpen="isLeftAsideOpen"
@@ -31,7 +31,7 @@
           </slot>
         </template>
       </layout-header>
-      <main class="layout-main" :class="main">
+      <main class="layout-main rd-2xl" :class="main">
         <slot></slot>
       </main>
     </div>
@@ -89,6 +89,10 @@ const styles = computed(() => ({
   transition: var(--color-transition);
   display: flex;
   flex-direction: row;
+
+  .layout-header {
+
+  }
 
   .layout-aside {
     top: 0;
