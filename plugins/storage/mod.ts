@@ -1,8 +1,10 @@
 import { type Context, Service, symbols } from 'cordis'
 import type { Awaitable } from 'cosmokit'
 import type { Storage } from '@p/storage'
+import StorageLocalStorage from "./localstorage.ts";
+import StorageRemoteStorage from "./remote.ts";
 
-declare module 'cordis' {
+declare module '@p/core' {
   export interface Context {
     storage: StorageService
   }
@@ -15,6 +17,15 @@ export class StorageService extends Service {
   ) {
     ctx.provide(`storage`, undefined, true)
     super(ctx, `storage`)
+
+    const ctx1 = ctx.isolate('storage')
+
+    const scope1 = ctx1.plugin(StorageLocalStorage)
+    const scope2 = ctx1.plugin(StorageRemoteStorage)
+    ctx.on('dispose', () => {
+      scope1.dispose()
+      scope2.dispose()
+    })
   }
 
   get provider(): Storage {

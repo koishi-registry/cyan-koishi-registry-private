@@ -713,12 +713,6 @@ export class NpmProvider extends Service {
   }
 }
 
-export class Koishi extends Service {
-  constructor(ctx: Context) {
-    super(ctx, 'koishi')
-  }
-}
-
 export const name = 'koishi-registry'
 
 export interface Config {
@@ -738,7 +732,6 @@ export const Config: Schema = Schema.intersect([
 export function apply(ctx: Context, config: Config) {
   // if (!ctx.get('koishi.analyzer'))
   //     ctx.plugin(SimpleAnalyzer)
-  ctx.plugin(Koishi)
   ctx.plugin(RegistryGenerator, config.generator)
   ctx.plugin(KoishiMeta, config.registry)
   ctx.inject(['npm'], (ctx) => {

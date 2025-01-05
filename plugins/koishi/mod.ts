@@ -2,7 +2,7 @@ import { type Context, Service } from '@p/core'
 
 declare module '@p/core' {
   export interface Context {
-    koishi: Mod
+    koishi: Koishi
   }
 }
 

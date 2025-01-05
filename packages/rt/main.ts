@@ -1,6 +1,7 @@
 import { Context } from '@p/core'
 import NpmSynchronizer from '@plug/npm'
 // import Logger from 'reggol'
+import Koishi from '@plug/koishi'
 import * as KoishiRegistry from '@plug/k-registry'
 import * as API from '@plug/api'
 import * as MarketEndpoints from '@plug/k-market'
@@ -23,6 +24,7 @@ export const app = new Context({
 })
 await app.plugin(WebUI)
 app.plugin(SimpleAnalyzer) // analyzer is required for KoishiRegistry
+app.plugin(Koishi)
 app.plugin(KoishiRegistry, {
   generator: {
     refreshInterval: 60 * 60,

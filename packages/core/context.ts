@@ -129,7 +129,7 @@ export class AppInfo {
   async check(ctx: Context): Promise<Updated> {
     try {
       const current = this.version
-      const original = await ctx.storage.getRaw('version')
+      const original = await ctx.storage.get('version')
       if (original === null) {
         ctx.logger.info('updated to %c', format(current))
         this.previous = parse('0.0.1')
@@ -144,7 +144,7 @@ export class AppInfo {
       } else return Updated.None
     } finally {
       this.ctx.inject(['storage'], async (ctx) => {
-        await ctx.storage.setRaw('version', meta.version)
+        await ctx.storage.set('version', meta.version)
       })
     }
   }
@@ -160,8 +160,4 @@ export namespace Context {
   })
 }
 
-export abstract class Service<C extends Context = Context>
-  extends cordis.Service<C> {
-  declare protected ctx: C
-}
 // export { Service } from '@cordisjs/core'
