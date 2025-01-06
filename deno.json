@@ -20,10 +20,7 @@
     "p-try": "npm:p-try@^3.0.0",
     "paseto-ts": "npm:paseto-ts@^1.5.7",
     "reggol": "npm:reggol@^1.7.1",
-    "schemastery": "npm:schemastery@^3.14.7",
-    "./koishi_registry": "./koishi_registry/mod.ts",
-    "./koishi_analyzer": "./koishi_analyzer/mod.ts",
-    "typescript": "npm:typescript@^5.7.2"
+    "schemastery": "npm:schemastery@^3.14.7"
   },
   "unstable": [
     "sloppy-imports",
@@ -32,7 +29,9 @@
   "tasks": {
     "start": "deno run --allow-all runner.ts",
     "test": "deno test --ignore=./hono-mod --no-check",
-    "cordis": "cordis"
+    "tools:compare1": "deno run --allow-net ./tools/compare_q78kg.ts",
+    "tools:setup": "deno run --allow-write --allow-read ./tools/setup.ts",
+    "setup": "deno task tools:setup"
   },
   "lint": {
     "rules": {
