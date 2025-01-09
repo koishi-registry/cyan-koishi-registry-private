@@ -4,7 +4,8 @@ import type {} from '@plug/koishi'
 import type {} from '@plug/k-analyzer'
 import type {} from '@plug/k-registry'
 
-export const inject = ['hono', 'timer']
+export const name = 'api'
+export const inject = ['server', 'timer']
 
 export function apply(ctx: Context) {
   let functionality = {
@@ -17,7 +18,7 @@ export function apply(ctx: Context) {
     analyzer: !!ctx.root.get('koishi.analyzer'),
     npm: !!ctx.root.get('npm'),
   }), 100)
-  ctx.hono.get('/api/status', (c) => {
+  ctx.server.get('/api/status', (c) => {
     checkFunctionality()
     return c.json({
       version: ctx.info.version,
@@ -25,7 +26,7 @@ export function apply(ctx: Context) {
     })
   })
   ctx.inject(['npm'], (ctx) => {
-    ctx.hono.get('/api/plugins', (c) => {
+    ctx.server.get('/api/plugins', (c) => {
       return c.json({
         synchronized: ctx.npm.synchronized,
         list: [...ctx.npm.plugins.keys()],
@@ -35,7 +36,7 @@ export function apply(ctx: Context) {
   ctx.inject(
     ['koishi', 'koishi.generator', 'koishi.meta', 'koishi.analyzer'],
     (ctx) => {
-      ctx.hono.get('/api/generator/status', (c) => {
+      ctx.server.get('/api/generator/status', (c) => {
         return c.json({
           version: ctx.info.version,
           updateAt: ctx.koishi.generator.last_refresh.toUTCString(),
@@ -43,7 +44,7 @@ export function apply(ctx: Context) {
           features: ctx.koishi.generator.getFeatures(),
         })
       })
-      ctx.hono.get('/api/generator/:name', async (c) => {
+      ctx.server.get('/api/generator/:name', async (c) => {
         const name = c.req.param('name')!
         const result = await ctx.koishi.generator.fetchObject(name)
         if (result === null) {

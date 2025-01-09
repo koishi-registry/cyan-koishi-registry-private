@@ -4,7 +4,8 @@ import { verify } from 'paseto-ts/v4'
 import type {} from '@plug/koishi'
 import type {} from '@plug/k-registry'
 
-export const inject = ['hono', 'http']
+export const name = ['manage']
+export const inject = ['server', 'http']
 
 export const KEY = Deno.env.get('PUBLIC_KEY') ??
   'k4.public.ZHCAZC7yPzIS42O8SG1luDNVc61rhvbMvUXCkrpVFic'
@@ -15,7 +16,7 @@ export const TRUSTED_USER = [
 ]
 
 export function apply(ctx: Context) {
-  ctx.hono.use(
+  ctx.server.use(
     '/api/admin/*',
     bearerAuth({
       async verifyToken(token, _) {
@@ -38,7 +39,7 @@ export function apply(ctx: Context) {
       },
     }),
   )
-  ctx.hono.post('/api/admin/trigger_full_refresh', (c) => {
+  ctx.server.post('/api/admin/trigger_full_refresh', (c) => {
     ctx.inject(['koishi', 'koishi.npm'], async (ctx) => {
       await ctx.koishi.npm.refreshNpm()
     })
@@ -46,7 +47,7 @@ export function apply(ctx: Context) {
       msg: 'scheduled',
     })
   })
-  ctx.hono.post('/api/admin/refresh/:name', (c) => {
+  ctx.server.post('/api/admin/refresh/:name', (c) => {
     const refresh_meta = !!c.req.query('include_meta')
     const name = c.req.param('name')
     ctx.inject(['koishi', 'koishi.generator', 'koishi.meta'], async (ctx) => {
