@@ -41,7 +41,7 @@ export function apply(ctx: Context) {
   )
   ctx.server.post('/api/admin/trigger_full_refresh', (c) => {
     ctx.inject(['koishi', 'koishi.npm'], async (ctx) => {
-      await ctx.koishi.npm.refreshNpm()
+      await ctx.koishi.npm.fetchNpm()
     })
     return c.json({
       msg: 'scheduled',
