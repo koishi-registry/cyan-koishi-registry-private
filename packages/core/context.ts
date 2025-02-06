@@ -10,7 +10,6 @@ import HttpService from '@cordisjs/plugin-http'
 import TimerService from '@cordisjs/plugin-timer'
 import LoggerService from '@cordisjs/plugin-logger'
 import * as LogPersist from '@plug/logger'
-import { dirname, fromFileUrl } from '@std/path'
 import meta from './deno.json' with { type: 'json' }
 import { CommunicationService } from '@p/communicate'
 
@@ -101,7 +100,7 @@ export class AppInfo {
   checkTask: Promise<Updated>
   previous: SemVer | null = null
   version: SemVer = parse(meta.version)
-  baseDir = dirname(fromFileUrl(import.meta.url))
+  baseDir = Deno.cwd()
 
   constructor(protected ctx: Context) {
     ctx.mixin('info', ['baseDir'])
