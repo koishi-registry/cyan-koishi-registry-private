@@ -4,7 +4,7 @@ import { verify } from 'paseto-ts/v4'
 import type {} from '@plug/koishi'
 import type {} from '@plug/k-registry'
 
-export const name = ['manage']
+export const name = 'manage'
 export const inject = ['server', 'http']
 
 export const KEY = Deno.env.get('PUBLIC_KEY') ??

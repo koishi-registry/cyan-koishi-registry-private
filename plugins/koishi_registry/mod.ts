@@ -212,8 +212,11 @@ export class KoishiMeta {
     return this
   }
 
-  async refetchOne(name: string): Promise<NpmRegistry.OkResult | null> {
-    return await this.query(name)
+  async refetchOne(
+    name: string,
+    clean: boolean = true,
+  ): Promise<NpmRegistry.OkResult | null> {
+    return await this.query(name, clean)
   }
 }
 
