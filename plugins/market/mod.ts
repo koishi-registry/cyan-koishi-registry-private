@@ -13,7 +13,7 @@ export const inject = [
 
 export function apply(ctx: Context) {
   const logger = ctx.logger('k-market')
-  logger.info('source is available at %c', ctx.server.selfUrl + '/index.json')
+  logger.info('source is available at %c', new URL('index.json', ctx.server.selfUrl))
   ctx.server.on('GET', ['/', '/index.json'], async (c) => {
     const result = await ctx.koishi.generator.getObjects()
     return c.json(

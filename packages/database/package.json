@@ -1,0 +1,8 @@
+{
+  "name": "@p/database",
+  "version": "1.0.0",
+  "exports": {
+    ".": "./mod.ts",
+    "./declare": "./declare.ts"
+  }
+}

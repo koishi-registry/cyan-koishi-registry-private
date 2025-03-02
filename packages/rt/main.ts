@@ -1,19 +1,20 @@
 import { Context } from '@p/core'
-import NpmSynchronizer from '@plug/npm'
+import Loader from '@p/loader'
 // import Logger from 'reggol'
-import Koishi from '@plug/koishi'
-import * as KoishiRegistry from '@plug/k-registry'
-import * as API from '@plug/api'
-import * as MarketEndpoints from '@plug/k-market'
-import * as ManageAPI from '@plug/manage'
-import { SimpleAnalyzer } from '@plug/k-analyzer'
-import WebUI from '@web/plug-webui'
-import '@std/dotenv/load'
+// import NpmSynchronizer from '@plug/npm'
+// import Koishi from '@plug/koishi'
+// import * as KoishiRegistry from '@plug/k-registry'
+// import * as API from '@plug/api'
+// import * as MarketAPI from '@plug/k-market'
+// import * as ManageAPI from '@plug/manage'
+// import { SimpleAnalyzer } from '@plug/k-analyzer'
+// import Drizzle from '@p/database'
+// import WebUI from '@web/plug-webui'
 
 // TODO: use cordis loader
 
-const host = Deno.env.get('HOST') ?? '127.0.0.1'
-const port = parseInt(Deno.env.get('PORT') ?? '8000')
+const host = Bun.env.HOST ?? '127.0.0.1'
+const port = Number.parseInt(Bun.env.PORT ?? '8000')
 
 // Logger.levels.base = 5
 export const app = new Context({
@@ -22,15 +23,22 @@ export const app = new Context({
     port,
   },
 })
-await app.plugin(WebUI)
-app.plugin(SimpleAnalyzer) // analyzer is required for KoishiRegistry
-app.plugin(Koishi)
-app.plugin(KoishiRegistry, {
-  generator: {
-    refreshInterval: 60 * 60,
-  },
+
+await app.plugin(Loader, {
+  name: 'kra'
 })
-app.plugin(NpmSynchronizer, { block_size: 1000, concurrent: 50 })
-app.plugin(API)
-app.plugin(MarketEndpoints)
-app.plugin(ManageAPI)
+await app.loader.start()
+
+// await app.plugin(WebUI)
+// app.plugin(Drizzle, Deno.env.get("DATABASE_URL") ?? 'postgres://127.0.0.1:5432/kra')
+// app.plugin(SimpleAnalyzer) // analyzer is required for KoishiRegistry
+// app.plugin(Koishi)
+// app.plugin(KoishiRegistry, {
+//   generator: {
+//     refreshInterval: 60 * 60,
+//   },
+// })
+// app.plugin(NpmSynchronizer, { block_size: 1000, concurrent: 50 })
+// app.plugin(API)
+// app.plugin(MarketAPI)
+// app.plugin(ManageAPI)

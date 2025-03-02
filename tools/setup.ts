@@ -1,11 +1,12 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
-import { join, resolve, relative, dirname } from '@std/path'
-import { walk, ensureDir, exists } from '@std/fs'
+import { join, resolve, relative } from '@std/path'
+import { walk, exists } from '@std/fs'
 import { parse, format, type SemVer } from '@std/semver'
 import { createRegExp, exactly, maybe, wordChar, anyOf, digit } from 'magic-regexp'
 import { capitalize, snakeCase } from 'cosmokit'
 import { Ask } from "jsr:@sallai/ask";
-import z from 'schemastery'
+import z from 'zod'
+import { fromError } from 'zod-validation-error'
 import mkdir = Deno.mkdir;
 
 export type PackType = 'package' | 'plugin'
@@ -30,27 +31,30 @@ const regexp = createRegExp(
   anyOf(wordChar, digit, '-').and(anyOf(wordChar, digit, '-', '_').times.any()).groupedAs("name").at.lineEnd()
 )
 
-const VersionSchema = z.object({
+const VersionSchema: z.ZodType<SemVer> = z.object({
   major: z.number(),
   minor: z.number(),
   patch: z.number(),
   prerelease: z.array(z.union([z.string(), z.number()])),
-  build: z.array(String)
+  build: z.array(z.string())
 })
 
 const schema = z.object({
-  webui: z.boolean().default(false).experimental(),
-  // deno-lint-ignore no-explicit-any
-  name: z.string().pattern(regexp).default(null as any),
-  package: z.boolean().default(false),
+  webui: z.boolean().default(false),
+  name: z.string().regex(regexp).nullish(),
+  type: z.enum(['package', 'plugin']).nullish(),
   version: z.union([
-    VersionSchema.default('1.0.0'),
-    z.transform(String, x => parse(x))
+    VersionSchema,
+    z.string().transform(x => parse(x))
   ]).default(parse('1.0.0'))
 })
 
-const args = schema(parseArgs(Deno.args))
-let type: PackType = args.package ? 'package' : 'plugin'
+const { error, data: args } = await schema.safeParseAsync(parseArgs(Deno.args))
+if (error) throw fromError(error)
+if (!args) throw new Error(`unreachable: args is ${args}`)
+
+let type: PackType = args.type ?? 'plugin'
+
 if (args.webui) throw new Error("webui template is not supported yet")
 if (!args.name) {
   const { name } = await ask.input({
@@ -58,29 +62,33 @@ if (!args.name) {
     message: `${capitalize(type)} Name ›`,
   } as const);
   if (!name) throw new Error("plugin name is not provided")
-  args.name = z.string().pattern(regexp)(name)
+  args.name = z.string().regex(regexp).parse(name)
 }
 
 const nameSchema = z.object({
-  scope: z.union(['p', 'plug']).default(toScope(type)!),
-  name: z.string().required(true)
+  scope: z.enum(['p', 'plug']).default(toScope(type)!),
+  name: z.string()
 })
 
 const matched = args.name.match(regexp)
 // deno-lint-ignore no-explicit-any
-const { scope, name } = nameSchema(<any>(matched!.groups))
-if (toScope(type) != scope) {
-  console.warn(`%cwarning%c: expected a scope of ${toScope(type)}, got ${scope}`, 'color: yellow')
-  type = fromScope(scope)!
-}
+const { scope, name } = await nameSchema.parseAsync(<any>(matched!.groups))
+  .catch(e => Promise.reject(fromError(e)))
+if (args.type && toScope(type) != scope)
+  console.warn(`%cwarning%c: expected a scope of @${toScope(type)}, got @${scope}`,
+    'color: yellow',
+    'color: blue'
+  )
+
+type = fromScope(scope)!
 
 console.log(`Creating ${capitalize(fromScope(scope)!)} @${scope}/${name}`)
 
-function interpolate(content: string) {
+function interpolate(content: string): string {
   return content
     .replace('@name', name)
     .replace("@scope/name", `@${scope}/${name}`)
-    .replace("@version", format(args.version as SemVer))
+    .replace("@version", format(args!.version as SemVer))
 }
 
 const template_dir = resolve(import.meta.dirname!, '__template__')

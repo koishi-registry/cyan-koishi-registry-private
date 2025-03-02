@@ -1,0 +1,28 @@
+- id: bruh-core
+  name: '@plug/api'
+  config: null
+  disabled: false
+- id: bruh-drizzle
+  name: '@p/database'
+  config: 'postgresql://127.0.0.1:5432/kra'
+- id: bruh-koishi-base
+  name: '@plug/koishi'
+  config: null
+- id: bruh-analyze
+  name: '@plug/k-analyzer'
+  config: null
+- id: bruh-registry
+  name: '@plug/k-registry'
+  config:
+    generator:
+      refreshInterval: 3600
+- id: bruh-mark
+  name: '@plug/k-market'
+  config: null
+- id: bruh-manage
+  name: '@plug/manage'
+  config: null
+- id: bruh1
+  name: '@web/plug-webui'
+  config: null
+  disabled: true

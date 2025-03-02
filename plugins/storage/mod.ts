@@ -3,6 +3,7 @@ import type { Awaitable } from 'cosmokit'
 import type { Storage } from '@p/storage'
 import StorageLocalStorage from "./localstorage.ts";
 import StorageRemoteStorage from "./remote.ts";
+import StorageBunSqlite from './bun-sqlite.ts';
 
 declare module '@p/core' {
   export interface Context {
@@ -15,16 +16,18 @@ export class StorageService extends Service {
     protected override ctx: Context,
     public serviceName?: keyof Storage.Services,
   ) {
-    ctx.provide(`storage`, undefined, true)
-    super(ctx, `storage`)
+    ctx.provide('storage', undefined, true)
+    super(ctx, 'storage')
 
     const ctx1 = ctx.isolate('storage')
 
     const scope1 = ctx1.plugin(StorageLocalStorage)
     const scope2 = ctx1.plugin(StorageRemoteStorage)
+    const scope3 = ctx1.plugin(StorageBunSqlite)
     ctx.on('dispose', () => {
       scope1.dispose()
       scope2.dispose()
+      scope3.dispose()
     })
   }
 
@@ -35,7 +38,7 @@ export class StorageService extends Service {
   override [symbols.setup]() {
     this.serviceName = this.ctx.$communicate.conn.name === 'worker'
       ? 'remote'
-      : 'localstorage'
+      : typeof Deno === 'undefined' ? 'bun.sqlite' : 'localstorage'
 
     return new Promise<void>((resolve) => {
       this.ctx.inject([`storage.${this.serviceName}`], () => resolve())
@@ -60,7 +63,7 @@ export class StorageService extends Service {
 
   protected _clear(): Awaitable<void> {
     if (this.ctx.scope.uid !== 0) throw new Error('invalid clear')
-    return this.provider?.['_clear']?.()
+    return Reflect.get(this.provider, '_clear')?.bind(this.provider)?.()
   }
 }
 

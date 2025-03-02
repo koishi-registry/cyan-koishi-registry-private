@@ -1,0 +1,9 @@
+{
+  "name": "@kra/fs",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./mod.ts",
+    "./sync": "./sync.ts",
+    "./async": "./async.ts"
+  }
+}

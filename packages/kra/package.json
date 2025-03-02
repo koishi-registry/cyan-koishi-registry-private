@@ -1,0 +1,7 @@
+{
+  "name": "kra",
+  "version": "0.5.0",
+  "exports": {
+    ".": "./mod.ts"
+  }
+}

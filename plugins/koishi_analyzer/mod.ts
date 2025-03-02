@@ -401,3 +401,5 @@ export namespace SimpleAnalyzer {
     analyzer: PackageAnalyzer,
   })
 }
+
+export default Analyzer

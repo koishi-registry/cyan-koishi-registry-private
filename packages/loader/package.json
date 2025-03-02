@@ -1,0 +1,9 @@
+{
+  "name": "@p/loader",
+  "version": "1.0.0",
+  "exports": "./mod.ts",
+  "dependencies": {
+    "esbuild": "0.25.0",
+    "js-yaml": "^4.1.0"
+  }
+}

@@ -1,4 +1,5 @@
 export * from './context.ts'
 export * from './service.ts'
+export { Schema, Schema as z } from '@cordisjs/plugin-schema'
 export { symbols } from 'cordis'
 export { default as Random } from 'inaba'

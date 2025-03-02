@@ -1,13 +1,13 @@
-import type { Context } from 'cordis'
+import type { Context } from '@p/core'
 import { Schema } from '@cordisjs/plugin-schema'
 import { type Dict, makeArray, noop, Time } from 'cosmokit'
 import {} from '@plug/server'
 import type { FileSystemServeOptions, ViteDevServer } from 'vite'
-import { existsSync } from '@std/fs'
+import { existsSync } from '@kra/fs'
 import { basename, extname, fromFileUrl, resolve } from '@std/path'
 import { parse } from 'es-module-lexer'
 import { type Entry, type Events, WebUI } from './shared/mod.ts'
-import { open } from 'https://deno.land/x/open@v1.0.0/index.ts'
+import open from 'open'
 import mime from 'mime-types'
 import * as http from 'node:http'
 import type { StatusCode } from 'hono/utils/http-status'
@@ -43,13 +43,13 @@ interface HeartbeatConfig {
   timeout?: number
 }
 
-class DenoWebUI extends WebUI {
+class BunWebUI extends WebUI {
   static inject = ['server']
 
   public vite!: ViteDevServer
   public root: string
 
-  constructor(public override ctx: Context, public config: DenoWebUI.Config) {
+  constructor(public override ctx: Context, public config: BunWebUI.Config) {
     super(ctx)
 
     ctx.server.ws(config.apiPath, (socket, wsContext) => {
@@ -57,7 +57,7 @@ class DenoWebUI extends WebUI {
     })
 
     this.root = fromFileUrl(
-      new URL('./app', import.meta.resolve('@web/client/deno.json')),
+      new URL('./app', import.meta.resolve('@web/client/package.json')),
     )
   }
 
@@ -78,7 +78,7 @@ class DenoWebUI extends WebUI {
     this.serveAssets()
 
     this.ctx.on('server/ready', () => {
-      const target = this.ctx.server.selfUrl + this.config.uiPath
+      const target = new URL(this.config.uiPath, this.ctx.server.selfUrl)
 
       if (this.config.open) {
         open(target)
@@ -135,9 +135,7 @@ class DenoWebUI extends WebUI {
       const name = c.req.path.slice(uiPath.length).replace(/^\/+/, '')
       const sendFile = async (filename: string) => {
         return c.body(
-          await Deno.open(filename, { read: true }).then((handle) =>
-            handle.readable
-          ),
+          Bun.file(filename).readable,
           200,
           {
             'Content-Type': mime.lookup(extname(filename)) ||
@@ -162,7 +160,7 @@ class DenoWebUI extends WebUI {
           return await sendFile(filename)
         }
 
-        const source = await Deno.readTextFile(filename)
+        const source = await Bun.file(filename).text()
         return c.body(await this.transformImport(source), {
           'headers': {
             'Content-Type': 'application/javascript',
@@ -177,11 +175,11 @@ class DenoWebUI extends WebUI {
         return c.text('Unauthorized', 403)
       }
 
-      const stats = await Deno.stat(filename).catch<Deno.FileInfo>(noop)
-      if (stats?.isFile) return sendFile(filename)
-      const template = await Deno.readTextFile(
+      const exists = await Bun.file(filename).exists()
+      if (exists) return sendFile(filename)
+      const template = await Bun.file(
         resolve(this.root, 'index.html'),
-      )
+      ).text()
       return c.body(await this.transformHtml(template), 200, {
         'Content-Type': 'text/html',
       })
@@ -201,7 +199,8 @@ class DenoWebUI extends WebUI {
   }
 
   private async transformImport(source: string) {
-    let output = '', lastIndex = 0
+    let output = ''
+    let lastIndex = 0
     const [imports] = parse(source)
     for (const { s, e, n } of imports) {
       output += source.slice(lastIndex, s) + this.resolveImport(n)
@@ -210,16 +209,13 @@ class DenoWebUI extends WebUI {
     return output + source.slice(lastIndex)
   }
 
-  private async transformHtml(template: string) {
+  private async transformHtml(template_: string) {
     const { uiPath, head = [] } = this.config
-    if (this.vite) {
-      template = await this.vite.transformIndexHtml(uiPath, template)
-    } else {
-      template = template.replace(
+    const template = this.vite ? await this.vite.transformIndexHtml(uiPath, template_) :
+      template_.replace(
         /(href|src)="(?=\/)/g,
         (_, $1) => `${$1}="${uiPath}`,
       )
-    }
     let headInjection = `<script>CLIENT_CONFIG = ${
       JSON.stringify(this.createGlobal())
     }</script>`
@@ -271,33 +267,14 @@ class DenoWebUI extends WebUI {
       }],
     })
 
-    this.ctx.server.all('/vite/*', async (c, next) => {
-      return await new Promise((resolve) => { // the who-knows magic to fake a connect style middleware environment
-        // deno-lint-ignore no-explicit-any
-        const req = new http.IncomingMessage(null as any)
-        // deno-lint-ignore no-explicit-any
-        const res = new (http.ServerResponse as any)((resp: Response) =>
-          resolve(
-            c.body(
-              resp.body,
-              res.statusCode as StatusCode,
-              Object.fromEntries(resp.headers.entries()),
-            ),
-          )
-        )
-        req.method = c.req.method
-        const url = new URL(c.req.url)
-        req.url = url.pathname + url.search
-        req.headers = Object.fromEntries(c.req.raw.headers.entries())
-        this.vite.middlewares(req, res, next)
-      })
+    this.ctx.server.use('/vite/*', async (c, next) => {
     })
 
     this.ctx.on('dispose', () => this.vite.close())
   }
 }
 
-namespace DenoWebUI {
+namespace BunWebUI {
   export interface Dev {
     fs: FileSystemServeOptions
   }
@@ -383,7 +360,7 @@ namespace DenoWebUI {
         timeout: Schema.number().default(Time.minute),
       }),
       devMode: Schema.boolean().default(
-        Deno.env.get('DENO_ENV') === 'development',
+        Bun.env.DENO_ENV === 'development',
       )
         .hidden(),
       cacheDir: Schema.string().default('cache/vite').hidden(),
@@ -392,4 +369,4 @@ namespace DenoWebUI {
   ])
 }
 
-export default DenoWebUI
+export default BunWebUI

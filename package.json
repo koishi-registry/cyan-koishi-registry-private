@@ -1,0 +1,53 @@
+{
+  "name": "kra",
+  "private": true,
+  "version": "0.5.0-rc.1",
+  "scripts": {
+    "start": "bun run ./runner.ts"
+  },
+  "workspaces": [
+    "./hono-mod",
+    "./http-mod/http",
+    "./http-mod/socks",
+    "./webui/plugins/*",
+    "./webui/packages/*",
+    "./cordis/packages/*",
+    "./packages/*",
+    "./plugins/*"
+  ],
+  "dependencies": {
+    "@km-api/km-api": "npm:@jsr/km-api__km-api",
+    "@koishijs/registry": "^7.0.3",
+    "@p/communicate": "workspace:*",
+    "@std/assert": "npm:@jsr/std__assert@^1.0.9",
+    "@std/async": "npm:@jsr/std__async",
+    "@std/fs": "npm:@jsr/std__fs@^1.0.7",
+    "@std/path": "npm:@jsr/std__path@^1.0.8",
+    "@std/semver": "npm:@jsr/std__semver@^1.0.3",
+    "@std/streams": "npm:@jsr/std__streams@^1.0.9",
+    "avsc": "^5.7.7",
+    "bson": "^6.10.1",
+    "cosmokit": "^1.6.3",
+    "drizzle-kit": "^0.30.4",
+    "drizzle-orm": "^0.39.3",
+    "inaba": "^1.1.1",
+    "js-yaml": "^4.1.0",
+    "lodash.merge": "^4.6.2",
+    "lodash.trim": "^4.5.1",
+    "lodash.trimend": "^4.5.1",
+    "magic-regexp": "^0.8.0",
+    "p-try": "^3.0.0",
+    "paseto-ts": "^1.5.7",
+    "pg": "^8.13.3",
+    "reggol": "^1.7.1",
+    "schemastery": "^3.14.7",
+    "typescript": "^5.7.3",
+    "yml-register": "^1.2.5",
+    "zod": "^3.24.2",
+    "zod-validation-error": "^3.4.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "bun-types": "^1.2.4"
+  }
+}

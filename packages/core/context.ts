@@ -1,45 +1,46 @@
 import { compare, format, parse, type SemVer } from '@std/semver'
 import type { Awaitable } from 'cosmokit'
 import * as cordis from 'cordis'
+import { join } from '@std/path'
 import { Server } from '@plug/server'
 import StorageService from '@plug/storage'
 import CacheService from '@plug/cache'
 import Logger from 'reggol'
+import * as yaml from 'js-yaml'
 import { Schema } from '@cordisjs/plugin-schema'
 import HttpService from '@cordisjs/plugin-http'
 import TimerService from '@cordisjs/plugin-timer'
 import LoggerService from '@cordisjs/plugin-logger'
 import * as LogPersist from '@plug/logger'
-import meta from './deno.json' with { type: 'json' }
+import meta from './package.json' with { type: 'json' }
 import { CommunicationService } from '@p/communicate'
+
+const appMeta = yaml.load(await Bun.file(join(process.cwd(), "kra.yaml")).text())
 
 export interface Events<in C extends Context = Context>
   extends cordis.Events<C> {
   'core/updated'(previous: SemVer, current: SemVer): void
 
-  'exit'(signal?: Deno.Signal): void
+  'exit'(signal?: NodeJS.Signals): Promise<void>
 }
 
 export interface Intercept<in C extends Context = Context>
   extends cordis.Intercept<C> {}
 
-export function registerSignalHandler(
-  signal: Deno.Signal,
-  handler: (signal: Deno.Signal) => Awaitable<void>,
+function registerSignalHandler(
+  signal: NodeJS.Signals,
+  handler: (signal: NodeJS.Signals) => Awaitable<void>,
 ) {
-  Deno.addSignalListener(signal, () => handler(signal))
-}
-
-export interface Context {
-  [cordis.symbols.events]: Events<this>
-  [cordis.symbols.intercept]: Intercept<this>
+  process.on(signal, handler.bind(null, signal))
 }
 
 export const appName = 'koishi-registry'
-export const runtimeName: 'deno' = <never> 'node'.split('').sort().join('')
+export const runtimeName: 'bun' = <never>'Bun'
 
 export class Context extends cordis.Context {
   declare baseDir: string
+  declare [Context.events]: Events<this>
+  declare [Context.intercept]: Intercept<this>
 
   info: AppInfo
 
@@ -54,7 +55,7 @@ export class Context extends cordis.Context {
     logger.info(
       `${appName}/%C ${runtimeName}/%C`,
       meta.version,
-      Deno.version[runtimeName],
+      Bun.version,
     )
     this.plugin(TimerService)
     this.plugin(HttpService)
@@ -63,15 +64,8 @@ export class Context extends cordis.Context {
     this.plugin(StorageService)
     this.plugin(CacheService)
 
-    const handleSignal = async (signal: Deno.Signal) => {
-      await this.parallel('exit', signal)
-      this.registry.values().forEach(
-        (rt) =>
-          rt.scopes
-            .clear()
-            .forEach((scope) => scope.dispose()),
-      )
-      Deno.exit()
+    const handleSignal = (signal: NodeJS.Signals) => {
+      return this.parallel('exit', signal)
     }
 
     registerSignalHandler('SIGINT', handleSignal)
@@ -87,10 +81,11 @@ export class Context extends cordis.Context {
   }
 }
 
-export enum Updated {
-  None,
-  Upgrade,
-  Downgrade,
+export type Updated = 'None' | 'Upgrade' | 'Downgrade'
+export const Updated = {
+  None: 'None' as Updated,
+  Upgrade: 'Upgrade' as Updated,
+  Downgrade: 'Downgrade' as Updated,
 }
 
 export class AppInfo {
@@ -100,7 +95,8 @@ export class AppInfo {
   checkTask: Promise<Updated>
   previous: SemVer | null = null
   version: SemVer = parse(meta.version)
-  baseDir = Deno.cwd()
+  baseDir = process.cwd()
+  remotePlug = Boolean(Bun.env.REMOTE_PLUG ?? false)
 
   constructor(protected ctx: Context) {
     ctx.mixin('info', ['baseDir'])
@@ -128,19 +124,21 @@ export class AppInfo {
   async check(ctx: Context): Promise<Updated> {
     try {
       const current = this.version
-      const original = await ctx.storage.get('version')
+      const original = await ctx.storage.get<string>('version')
       if (original === null) {
         ctx.logger.info('updated to %c', format(current))
         this.previous = parse('0.0.1')
         ctx.emit('core/updated', this.previous, current)
         return Updated.Upgrade
       }
+      // biome-ignore lint/suspicious/noAssignInExpressions: assign
       const previous = this.previous = parse(original)
       const ordering = compare(previous, current)
       if (ordering !== 0) {
         ctx.emit('core/updated', previous, current)
-        return ordering == 1 ? Updated.Downgrade : Updated.Upgrade
-      } else return Updated.None
+        return ordering === 1 ? Updated.Downgrade : Updated.Upgrade
+      }
+      return Updated.None
     } finally {
       this.ctx.inject(['storage'], async (ctx) => {
         await ctx.storage.set('version', meta.version)

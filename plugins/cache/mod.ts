@@ -1,9 +1,11 @@
 import { Context } from '@p/core'
 import { Service } from 'cordis'
-import { hyphenate } from 'cosmokit'
+import { hyphenate, makeArray } from 'cosmokit'
 import { dirname, join } from '@std/path'
-import { ensureDir } from '@std/fs'
-import { makeArray } from 'npm:cosmokit@1.6.3'
+import { ensureDir } from '@kra/fs'
+import { TextEncoder, TextDecoder } from 'node:util'
+
+export const Caches = Symbol('kr.cache.caches')
 
 declare module '@p/core' {
   export interface Context {
@@ -16,8 +18,6 @@ declare module '@p/core' {
     cacheDir: string
   }
 }
-
-export const Caches = Symbol('kr.cache.caches')
 
 // deno-lint-ignore no-empty-interface
 export interface Caches {}
@@ -79,7 +79,7 @@ export class CacheService<S extends { [K: string]: any } = Caches, Name = null>
   declare Dot: SubDot<S>
 
   keys: string[] | null = null
-  static version: number = 1
+  static version = 1
   encoder: TextEncoder = new TextEncoder()
 
   decoder: TextDecoder = new TextDecoder()

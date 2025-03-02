@@ -1,0 +1,17 @@
+{
+  "name": "@web/plug-webui",
+  "dependencies": {
+    "cosmokit": "^1.6.3",
+    "es-module-lexer": "^1.6.0",
+    "mime-types": "^2.1.35",
+    "vite": "6.0.6",
+    "open": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/mime-types": "^2.1.4"
+  },
+  "exports": {
+    ".": "./mod.ts",
+    "./shared": "./shared/mod.ts"
+  }
+}

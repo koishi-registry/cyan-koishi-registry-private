@@ -5,7 +5,7 @@ import * as proc from 'node:process'
 export class ProcessCommunicator extends Base {
   constructor(
     protected ctx: Context,
-    protected p: NodeJS.Process = proc.getBuiltinModule('node:process'),
+    protected p: NodeJS.Process = import.meta.require('node:process'),
   ) {
     super()
   }

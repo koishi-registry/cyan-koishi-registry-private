@@ -1,4 +1,5 @@
-import { type Context, Service } from 'cordis'
+import type { Context } from '@p/core'
+import { Service } from 'cordis'
 import Schema from 'schemastery'
 import Random from 'inaba'
 import pTry from 'p-try'
@@ -12,7 +13,10 @@ import { ChildProcessCommunicator } from './communicator/child_process.ts'
 import { ProcessCommunicator } from './communicator/process.ts'
 import { NoopCommunicator } from './communicator/noop.ts'
 import { WorkerCommunicator } from './communicator/worker.ts'
-import { fromFileUrl } from '@std/path'
+import { pathToFileURL, fileURLToPath } from 'bun'
+import BunIPCCommunicator from './communicator/bun_ipc.ts'
+
+export const kProtocol: unique symbol = Symbol.for('communicate.protocol')
 
 declare module 'cordis' {
   interface Context {
@@ -31,7 +35,6 @@ declare module 'cordis' {
     }
   }
 }
-export const kProtocol: unique symbol = Symbol.for('communicate.protocol')
 
 export type MessageType = 'event' | 'request' | 'response'
 
@@ -43,11 +46,13 @@ interface Message {
 
 export interface Requests {
   'ping'(): void
+  'plug'(name: string): void
 }
 
 export interface Events {
   'disposed': {}
   'ready': {}
+  'exit': {}
   'error': {
     message: string
   }
@@ -134,10 +139,13 @@ export type Handler = <T extends any[], R>(
 export type Listener<T> = (data: T) => Awaitable<void>
 
 export function detect(): CommunicationService.Type {
-  // deno-lint-ignore ban-ts-comment
-  // @ts-ignore
+
   if (
+    // deno-lint-ignore ban-ts-comment
+    // @ts-expect-error
     typeof WorkerGlobalScope !== 'undefined' &&
+    // deno-lint-ignore ban-ts-comment
+    // @ts-expect-error
     self instanceof WorkerGlobalScope
   ) {
     return 'worker'
@@ -148,10 +156,18 @@ export function detect(): CommunicationService.Type {
   return undefined
 }
 
+// deno-lint-ignore no-explicit-any
+function unwrapExports(module: any) {
+  if ('default' in module) return module['default']
+  return module
+}
+
+export const rt_path = await import.meta.resolve('@p/cp-rt')
+
 export class CommunicationService<
   Protocol extends { Server: S2CPackages; Client: C2SPackages } = {
-    Server: Packages
-    Client: Packages
+    Server: S2CPackages
+    Client: C2SPackages
   },
 > extends Service {
   declare S: Protocol['Server']
@@ -193,6 +209,11 @@ export class CommunicationService<
     if (this.isWorker) ctx.logger.debug('running in worker')
 
     this._self.register('ping', noop)
+    if (ctx.get('info')?.remotePlug) this._self.register('plug', async (name) => {
+      const plugin = unwrapExports(await import(name))
+
+      await ctx.plugin(plugin)
+    })
     this._self.receive('error', (error) => {
       ctx.get('logger')?.(`remote:${this.conn.name}`)?.warn(
         'error:',
@@ -224,8 +245,26 @@ export class CommunicationService<
     return extended
   }
 
+  spawn(
+    modulePath: string | URL = rt_path,
+  ) {
+    const path = Bun.fileURLToPath(modulePath)
+    const conn = new BunIPCCommunicator(this.ctx)
+    const child = Bun.spawn(['bun', path], {
+      ipc: conn.ipc.bind(conn),
+      onExit: conn.onExit.bind(conn),
+      stdio: ["inherit", "inherit", "inherit"]
+    })
+    conn.init(child)
+    const communicator = this[Service.extend]({
+      conn,
+    })
+    ;(this._children()[modulePath.toString()] ??= []).push(communicator)
+    return communicator as CommunicationService
+  }
+
   fork(
-    modulePath: string | URL = fromFileUrl(import.meta.resolve('@p/cp-rt')),
+    modulePath: string | URL = rt_path,
     options?: cp.ForkOptions,
   ) {
     const child = cp.fork(modulePath, options)
@@ -237,7 +276,7 @@ export class CommunicationService<
   }
 
   worker(
-    specifier: string | URL = fromFileUrl(import.meta.resolve('@p/worker-rt')),
+    specifier: string | URL = rt_path,
     options?: WorkerOptions,
   ) {
     const worker = new Worker(specifier, options)
@@ -254,7 +293,7 @@ export class CommunicationService<
         if (!await this.handler(message)) {
           this.ctx.get('logger')?.debug(
             'not implemented: ',
-            Deno.inspect(message),
+            Bun.inspect(message),
           )
         }
       } catch (e) {
@@ -285,23 +324,22 @@ export class CommunicationService<
 
   public register<
     K extends Stringify<keyof this['S']['request']>,
-    H extends this['S']['request'][K] extends Handler ? this['S']['request'][K]
-      : never,
+    H extends this['S']['request'][K],
   >(name: K, handler: H) {
     if (name in this.handlers) throw new Error('handler already exists')
 
     return this.ctx.effect(() => {
-      this.handlers[name] = handler
+      this.handlers[name] = handler as Handler
       return () => delete this.handlers[name]
     })
   }
 
   public async call<
     K extends Stringify<keyof this['C']['request']>,
-    H extends this['C']['request'][K] extends Handler ? this['C']['request'][K]
-      : never,
+    // deno-lint-ignore no-explicit-any
+    H extends this['C']['request'][K] extends (...args: any[]) => any ? this['C']['request'][K] : never
   >(name: K, ...args: Parameters<H>): Promisify<ReturnType<H>> {
-    const id = name + '-' + Random.id()
+    const id = `${name}-${Random.id()}`
 
     const promise = new Promise<Promisify<ReturnType<H>>>((resolve, reject) => {
       this.ctx.effect(() => {

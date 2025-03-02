@@ -9,7 +9,6 @@ import vue from '@vitejs/plugin-vue'
 import yaml from '@maikolib/vite-plugin-yaml'
 // import { fileURLToPath, pathToFileURL } from 'node:url'
 import { fileURLToPath } from 'node:url'
-import deno from '@deno/vite-plugin'
 
 // declare module 'yakumo' {
 //   interface PackageConfig {
@@ -55,7 +54,6 @@ export async function build(root: string, config: vite.UserConfig = {}) {
       },
     },
     plugins: [
-      deno(),
       vue(),
       yaml(),
       unocss({
@@ -121,7 +119,6 @@ export async function createServer(baseDir: string, config: InlineConfig = {}) {
       },
     },
     plugins: [
-      deno(),
       vue(),
       yaml(),
       unocss({
