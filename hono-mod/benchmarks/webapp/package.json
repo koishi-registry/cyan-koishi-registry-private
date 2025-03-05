@@ -9,7 +9,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "itty-router": "^2.6.1",
+    "itty-router": "^2.6.6",
     "sunder": "^0.10.1"
   }
 }

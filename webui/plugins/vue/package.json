@@ -2,7 +2,7 @@
   "name": "@web/vue",
   "dependencies": {
     "@rollup/pluginutils": "^5.1.4",
-    "cosmokit": "^1.6.3",
+    "cosmokit": "^1.7.2",
     "es-module-lexer": "^1.6.0",
     "mime-types": "^2.1.35"
   },
@@ -11,8 +11,8 @@
     "vue": "^3.5.13"
   },
   "devDependencies": {
-    "rollup": "^4.34.9",
-    "@types/mime-types": "^2.1.4"
+    "@types/mime-types": "^2.1.4",
+    "rollup": "^4.34.9"
   },
   "exports": {
     ".": "./mod.ts"
