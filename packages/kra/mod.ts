@@ -1,1 +1,1 @@
-export * from '@p/core'
+export * from '@p/core';

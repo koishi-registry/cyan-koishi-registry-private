@@ -1,6 +1,6 @@
-import { Context } from '@p/core'
-import Loader from '@p/loader'
-// import Logger from 'reggol'
+import { Context } from '@p/core';
+import Loader from '@p/loader';
+import Logger from 'reggol'
 // import NpmSynchronizer from '@plug/npm'
 // import Koishi from '@plug/koishi'
 // import * as KoishiRegistry from '@plug/k-registry'
@@ -13,21 +13,25 @@ import Loader from '@p/loader'
 
 // TODO: use cordis loader
 
-const host = Bun.env.HOST ?? '127.0.0.1'
-const port = Number.parseInt(Bun.env.PORT ?? '8000')
+const host = Bun.env.HOST ?? '127.0.0.1';
+const port = Number.parseInt(Bun.env.PORT ?? '5477');
 
-// Logger.levels.base = 5
+Error.stackTraceLimit = 20
+
+Logger.levels.base = 5
 export const app = new Context({
   server: {
     host,
     port,
   },
-})
+});
+
+app.on('internal/error', console.error)
 
 await app.plugin(Loader, {
-  name: 'kra'
-})
-await app.loader.start()
+  name: 'kra',
+});
+await app.loader.start();
 
 // await app.plugin(WebUI)
 // app.plugin(Drizzle, Deno.env.get("DATABASE_URL") ?? 'postgres://127.0.0.1:5432/kra')

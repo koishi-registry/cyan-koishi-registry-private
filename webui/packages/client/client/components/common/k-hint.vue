@@ -10,34 +10,32 @@
 </template>
 
 <script lang="ts" setup>
+import { ref, computed } from 'vue';
 
-import { ref, computed } from 'vue'
-
-const hint = ref()
+const hint = ref();
 
 function showHint(event: Event) {
-  hint.value.show(event)
+  hint.value.show(event);
 }
 
 function hideHint() {
-  hint.value.hide()
+  hint.value.hide();
 }
 
 const props = defineProps({
   // placement: String,
   modelValue: {},
   name: { type: String, default: 'question-empty' },
-})
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
-const pointer = computed(() => props.modelValue !== undefined)
+const pointer = computed(() => props.modelValue !== undefined);
 
 function onClick() {
-  if (!pointer.value) return
-  emit('update:modelValue', !props.modelValue)
+  if (!pointer.value) return;
+  emit('update:modelValue', !props.modelValue);
 }
-
 </script>
 
 <style lang="scss">

@@ -1,72 +1,72 @@
-import type { Context } from '@cordisjs/core'
-import type { Dict } from 'cosmokit'
-import type { Entry, EntryOptions } from './entry.ts'
-import { EntryGroup } from './group.ts'
+import type { Context } from '@cordisjs/core';
+import type { Dict } from 'cosmokit';
+import type { Entry, EntryOptions } from './entry.ts';
+import { EntryGroup } from './group.ts';
 
 export abstract class EntryTree<C extends Context = Context> {
-  static readonly sep = ':'
+  static readonly sep = ':';
 
-  public url!: string
-  public root: EntryGroup<C>
-  public store: Dict<Entry<C>> = Object.create(null)
+  public url!: string;
+  public root: EntryGroup<C>;
+  public store: Dict<Entry<C>> = Object.create(null);
 
   constructor(public ctx: C) {
-    this.root = new EntryGroup(ctx, this)
-    const entry = ctx.scope.entry
-    if (entry) entry.subtree = this
+    this.root = new EntryGroup(ctx, this);
+    const entry = ctx.scope.entry;
+    if (entry) entry.subtree = this;
   }
 
   get context(): Context {
-    return this.ctx
+    return this.ctx;
   }
 
   *entries(): Generator<Entry<C>, void, void> {
     for (const entry of Object.values(this.store)) {
-      yield entry
-      if (!entry.subtree) continue
-      yield* entry.subtree.entries()
+      yield entry;
+      if (!entry.subtree) continue;
+      yield* entry.subtree.entries();
     }
   }
 
   async wait() {
     while (1) {
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 100));
       const pending = [...this.entries()]
         .map((entry) => entry._initTask || entry.scope?.pending!)
-        .filter(Boolean)
-      if (!pending.length) return
-      await Promise.all(pending)
+        .filter(Boolean);
+      if (!pending.length) return;
+      await Promise.all(pending);
     }
   }
 
   ensureId(options: Partial<EntryOptions>) {
     if (!options.id) {
       do {
-        options.id = Math.random().toString(36).slice(2, 8)
-      } while (this.store[options.id])
+        options.id = Math.random().toString(36).slice(2, 8);
+      } while (this.store[options.id]);
     }
-    return options.id!
+    return options.id!;
   }
 
   resolve(id: string) {
-    const parts = id.split(EntryTree.sep)
+    const parts = id.split(EntryTree.sep);
     // deno-lint-ignore no-this-alias
-    let tree: EntryTree | undefined = this
-    const final = parts.pop()!
+    let tree: EntryTree | undefined = this;
+    const final = parts.pop()!;
     for (const part of parts) {
-      tree = tree.store[part]?.subtree
-      if (!tree) throw new Error(`cannot resolve entry ${id}`)
+      tree = tree.store[part]?.subtree;
+      if (!tree) throw new Error(`cannot resolve entry ${id}`);
     }
-    const entry = tree.store[final]
-    if (!entry) throw new Error(`cannot resolve entry ${id}`)
-    return entry
+    const entry = tree.store[final];
+    if (!entry) throw new Error(`cannot resolve entry ${id}`);
+    return entry;
   }
 
   resolveGroup(id: string | null) {
-    if (!id) return this.root
-    const entry = this.resolve(id)
-    if (!entry.subgroup) throw new Error(`entry ${id} is not a group`)
-    return entry.subgroup
+    if (!id) return this.root;
+    const entry = this.resolve(id);
+    if (!entry.subgroup) throw new Error(`entry ${id} is not a group`);
+    return entry.subgroup;
   }
 
   async create(
@@ -74,16 +74,16 @@ export abstract class EntryTree<C extends Context = Context> {
     parent: string | null = null,
     position = Infinity,
   ) {
-    const group = this.resolveGroup(parent)
-    group.data.splice(position, 0, options as EntryOptions)
-    group.tree.write()
-    return group.create(options)
+    const group = this.resolveGroup(parent);
+    group.data.splice(position, 0, options as EntryOptions);
+    group.tree.write();
+    return group.create(options);
   }
 
   remove(id: string) {
-    const entry = this.resolve(id)
-    entry.parent.remove(id)
-    entry.parent.tree.write()
+    const entry = this.resolve(id);
+    entry.parent.remove(id);
+    entry.parent.tree.write();
   }
 
   async update(
@@ -92,22 +92,22 @@ export abstract class EntryTree<C extends Context = Context> {
     parent?: string | null,
     position?: number,
   ) {
-    const entry = this.resolve(id)
-    const source = entry.parent
+    const entry = this.resolve(id);
+    const source = entry.parent;
     if (parent !== undefined) {
-      const target = this.resolveGroup(parent)
-      source.unlink(entry.options)
-      target.data.splice(position ?? Infinity, 0, entry.options)
-      target.tree.write()
-      entry.parent = target
+      const target = this.resolveGroup(parent);
+      source.unlink(entry.options);
+      target.data.splice(position ?? Infinity, 0, entry.options);
+      target.tree.write();
+      entry.parent = target;
     }
-    source.tree.write()
-    return entry.update(options)
+    source.tree.write();
+    return entry.update(options);
   }
 
   async import(name: string) {
-    return await import(name)
+    return await import(name);
   }
 
-  abstract write(): void
+  abstract write(): void;
 }

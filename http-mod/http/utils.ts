@@ -1,4 +1,4 @@
-import { LookupAddress } from 'node:dns'
+import { LookupAddress } from 'node:dns';
 
 /* eslint-disable no-multi-spaces */
 const bogonV4 = [
@@ -16,7 +16,7 @@ const bogonV4 = [
   '203.0.113.0/24', // RFC 5737 TEST-NET-3
   '224.0.0.0/4', // multicast
   '240.0.0.0/4', // reserved
-]
+];
 
 const bogonV6 = [
   '::/8', // RFC 4291 IPv4-compatible, loopback, et al
@@ -30,49 +30,52 @@ const bogonV6 = [
   'fe80::/10', // RFC 4291 link local unicast
   'fec0::/10', // RFC 3879 old site local unicast
   'ff00::/8', // RFC 4291 multicast
-]
+];
 /* eslint-enable no-multi-spaces */
 
 function parseIPv4(ip: string) {
-  return ip.split('.').reduce((a, b) => (a << 8n) + BigInt(b), 0n)
+  return ip.split('.').reduce((a, b) => (a << 8n) + BigInt(b), 0n);
 }
 
 function parseIPv6(ip: string) {
-  const exp = ip.indexOf('::')
-  let num = 0n
+  const exp = ip.indexOf('::');
+  let num = 0n;
   if (exp !== -1 && exp !== 0) {
-    ip.slice(0, exp).split(':').forEach((piece, i) => {
-      num |= BigInt(`0x${piece}`) << BigInt((7 - i) * 16)
-    })
+    ip.slice(0, exp)
+      .split(':')
+      .forEach((piece, i) => {
+        num |= BigInt(`0x${piece}`) << BigInt((7 - i) * 16);
+      });
   }
   if (exp === ip.length - 2) {
-    return num
+    return num;
   }
-  const rest = exp === -1 ? ip : ip.slice(exp + 2)
-  const v4 = rest.includes('.')
-  const pieces = rest.split(':')
-  let start = 0
+  const rest = exp === -1 ? ip : ip.slice(exp + 2);
+  const v4 = rest.includes('.');
+  const pieces = rest.split(':');
+  let start = 0;
   if (v4) {
-    start += 2
-    const [addr] = pieces.splice(-1, 1)
-    num |= parseIPv4(addr)
+    start += 2;
+    const [addr] = pieces.splice(-1, 1);
+    num |= parseIPv4(addr);
   }
   pieces.reverse().forEach((piece, i) => {
-    num |= BigInt(`0x${piece}`) << BigInt((start + i) * 8)
-  })
-  return num
+    num |= BigInt(`0x${piece}`) << BigInt((start + i) * 8);
+  });
+  return num;
 }
 
 export async function isLocalAddress({ address, family }: LookupAddress) {
-  if (family !== 4 && family !== 6) return false
-  const { bogons, length, parse } = family === 4
-    ? { bogons: bogonV4, length: 32, parse: parseIPv4 }
-    : { bogons: bogonV6, length: 128, parse: parseIPv6 }
-  const num = parse(address)
+  if (family !== 4 && family !== 6) return false;
+  const { bogons, length, parse } =
+    family === 4
+      ? { bogons: bogonV4, length: 32, parse: parseIPv4 }
+      : { bogons: bogonV6, length: 128, parse: parseIPv6 };
+  const num = parse(address);
   for (const bogon of bogons) {
-    const [prefix, cidr] = bogon.split('/')
-    const mask = ((1n << BigInt(cidr)) - 1n) << BigInt(length - +cidr)
-    if ((num & mask) === parse(prefix)) return true
+    const [prefix, cidr] = bogon.split('/');
+    const mask = ((1n << BigInt(cidr)) - 1n) << BigInt(length - +cidr);
+    if ((num & mask) === parse(prefix)) return true;
   }
-  return false
+  return false;
 }

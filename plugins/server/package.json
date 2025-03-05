@@ -1,4 +1,9 @@
 {
   "name": "@plug/server",
-  "exports": "./mod.ts"
+  "version": "0.2.0",
+  "exports": {
+    ".": "./mod.ts",
+    "./sse": "./sse.ts",
+    "./ws": "./ws.ts"
+  }
 }

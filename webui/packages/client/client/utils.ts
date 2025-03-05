@@ -1,28 +1,29 @@
-import { getCurrentScope, markRaw, onScopeDispose } from 'vue'
-import * as cordis from 'cordis'
-import type { Context } from './context'
+import { getCurrentScope, markRaw, onScopeDispose } from 'vue';
+import * as cordis from 'cordis';
+import type { Context } from './context';
 
-export abstract class Service<C extends Context = Context>
-  extends cordis.Service<C> {}
+export abstract class Service<
+  C extends Context = Context,
+> extends cordis.Service<C> {}
 
 export interface Ordered {
-  order?: number
+  order?: number;
 }
 
 export function insert<T extends Ordered>(list: T[], item: T) {
-  markRaw(item)
-  const index = list.findIndex((a) => a.order! < item.order!)
+  markRaw(item);
+  const index = list.findIndex((a) => a.order! < item.order!);
   if (index >= 0) {
-    list.splice(index, 0, item)
+    list.splice(index, 0, item);
   } else {
-    list.push(item)
+    list.push(item);
   }
 }
 
 export function tryOnScopeDispose(fn: () => void) {
   if (getCurrentScope()) {
-    onScopeDispose(fn)
-    return true
+    onScopeDispose(fn);
+    return true;
   }
-  return false
+  return false;
 }

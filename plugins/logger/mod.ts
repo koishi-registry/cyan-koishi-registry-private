@@ -1,14 +1,14 @@
-import type { Context } from "@p/core";
-import { Schema } from "@cordisjs/plugin-schema";
-import { join, resolve } from "node:path";
-import { toTransformStream, DelimiterStream } from "@std/streams";
-import { ensureDirSync, walkSync } from "@kra/fs";
-import Logger from "reggol";
-import { type Dict, noop, remove, Time } from "cosmokit";
-import { createRegExp, digit, oneOrMore } from "magic-regexp";
-import type { BunFile, FileSink } from "bun";
+import type { Context } from '@p/core';
+import { Schema } from '@cordisjs/plugin-schema';
+import { join, resolve } from 'node:path';
+import { toTransformStream, DelimiterStream } from '@std/streams';
+import { ensureDirSync, walkSync } from '@kra/fs';
+import Logger from 'reggol';
+import { type Dict, noop, remove, Time } from 'cosmokit';
+import { createRegExp, digit, oneOrMore } from 'magic-regexp';
+import type { BunFile, FileSink } from 'bun';
 
-export const name = "logging-persist";
+export const name = 'logging-persist';
 
 export interface Config {
   rootDir: string;
@@ -18,7 +18,7 @@ export interface Config {
 }
 
 export const Config: Schema<Config> = Schema.object({
-  rootDir: Schema.string().default("data/logs"),
+  rootDir: Schema.string().default('data/logs'),
   maxAge: Schema.natural().default(30),
   maxSize: Schema.natural().default(1024 * 500),
   level: Schema.natural().min(0).max(5),
@@ -37,18 +37,16 @@ export class LogWriter {
     public date: Date,
     public path: string,
   ) {
-    const self = this
+    const self = this;
     this.handle = Bun.file(path);
     this.task = this.handle
       .exists()
-      .then((exists) =>
-        exists ? Promise.resolve(0) : this.handle.write(''),
-      )
+      .then((exists) => (exists ? Promise.resolve(0) : this.handle.write('')))
       .then(() =>
         Array.fromAsync(
           this.handle
             .stream()
-            .pipeThrough(new DelimiterStream(new TextEncoder().encode("\n")))
+            .pipeThrough(new DelimiterStream(new TextEncoder().encode('\n')))
             .pipeThrough(
               toTransformStream(async function* (src) {
                 for await (const chunk of src) {
@@ -81,7 +79,7 @@ export class LogWriter {
     this.task = this.task
       .then(async (handle) => {
         const content = new TextEncoder().encode(
-          this.pending.map((record) => `${JSON.stringify(record)}\n`).join(""),
+          this.pending.map((record) => `${JSON.stringify(record)}\n`).join(''),
         );
         this.committed.push(...this.pending);
         this.pending.length = 0;
@@ -110,13 +108,13 @@ export class LogWriter {
 export const FILE_REGEXP = createRegExp(
   digit
     .times(4)
-    .and("-") // date, e.g. 2024-12-29
-    .and(digit.times(2), "-")
+    .and('-') // date, e.g. 2024-12-29
+    .and(digit.times(2), '-')
     .and(digit.times(2))
-    .groupedAs("date")
+    .groupedAs('date')
     .at.lineStart(),
-  "-", // no, e.g. -1
-  oneOrMore(digit).groupedAs("no").and(".", "log").at.lineEnd(),
+  '-', // no, e.g. -1
+  oneOrMore(digit).groupedAs('no').and('.', 'log').at.lineEnd(),
 );
 
 export function toYMD(date: Date): string {
@@ -157,7 +155,7 @@ export async function apply(ctx: Context, config: Config) {
         await Bun.file(join(root, `${ymd}-${index}.log`))
           .delete()
           .catch((error) => {
-            ctx.logger("logger").warn(error);
+            ctx.logger('logger').warn(error);
           });
       }
 
@@ -192,7 +190,7 @@ export async function apply(ctx: Context, config: Config) {
 
   Logger.targets.push(target);
 
-  ctx.on("dispose", async () => {
+  ctx.on('dispose', async () => {
     await writer?.close();
     remove(Logger.targets, target);
   });

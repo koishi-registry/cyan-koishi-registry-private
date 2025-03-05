@@ -1,7 +1,7 @@
-import type { Context } from '@p/core'
+import type { Context } from '@p/core';
 
-export const name = 'indexing'
+export const name = 'indexing';
 
 export function apply(ctx: Context) {
-  ctx.logger.info("Hello World")
+  ctx.logger.info('Hello World');
 }

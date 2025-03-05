@@ -1,29 +1,29 @@
-import { Context } from 'cordis'
-import { delay } from '@std/async'
-import { ensureSymlink } from '@std/fs'
-import { resolve, join } from '@std/path'
-import TimerService from '@cordisjs/plugin-timer'
-import LoggerService from '@cordisjs/plugin-logger'
-import { CommunicationService } from './packages/communicate/mod.ts'
-import { noop } from 'cosmokit'
-import type BunIPCCommunicator from './packages/communicate/communicator/bun_ipc.ts'
+import { Context } from 'cordis';
+import { delay } from '@std/async';
+import { ensureSymlink } from '@std/fs';
+import { resolve, join } from '@std/path';
+import TimerService from '@cordisjs/plugin-timer';
+import LoggerService from '@cordisjs/plugin-logger';
+import { CommunicationService } from './packages/communicate/mod.ts';
+import { noop } from 'cosmokit';
+import type BunIPCCommunicator from './packages/communicate/communicator/bun_ipc.ts';
 
-const PING_TIMEOUT = 5000
-const AUTO_RESTART = true
+const PING_TIMEOUT = 5000;
+const AUTO_RESTART = true;
 
-const app = new Context()
+const app = new Context();
 
-await app.plugin(TimerService)
-await app.plugin(LoggerService)
+await app.plugin(TimerService);
+await app.plugin(LoggerService);
 
 await new Promise<void>((resolve) => {
-  app.plugin(CommunicationService).then(resolve)
-  app.setTimeout(() => resolve(), 1000)
-})
+  app.plugin(CommunicationService).then(resolve);
+  app.setTimeout(() => resolve(), 1000);
+});
 
 function createWorker() {
-  const fork = app.$communicate.spawn()
-  const conn = fork.conn as BunIPCCommunicator
+  const fork = app.$communicate.spawn();
+  const conn = fork.conn as BunIPCCommunicator;
 
   // https://github.com/koishijs/koishi/blob/master/packages/koishi/src/cli/start.ts#L76
   // https://nodejs.org/api/process.html#signal-events
@@ -40,50 +40,50 @@ function createWorker() {
     'SIGSEGV',
     'SIGSTOP',
     'SIGTERM',
-  ]
+  ];
 
   function shouldExit(code: number | null, signal: NodeJS.Signals | null) {
     // exit manually
-    if (code === 0) return true
-    if (signals.includes(<NodeJS.Signals> signal)) return true
+    if (code === 0) return true;
+    if (signals.includes(<NodeJS.Signals>signal)) return true;
 
     // restart manually
-    if (code === 51) return false
-    if (code === 52) return true
+    if (code === 51) return false;
+    if (code === 52) return true;
 
     // fallback to autoRestart
-    return !AUTO_RESTART
+    return !AUTO_RESTART;
   }
 
   for (const signal of signals) {
     process.on(signal, async () => {
-      console.log('signal', signal)
-      await fork.post("exit", {})
+      await fork.post('exit', {});
       await Promise.any([
         Bun.sleep(500).then(() => conn.getInner().kill('SIGKILL')),
-        conn.getInner().exited
-      ])
-      process.exit(0)
-    })
+        conn.getInner().exited,
+      ]);
+      process.exit(0);
+    });
   }
 
   conn.on('exit', (code, signal) => {
     if (shouldExit(code, signal)) {
-      process.exit(code ?? void 0)
+      process.exit(code ?? void 0);
     }
-    createWorker()
-  })
+    createWorker();
+  });
 
   const timer = setTimeout(() => {
-    app.logger.warn('daemon: ping timeout')
-    conn.getInner().kill('SIGKILL')
-  }, PING_TIMEOUT)
+    app.logger.warn('daemon: ping timeout');
+    conn.getInner().kill('SIGKILL');
+  }, PING_TIMEOUT);
 
   app.setInterval(async () => {
-    await fork.call('ping')
+    await fork
+      .call('ping')
       .then(() => timer.refresh())
-      .catch(noop)
-  }, PING_TIMEOUT / 2)
+      .catch(noop);
+  }, PING_TIMEOUT / 2);
 }
 
-createWorker()
+createWorker();

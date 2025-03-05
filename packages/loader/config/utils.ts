@@ -1,5 +1,5 @@
-import { valueMap, isNullable } from 'cosmokit'
-import * as yaml from 'js-yaml'
+import { valueMap, isNullable } from 'cosmokit';
+import * as yaml from 'js-yaml';
 
 // eslint-disable-next-line no-new-func
 export const evaluate = new Function(
@@ -10,26 +10,26 @@ export const evaluate = new Function(
     return eval(expr)
   }
 `,
-) as ((ctx: object, expr: string) => any)
+) as (ctx: object, expr: string) => any;
 
 export function interpolate(ctx: object, value: any) {
   if (isJsExpr(value)) {
-    return evaluate(ctx, value.__jsExpr)
+    return evaluate(ctx, value.__jsExpr);
   } else if (!value || typeof value !== 'object') {
-    return value
+    return value;
   } else if (Array.isArray(value)) {
-    return value.map((item) => interpolate(ctx, item))
+    return value.map((item) => interpolate(ctx, item));
   } else {
-    return valueMap(value, (item) => interpolate(ctx, item))
+    return valueMap(value, (item) => interpolate(ctx, item));
   }
 }
 
 function isJsExpr(value: any): value is JsExpr {
-  return value instanceof Object && '__jsExpr' in value
+  return value instanceof Object && '__jsExpr' in value;
 }
 
 export interface JsExpr {
-  __jsExpr: string
+  __jsExpr: string;
 }
 
 export const JsExpr = new yaml.Type('tag:yaml.org,2002:js', {
@@ -38,14 +38,14 @@ export const JsExpr = new yaml.Type('tag:yaml.org,2002:js', {
   construct: (data) => ({ __jsExpr: data }),
   predicate: isJsExpr,
   represent: (data) => data['__jsExpr'],
-})
+});
 
 // biome-ignore lint/suspicious/noExplicitAny: module type
 export function unwrapExports(module: any) {
-  if (isNullable(module)) return module
-  const exports = module.default ?? module
+  if (isNullable(module)) return module;
+  const exports = module.default ?? module;
   // https://github.com/evanw/esbuild/issues/2623
   // https://esbuild.github.io/content-types/#default-interop
-  if (!exports.__esModule) return exports
-  return exports.default ?? exports
+  if (!exports.__esModule) return exports;
+  return exports.default ?? exports;
 }

@@ -31,7 +31,7 @@
           </slot>
         </template>
       </layout-header>
-      <main class="layout-main rd-2xl" :class="main">
+      <main class="layout-main" :class="main">
         <slot></slot>
       </main>
     </div>
@@ -43,36 +43,34 @@
 </template>
 
 <script lang="ts" setup>
-
-import { computed, ref, useSlots } from 'vue'
-import { useRoute } from 'vue-router'
-import { LegacyMenuItem, useContext } from '@web/client'
-import LayoutHeader from './header.vue'
-import LayoutMenuItem from './menu-item.vue'
+import { computed, ref, useSlots } from 'vue';
+import { useRoute } from 'vue-router';
+import { LegacyMenuItem, useContext } from '@web/client';
+import LayoutHeader from './header.vue';
+import LayoutMenuItem from './menu-item.vue';
 
 defineProps<{
-  main?: string
-  left?: string
-  right?: string
-  container?: string
-  menu?: string | LegacyMenuItem[]
-  menuData?: any
-}>()
+  main?: string;
+  left?: string;
+  right?: string;
+  container?: string;
+  menu?: string | LegacyMenuItem[];
+  menuData?: any;
+}>();
 
-const slots = useSlots()
-const route = useRoute()
-const ctx = useContext()
+const slots = useSlots();
+const route = useRoute();
+const ctx = useContext();
 
-const isLeftAsideOpen = ref(false)
-const isRightAsideOpen = ref(false)
+const isLeftAsideOpen = ref(false);
+const isRightAsideOpen = ref(false);
 
 const styles = computed(() => ({
   'has-left-aside': slots.left,
   'has-right-aside': slots.right,
   'is-left-aside-open': isLeftAsideOpen.value,
   'is-right-aside-open': isRightAsideOpen.value,
-}))
-
+}));
 </script>
 
 <style scoped lang="scss">

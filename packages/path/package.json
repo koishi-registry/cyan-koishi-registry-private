@@ -1,0 +1,8 @@
+{
+  "name": "@kra/path",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./mod.ts",
+    "./to_path_string": "./to_path_string.ts"
+  }
+}

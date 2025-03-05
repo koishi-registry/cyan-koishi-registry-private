@@ -1,5 +1,5 @@
-import type { Context } from '@web/client'
-import Home from './home.vue'
+import type { Context } from '@web/client';
+import Home from './home.vue';
 
 export default function (ctx: Context) {
   ctx.page({
@@ -9,5 +9,5 @@ export default function (ctx: Context) {
     icon: 'activity:home',
     order: 1000,
     component: Home,
-  })
+  });
 }

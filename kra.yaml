@@ -25,4 +25,4 @@
 - id: bruh1
   name: '@web/plug-webui'
   config: null
-  disabled: true
+  disabled: false

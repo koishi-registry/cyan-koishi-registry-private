@@ -1,5 +1,4 @@
 {
-  // We do not use "extends" here because dev mode cannot access the root tsconfig.
   "compilerOptions": {
     "target": "es2022",
     "module": "esnext",

@@ -3,9 +3,9 @@
     <header v-if="title || $slots.header">
       <slot name="header">{{ title }}</slot>
     </header>
-    <el-scrollbar v-if="scrollbar">
+    <ScrollPanel v-if="scrollbar">
       <div class="k-card-body"><slot/></div>
-    </el-scrollbar>
+    </ScrollPanel>
     <div v-else class="k-card-body"><slot/></div>
     <footer v-if="$slots.footer">
       <slot name="footer"></slot>
@@ -14,12 +14,10 @@
 </template>
 
 <script lang="ts" setup>
-
 defineProps<{
-  title?: string
-  scrollbar?: boolean
-}>()
-
+  title?: string;
+  scrollbar?: boolean;
+}>();
 </script>
 
 <style lang="scss">

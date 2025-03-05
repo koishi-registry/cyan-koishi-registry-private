@@ -1,132 +1,132 @@
-import { type Context, symbols } from '@cordisjs/core'
-import type { Dict } from 'cosmokit'
-import type { Entry } from './entry.ts'
+import { type Context, symbols } from '@cordisjs/core';
+import type { Dict } from 'cosmokit';
+import type { Entry } from './entry.ts';
 
 declare module './entry.ts' {
   interface EntryUpdateMeta {
-    newMap: Dict<symbol>
-    diff: [string, symbol, symbol, symbol, symbol][]
+    newMap: Dict<symbol>;
+    diff: [string, symbol, symbol, symbol, symbol][];
   }
 
   interface EntryOptions {
-    intercept?: Dict | null
-    isolate?: Dict<true | string> | null
+    intercept?: Dict | null;
+    isolate?: Dict<true | string> | null;
   }
 
   interface Entry {
-    realm: LocalRealm
+    realm: LocalRealm;
   }
 }
 
 function swap<T extends {}>(target: T, source?: T | null) {
   for (const key of Reflect.ownKeys(target)) {
-    Reflect.deleteProperty(target, key)
+    Reflect.deleteProperty(target, key);
   }
   for (const key of Reflect.ownKeys(source || {})) {
     Reflect.defineProperty(
       target,
       key,
       Reflect.getOwnPropertyDescriptor(source!, key)!,
-    )
+    );
   }
 }
 
 export abstract class Realm {
-  protected store: Dict<symbol> = Object.create(null)
+  protected store: Dict<symbol> = Object.create(null);
 
-  abstract get suffix(): string
+  abstract get suffix(): string;
 
   access(key: string, create = false) {
     if (create) {
-      return this.store[key] ??= Symbol(`${key}${this.suffix}`)
+      return (this.store[key] ??= Symbol(`${key}${this.suffix}`));
     } else {
-      return this.store[key] ?? Symbol(`${key}${this.suffix}`)
+      return this.store[key] ?? Symbol(`${key}${this.suffix}`);
     }
   }
 
   delete(key: string) {
-    delete this.store[key]
+    delete this.store[key];
   }
 
   get size() {
-    return Object.keys(this.store).length
+    return Object.keys(this.store).length;
   }
 }
 
 export class LocalRealm extends Realm {
   constructor(private entry: Entry) {
-    super()
+    super();
   }
 
   get suffix() {
-    return '#' + this.entry.options.id
+    return '#' + this.entry.options.id;
   }
 }
 
 export class GlobalRealm extends Realm {
   constructor(public label: string) {
-    super()
+    super();
   }
 
   get suffix() {
-    return '@' + this.label
+    return '@' + this.label;
   }
 }
 
-export const name = 'isolate'
+export const name = 'isolate';
 
 export function apply(ctx: Context) {
-  const realms: Dict<GlobalRealm> = Object.create(null)
+  const realms: Dict<GlobalRealm> = Object.create(null);
 
-  function access(entry: Entry, key: string, create: true): symbol
+  function access(entry: Entry, key: string, create: true): symbol;
   function access(
     entry: Entry,
     key: string,
     create?: boolean,
-  ): symbol | undefined
+  ): symbol | undefined;
   function access(entry: Entry, key: string, create = false) {
-    let realm: Realm | undefined
-    const label = entry.options.isolate?.[key]
-    if (!label) return
+    let realm: Realm | undefined;
+    const label = entry.options.isolate?.[key];
+    if (!label) return;
     if (label === true) {
-      realm = entry.realm ??= new LocalRealm(entry)
+      realm = entry.realm ??= new LocalRealm(entry);
     } else if (create) {
-      realm = realms[label] ??= new GlobalRealm(label)
+      realm = realms[label] ??= new GlobalRealm(label);
     } else {
-      realm = realms[label]
+      realm = realms[label];
     }
-    return realm?.access(key, create)
+    return realm?.access(key, create);
   }
 
   ctx.on('loader/entry-init', (entry) => {
-    entry.ctx[symbols.intercept] = Object.create(entry.ctx[symbols.intercept])
-    entry.ctx[symbols.isolate] = Object.create(entry.ctx[symbols.isolate])
-  })
+    entry.ctx[symbols.intercept] = Object.create(entry.ctx[symbols.intercept]);
+    entry.ctx[symbols.isolate] = Object.create(entry.ctx[symbols.isolate]);
+  });
 
   ctx.on('loader/before-patch', function (entry) {
     // step 1: generate new isolate map
-    this.newMap = Object.create(entry.parent.ctx[symbols.isolate])
+    this.newMap = Object.create(entry.parent.ctx[symbols.isolate]);
     for (const key of Object.keys(entry.options.isolate ?? {})) {
-      this.newMap[key] = access(entry, key, true)
+      this.newMap[key] = access(entry, key, true);
     }
 
     // step 2: generate service diff
-    this.diff = []
-    const oldMap = entry.ctx[symbols.isolate]
+    this.diff = [];
+    const oldMap = entry.ctx[symbols.isolate];
     for (const key in { ...this.newMap, ...entry.loader.delims }) {
-      if (this.newMap[key] === oldMap[key]) continue
-      const delim = entry.loader.delims[key] ??= Symbol(`delim:${key}`)
-      entry.ctx[delim] = Symbol(`${key}#${entry.id}`)
+      if (this.newMap[key] === oldMap[key]) continue;
+      const delim = (entry.loader.delims[key] ??= Symbol(`delim:${key}`));
+      entry.ctx[delim] = Symbol(`${key}#${entry.id}`);
       for (const symbol of [oldMap[key], this.newMap[key]]) {
-        const item = symbol && entry.ctx[symbols.store][symbol]
-        if (!item) continue
+        const item = symbol && entry.ctx[symbols.store][symbol];
+        if (!item) continue;
         if (!item.source) {
           entry.ctx.emit(
             entry.ctx,
             'internal/warning',
             new Error(`expected service ${key} to be implemented`),
-          )
-          continue
+          );
+          continue;
         }
         this.diff.push([
           key,
@@ -134,86 +134,89 @@ export function apply(ctx: Context) {
           this.newMap[key],
           entry.ctx[delim],
           item.source[delim],
-        ])
-        if (entry.ctx[delim] !== item.source[delim]) break
+        ]);
+        if (entry.ctx[delim] !== item.source[delim]) break;
       }
     }
 
     // step 3: emit internal/before-service
     for (const [key, symbol1, symbol2, flag1, flag2] of this.diff) {
-      const self = Object.create(entry.ctx)
+      const self = Object.create(entry.ctx);
       self[symbols.filter] = (target: Context) => {
         if (![symbol1, symbol2].includes(target[symbols.isolate][key])) {
-          return false
+          return false;
         }
-        return (flag1 === target[entry.loader.delims[key]]) !==
-          (flag1 === flag2)
-      }
-      entry.ctx.emit(self, 'internal/before-service', key)
+        return (
+          (flag1 === target[entry.loader.delims[key]]) !== (flag1 === flag2)
+        );
+      };
+      entry.ctx.emit(self, 'internal/before-service', key);
     }
 
     // step 4: set prototype for transferred context
     Object.setPrototypeOf(
       entry.ctx[symbols.isolate],
       entry.parent.ctx[symbols.isolate],
-    )
+    );
     Object.setPrototypeOf(
       entry.ctx[symbols.intercept],
       entry.parent.ctx[symbols.intercept],
-    )
-    swap(entry.ctx[symbols.isolate], this.newMap)
-    swap(entry.ctx[symbols.intercept], entry.options.intercept)
-  })
+    );
+    swap(entry.ctx[symbols.isolate], this.newMap);
+    swap(entry.ctx[symbols.intercept], entry.options.intercept);
+  });
 
   ctx.on('loader/after-patch', function (entry) {
     // step 5: replace service impl
     for (const [, symbol1, symbol2, flag1, flag2] of this.diff) {
       if (
-        flag1 === flag2 && entry.ctx[symbols.store][symbol1] &&
+        flag1 === flag2 &&
+        entry.ctx[symbols.store][symbol1] &&
         !entry.ctx[symbols.store][symbol2]
       ) {
-        entry.ctx[symbols.store][symbol2] = entry.ctx[symbols.store][symbol1]
-        delete entry.ctx[symbols.store][symbol1]
+        entry.ctx[symbols.store][symbol2] = entry.ctx[symbols.store][symbol1];
+        delete entry.ctx[symbols.store][symbol1];
       }
     }
 
     // step 6: emit internal/service
     for (const [key, symbol1, symbol2, flag1, flag2] of this.diff) {
-      const self = Object.create(entry.ctx)
+      const self = Object.create(entry.ctx);
       self[symbols.filter] = (target: Context) => {
         if (![symbol1, symbol2].includes(target[symbols.isolate][key])) {
-          return false
+          return false;
         }
-        return (flag1 === target[entry.loader.delims[key]]) !==
-          (flag1 === flag2)
-      }
-      entry.ctx.emit(self, 'internal/service', key)
+        return (
+          (flag1 === target[entry.loader.delims[key]]) !== (flag1 === flag2)
+        );
+      };
+      entry.ctx.emit(self, 'internal/service', key);
     }
 
     // step 7: clean up delimiters
     for (const key in entry.loader.delims) {
       if (!Reflect.ownKeys(this.newMap).includes(key)) {
-        delete entry.ctx[entry.loader.delims[key]]
+        delete entry.ctx[entry.loader.delims[key]];
       }
     }
-  })
+  });
 
   ctx.on('loader/partial-dispose', (entry, legacy, active) => {
     for (const [key, label] of Object.entries(legacy.isolate ?? {})) {
-      if (label === true) continue
-      if (active && entry.options.isolate?.[key] === label) continue
-      const realm = realms[label]
-      if (!realm) continue
+      if (label === true) continue;
+      if (active && entry.options.isolate?.[key] === label) continue;
+      const realm = realms[label];
+      if (!realm) continue;
 
       // realm garbage collection
       for (const entry of ctx.loader.entries()) {
         // has reference to this realm
-        if (entry.options.isolate?.[key] === realm.label) return
+        if (entry.options.isolate?.[key] === realm.label) return;
       }
-      realm.delete(key)
+      realm.delete(key);
       if (!realm.size) {
-        delete realms[realm.label]
+        delete realms[realm.label];
       }
     }
-  })
+  });
 }

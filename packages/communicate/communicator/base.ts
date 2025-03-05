@@ -1,20 +1,20 @@
-import type {} from '../mod.ts'
-import type { Awaitable } from 'cosmokit'
+import type {} from '../mod.ts';
+import type { Awaitable } from 'cosmokit';
 
-export type Handler = (message: unknown, handle?: unknown) => Awaitable<void>
+export type Handler = (message: unknown, handle?: unknown) => Awaitable<void>;
 
 export default abstract class Communicator {
-  abstract get name(): string
+  abstract get name(): string;
 
   get open(): boolean {
-    return true
+    return true;
   }
 
-  abstract off(type: 'message', handler: Handler): void
+  abstract off(type: 'message', handler: Handler): void;
 
-  abstract on(type: 'message', handler: Handler): () => Promise<void>
+  abstract on(type: 'message', handler: Handler): () => Promise<void>;
 
-  abstract send(message: unknown, handle?: unknown): void
+  abstract send(message: unknown, handle?: unknown): void;
 
-  abstract getInner(): unknown
+  abstract getInner(): unknown;
 }

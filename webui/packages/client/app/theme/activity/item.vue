@@ -7,7 +7,7 @@
     @dragleave="handleDragLeave"
     @drop="handleDrop"
     @dragover.prevent>
-    <Popover ref="pop">
+    <div :class="['float', show ? 'show' : '']" ref="float" :style="floatingStyles">
       <div class="activity-info">
         <div class="title">{{ children[hoverIndex].name }}</div>
         <div class="desc" v-if="children[hoverIndex].desc">{{ children[hoverIndex].desc }}</div>
@@ -21,88 +21,150 @@
           ></activity-button>
         </div>
       </div>
-    </Popover>
-    <activity-button @mouseover="showPop" @mouseleave="hidePop" :data="children[0]" :class="{ 'is-group': children.length > 1 }"></activity-button>
+    </div>
+    <activity-button @mouseenter="show = true" @mouseleave="show = false" ref="button" :data="children[0]" :class="{ 'is-group': children.length > 1 }"></activity-button>
   </div>
 </template>
 
 <script lang="ts" setup>
-
-import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { Activity, useConfig, useMenu } from '@web/client'
+import { computed, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import { Activity, useConfig, useMenu } from '@web/client';
 // import { Placement } from 'element-plus'
-import ActivityButton from './button.vue'
-import { watch } from 'vue'
+import ActivityButton from './button.vue';
+import { watch, onMounted } from 'vue';
+import { useFloating } from '@floating-ui/vue';
 
-const pop = ref()
+const show = ref(false);
+const float = ref();
+const button = ref<HTMLElement>();
+const { floatingStyles } = useFloating(button, float, {
+  placement: 'right'
+})
 
-function showPop(ev) {
-  pop.value.show(ev)
-}
+// function showPop(ev) {
+//   float.value.
+//   float.value.show(ev);
+// }
 
-function hidePop() {
-  pop.value.hide()
-}
+// function hidePop() {
+//   float.value.hide();
+// }
 
-const route = useRoute()
+const route = useRoute();
 
 const props = defineProps<{
-  children: Activity[]
+  children: Activity[];
   // placement: Placement
-}>()
+}>();
 
 const isActive = computed(() => {
-  return Object.values(props.children).some(child => route.meta?.activity?.id === child.id)
-})
+  return Object.values(props.children).some(
+    (child) => route.meta?.activity?.id === child.id,
+  );
+});
 
-const hasDragOver = ref(false)
+const hasDragOver = ref(false);
 
-const trigger = useMenu('theme.activity')
+const trigger = useMenu('theme.activity');
 
-const hoverIndex = ref(0)
+const hoverIndex = ref(0);
 
-watch(() => props.children, () => {
-  hoverIndex.value = 0
-})
+watch(
+  () => props.children,
+  () => {
+    hoverIndex.value = 0;
+  },
+);
 
 function handleDragEnter(event: DragEvent) {
-  hasDragOver.value = true
+  hasDragOver.value = true;
 }
 
 function handleDragLeave(event: DragEvent) {
-  hasDragOver.value = false
+  hasDragOver.value = false;
 }
 
-const config = useConfig()
+const config = useConfig();
 
 function handleDrop(event: DragEvent) {
-  hasDragOver.value = false
-  const text = event.dataTransfer.getData('text/plain')
-  if (!text.startsWith('activity:')) return
-  const id = text.slice(9)
-  const target = props.children[0].id
-  if (target === id) return
-  event.preventDefault()
+  hasDragOver.value = false;
+  const text = event.dataTransfer.getData('text/plain');
+  if (!text.startsWith('activity:')) return;
+  const id = text.slice(9);
+  const target = props.children[0].id;
+  if (target === id) return;
+  event.preventDefault();
 
-  const override = (config.value.activities ??= {})[id] ??= {}
+  const override = ((config.value.activities ??= {})[id] ??= {});
   if (override.parent === target) {
-    delete override.parent
-    ;(config.value.activities[target] ??= {}).parent = id
+    delete override.parent;
+    (config.value.activities[target] ??= {}).parent = id;
     for (const key in config.value.activities) {
-      const override = config.value.activities[key]
+      const override = config.value.activities[key];
       if (override?.parent === target) {
-        override.parent = id
+        override.parent = id;
       }
     }
   } else {
-    override.parent = target
+    override.parent = target;
   }
 }
-
 </script>
 
 <style lang="scss">
+.float {
+  z-index: 200;
+  background: var(--p-surface-900);
+  padding: 0.5rem;
+  border-radius: 10px;
+  user-select: none;
+  opacity: 0;
+  animation: showAnimation 300ms ease-in-out forwards;
+  animation-play-state: paused;
+
+  &.show {
+    animation-fill-mode: forwards;
+    animation-play-state: running;
+  }
+  &:not(.show) {
+    animation: hideAnimation 500ms ease-in-out forwards;
+  }
+
+  &::before {
+    --p-tooltip-gutter: 0.5rem;
+    --p-tooltip-background: var(--p-surface-900);
+    content: '';
+    top: 50%;
+    left: -5px;
+    margin-top: calc(-1 * var(--p-tooltip-gutter));
+    border-width: var(--p-tooltip-gutter) var(--p-tooltip-gutter) var(--p-tooltip-gutter) 0;
+    /* border-right-color: var(--p-tooltip-background); */
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-color: transparent var(--p-tooltip-background) transparent transparent;
+    border-style: solid;
+  }
+}
+
+@keyframes hideAnimation {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes showAnimation {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 
 .activity-item {
   position: relative;

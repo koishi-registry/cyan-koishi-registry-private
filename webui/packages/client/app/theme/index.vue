@@ -10,9 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-
-import ActivityBar from './activity/index.vue'
-import StatusBar from './status.vue'
-import MenuList from './menu/index.vue'
-
+import ActivityBar from './activity/index.vue';
+import StatusBar from './status.vue';
+import MenuList from './menu/index.vue';
 </script>

@@ -26,15 +26,18 @@ import {
   oneOrMore,
   wordChar,
 } from 'magic-regexp'
+import { SyncError } from './errors.ts'
 // import { ObjectList } from "./serializing.ts"; // whatevers, avsc doesn't work with my prefect Schema ;(
 // import { BSON } from 'bson'
 // import { Buffer } from "node:buffer";
 
 export type { Feature, Features } from '@plug/k-analyzer'
 
+const { NO_VERSION } = SyncError
+
 export function aligned(s: string, pad = 35): string {
   if (s.length > pad) {
-    return s.substring(0, pad - 3) + '...'
+    return `${s.substring(0, pad - 3)}...`
   }
   return s.padEnd(pad, ' ')
 }
@@ -170,7 +173,7 @@ export class KoishiMeta {
 
   async query(
     name: string,
-    force: boolean = false,
+    force = false,
   ): Promise<NpmRegistry.OkResult | null> {
     this.fetch_tasks++
     try {
@@ -187,7 +190,7 @@ export class KoishiMeta {
 
   async get(
     name: string,
-    clean: boolean = false,
+    clean = false,
   ): Promise<NpmRegistry.Result | null> {
     const result = this._internal.get(name)
     if (clean || typeof result === 'undefined') {
@@ -195,9 +198,8 @@ export class KoishiMeta {
       if (typeof cached === 'object') {
         await this.set(name, cached)
         return cached
-      } else {
-        return await this.query(name, true)
       }
+      return await this.query(name, true)
     }
     return result
   }
@@ -239,7 +241,7 @@ export class RegistryGenerator extends Service {
 
   last_refresh: Date = new Date()
   object_cache: Map<string, KoishiMarket.Object | null> = new Map()
-  fetch_task: number = 0
+  fetch_task = 0
   _queries = 0
   _next_second?: Promise<void>
   context: Context
@@ -282,9 +284,9 @@ export class RegistryGenerator extends Service {
   }
 
   public getFeatures(): Features {
-    const analyzer = this.ctx.koishi.analyzer.getFeatures()
+    const analyzer = this.ctx.koishi.analyzer.getFeatures?.()
     return {
-      ...analyzer,
+      ...(analyzer??{}),
     }
   }
 
@@ -343,11 +345,12 @@ export class RegistryGenerator extends Service {
             username: user,
             email: user,
           }
-        } else {return {
-            name: matches.groups.name,
-            username: matches.groups.name,
-            email: matches.groups.email!,
-          }}
+        }
+        return {
+          name: matches.groups.name,
+          username: matches.groups.name,
+          email: matches.groups.email!,
+        }
       }
       user = structuredClone(user)
       if (!user.username) {
@@ -356,7 +359,7 @@ export class RegistryGenerator extends Service {
       return user
     }
 
-    if (!pack?.versions) throw new Error('Package have no version')
+    if (!pack?.versions) throw new NO_VERSION()
 
     const compatibles = Object.values(pack.versions).filter((remote) => {
       return RegistryGenerator.isCompatible(parseRange('4'), remote)
@@ -366,7 +369,7 @@ export class RegistryGenerator extends Service {
       typeof pack.deprecated !== 'string'
     )
     const times = versions.map((item) => pack.time[item.version]).sort()
-    if (versions.length === 0) throw new Error('Package have no version')
+    if (versions.length === 0) throw new NO_VERSION()
     const meta = versions[versions.length - 1]
 
     const links: Dict<string> = {
@@ -490,9 +493,8 @@ export class RegistryGenerator extends Service {
       this.ctx.logger.debug(`✅ ${aligned(packageName)} \t\t| complete`)
 
       return object
-      // deno-lint-ignore no-explicit-any
-    } catch (e: any | Error) {
-      if (e?.message === 'Package have no version') {
+    } catch (e) {
+      if (NO_VERSION.is(e)) {
         this.object_cache.set(packageName, null)
         // this.saveCache()
         this.ctx.logger.debug(`⭕  ${aligned(packageName)} \t\t| no version`)
@@ -510,8 +512,8 @@ export class RegistryGenerator extends Service {
   // prefer cached result
   public async fetchObject(
     packageName: string,
-    regenerate: boolean = false,
-    refresh_meta: boolean = false,
+    regenerate = false,
+    refresh_meta = false,
   ): Promise<KoishiMarket.Object | null> {
     if (regenerate) {
       if (refresh_meta) await this.ctx.koishi.meta.refetchOne(packageName)
@@ -527,8 +529,8 @@ export class RegistryGenerator extends Service {
   // @deprecated: use `fetchObject()` instead
   public fetch(
     packageName: string,
-    regenerate: boolean = false,
-    refresh_meta: boolean = false,
+    regenerate = false,
+    refresh_meta = false,
   ): Promise<KoishiMarket.Object | null> {
     return this.fetchObject(packageName, regenerate, refresh_meta)
   }

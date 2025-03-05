@@ -1,14 +1,14 @@
-import * as vite from 'vite'
-import type { RollupOutput } from 'rollup'
-import { existsSync, promises as fs } from 'node:fs'
-import { resolve } from '@std/path'
+import * as vite from 'vite';
+import type { RollupOutput } from 'rollup';
+import { existsSync, promises as fs } from 'node:fs';
+import { resolve } from '@std/path';
 // import type { Context } from 'yakumo'
-import unocss from 'unocss/vite'
-import uno from 'unocss/preset-uno'
-import vue from '@vitejs/plugin-vue'
-import yaml from '@maikolib/vite-plugin-yaml'
+import unocss from 'unocss/vite';
+import uno from 'unocss/preset-uno';
+import vue from '@vitejs/plugin-vue';
+import yaml from '@maikolib/vite-plugin-yaml';
 // import { fileURLToPath, pathToFileURL } from 'node:url'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath } from 'node:url';
 
 // declare module 'yakumo' {
 //   interface PackageConfig {
@@ -17,90 +17,91 @@ import { fileURLToPath } from 'node:url'
 // }
 
 export async function build(root: string, config: vite.UserConfig = {}) {
-  if (!existsSync(root + '/client')) return
+  if (!existsSync(root + '/client')) return;
 
-  const outDir = root + '/dist'
+  const outDir = root + '/dist';
   if (existsSync(outDir)) {
-    await fs.rm(outDir, { recursive: true })
+    await fs.rm(outDir, { recursive: true });
   }
-  await fs.mkdir(root + '/dist', { recursive: true })
+  await fs.mkdir(root + '/dist', { recursive: true });
 
-  const results = await vite.build(vite.mergeConfig({
-    root,
-    build: {
-      write: false,
-      outDir: 'dist',
-      assetsDir: '',
-      minify: true,
-      emptyOutDir: true,
-      commonjsOptions: {
-        strictRequires: true,
-      },
-      lib: {
-        entry: root + '/client/index.ts',
-        fileName: 'index',
-        formats: ['es'],
-      },
-      rollupOptions: {
-        makeAbsoluteExternalsRelative: true,
-        external: [
-          'vue',
-          'vue-router',
-          '@web/client',
-        ],
-        output: {
-          format: 'iife',
-        },
-      },
-    },
-    plugins: [
-      vue(),
-      yaml(),
-      unocss({
-        presets: [
-          uno({
-            preflight: false,
-          }),
-        ],
-      }),
+  const results = (await vite.build(
+    vite.mergeConfig(
       {
-        name: 'auto-import',
-        transform(code, id, _options) {
-          if (id !== root + '/client/index.ts') return
-          code = 'import "virtual:uno.css";\n\n' + code
-          return { code, map: null }
+        root,
+        build: {
+          write: false,
+          outDir: 'dist',
+          assetsDir: '',
+          minify: true,
+          emptyOutDir: true,
+          commonjsOptions: {
+            strictRequires: true,
+          },
+          lib: {
+            entry: root + '/client/index.ts',
+            fileName: 'index',
+            formats: ['es'],
+          },
+          rollupOptions: {
+            makeAbsoluteExternalsRelative: true,
+            external: ['vue', 'vue-router', '@web/client'],
+            output: {
+              format: 'iife',
+            },
+          },
         },
-      },
-    ],
-    resolve: {
-      alias: {
-        'vue-i18n': '@web/client',
-        '@web/components': '@web/client',
-      },
-    },
-    define: {
-      'process.env.NODE_ENV': '"production"',
-    },
-    css: {
-      preprocessorOptions: {
-        scss: {
-          api: 'modern-compiler',
+        plugins: [
+          vue(),
+          yaml(),
+          unocss({
+            presets: [
+              uno({
+                preflight: false,
+              }),
+            ],
+          }),
+          {
+            name: 'auto-import',
+            transform(code, id, _options) {
+              if (id !== root + '/client/index.ts') return;
+              code = 'import "virtual:uno.css";\n\n' + code;
+              return { code, map: null };
+            },
+          },
+        ],
+        resolve: {
+          alias: {
+            'vue-i18n': '@web/client',
+            '@web/components': '@web/client',
+          },
         },
-      },
-    },
-  } as vite.InlineConfig, config)) as RollupOutput[]
+        define: {
+          'process.env.NODE_ENV': '"production"',
+        },
+        css: {
+          preprocessorOptions: {
+            scss: {
+              api: 'modern-compiler',
+            },
+          },
+        },
+      } as vite.InlineConfig,
+      config,
+    ),
+  )) as RollupOutput[];
 
   for (const item of results[0].output) {
-    if (item.fileName === 'index.mjs') item.fileName = 'index.js'
-    const dest = root + '/dist/' + item.fileName
+    if (item.fileName === 'index.mjs') item.fileName = 'index.js';
+    const dest = root + '/dist/' + item.fileName;
     if (item.type === 'asset') {
-      await fs.writeFile(dest, item.source)
+      await fs.writeFile(dest, item.source);
     } else {
       const result = await vite.transformWithEsbuild(item.code, dest, {
         minifyWhitespace: true,
         charset: 'utf8',
-      })
-      await fs.writeFile(dest, result.code)
+      });
+      await fs.writeFile(dest, result.code);
     }
   }
 }
@@ -108,69 +109,78 @@ export async function build(root: string, config: vite.UserConfig = {}) {
 export interface InlineConfig extends vite.InlineConfig {}
 
 export async function createServer(baseDir: string, config: InlineConfig = {}) {
-  const root = resolve(fileURLToPath(import.meta.url), '../app')
-  return vite.createServer(vite.mergeConfig({
-    root,
-    base: '/vite/',
-    server: {
-      middlewareMode: true,
-      fs: {
-        allow: [baseDir],
-      },
-    },
-    plugins: [
-      vue(),
-      yaml(),
-      unocss({
-        presets: [
-          uno({
-            preflight: false,
+  const root = resolve(fileURLToPath(import.meta.url), '../app');
+  return vite.createServer(
+    vite.mergeConfig(
+      {
+        root,
+        base: '/vite/',
+        server: {
+          middlewareMode: true,
+          fs: {
+            allow: [baseDir],
+          },
+        },
+        plugins: [
+          vue(),
+          yaml(),
+          unocss({
+            presets: [
+              uno({
+                preflight: false,
+              }),
+            ],
           }),
         ],
-      }),
-    ],
-    resolve: {
-      dedupe: [
-        'vue',
-        'vue-demi',
-        'vue-router',
-        'primevue',
-        '@vueuse/core',
-        '@popperjs/core',
-        'marked',
-        'xss',
-      ],
-      alias: {
-        // for backward compatibility
-        '../client.js': '@web/client',
-        '../vue.js': 'vue',
-        '../vue-router.js': 'vue-router',
-      },
-    },
-    optimizeDeps: {
-      include: [
-        'vue',
-        'vue-router',
-        'primevue',
-        '@vueuse/core',
-        '@popperjs/core',
-        'marked',
-        'xss',
-      ],
-    },
-    css: {
-      preprocessorOptions: {
-        scss: {
-          api: 'modern-compiler',
+        resolve: {
+          dedupe: [
+            'vue',
+            'vue-demi',
+            'vue-router',
+            'primevue',
+            '@vueuse/core',
+            '@popperjs/core',
+            '@floating-ui/vue',
+            '@floating-ui/dom',
+            'marked',
+            'xss',
+          ],
+          alias: {
+            // for backward compatibility
+            // '../client.js': '@web/client',
+            // '../vue.js': 'vue',
+            // '../vue-router.js': 'vue-router',
+          },
         },
-      },
-    },
-    build: {
-      rollupOptions: {
-        input: root + '/index.html',
-      },
-    },
-  } as vite.InlineConfig, config))
+        optimizeDeps: {
+          include: [
+            'vue',
+            'vue-router',
+            'primevue',
+            '@vueuse/core',
+            '@popperjs/core',
+            '@floating-ui/vue',
+            '@floating-ui/dom',
+            'marked',
+            'xss',
+          ],
+        },
+        css: {
+          preprocessorOptions: {
+            scss: {
+              api: 'modern-compiler',
+            },
+          },
+        },
+        build: {
+          rollupOptions: {
+            input: root + '/index.html',
+          },
+        },
+      } as vite.InlineConfig,
+      config,
+    ),
+  );
 }
 
 // export const inject = ['yakumo']

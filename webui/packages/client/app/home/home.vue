@@ -1,6 +1,6 @@
 <template>
-  <k-layout :main="`darker page-home${socket ? '' : ' loading'}`">
-    <ScrollPanel v-if="socket">
+  <k-layout :main="`darker page-home${event ? '' : ' loading'}`">
+    <ScrollPanel v-if="event">
       <k-slot name="home"></k-slot>
     </ScrollPanel>
     <div v-else>
@@ -10,12 +10,13 @@
 </template>
 
 <script lang="ts" setup>
-
-import { socket } from '@web/client'
-
+import { event } from '@web/client';
 </script>
 
 <style lang="scss">
+ScrollPanel {
+  background-color: var(--p-surface-900);
+}
 
 .page-home {
   &.loading {

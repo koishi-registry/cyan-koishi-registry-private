@@ -8,7 +8,6 @@
 </template>
 
 <script lang="ts" setup>
-
 const props = defineProps({
   type: {
     type: String,
@@ -19,15 +18,14 @@ const props = defineProps({
   title: String,
   round: Boolean,
   disabled: Boolean,
-})
+});
 
-const emit = defineEmits(['click'])
+const emit = defineEmits(['click']);
 
 function onClick(event: MouseEvent) {
-  if (props.disabled) return
-  emit('click', event)
+  if (props.disabled) return;
+  emit('click', event);
 }
-
 </script>
 
 <style lang="scss">

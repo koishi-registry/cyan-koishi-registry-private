@@ -25,5 +25,5 @@ export interface DirEntry {
 }
 
 export interface WalkEntry extends DirEntry {
-  path: string
+  path: string;
 }

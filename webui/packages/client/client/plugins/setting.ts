@@ -1,10 +1,10 @@
-import { Schema } from '@cordisjs/plugin-schema'
-import type { Context } from '../context'
-import { insert, type Ordered, Service } from '../utils'
-import { type Dict, remove } from 'cosmokit'
-import { type Component, computed, markRaw, reactive, ref, watch } from 'vue'
-import type { Config } from '..'
-import { type RemovableRef, useLocalStorage } from '@vueuse/core'
+import { Schema } from '@cordisjs/plugin-schema';
+import type { Context } from '../context';
+import { insert, type Ordered, Service } from '../utils';
+import { type Dict, remove } from 'cosmokit';
+import { type Component, computed, markRaw, reactive, ref, watch } from 'vue';
+import type { Config } from '..';
+import { type RemovableRef, useLocalStorage } from '@vueuse/core';
 
 // declare module '@cordisjs/schema' {
 //   interface SchemaService {
@@ -14,21 +14,21 @@ import { type RemovableRef, useLocalStorage } from '@vueuse/core'
 
 declare module '../context' {
   interface Context {
-    $setting: SettingService
-    settings(options: SettingOptions): () => void
+    $setting: SettingService;
+    settings(options: SettingOptions): () => void;
   }
 
   interface Internal {
-    settings: Dict<SettingOptions[]>
+    settings: Dict<SettingOptions[]>;
   }
 }
 
 interface SettingOptions extends Ordered {
-  id: string
-  title?: string
-  disabled?: () => boolean
-  schema?: Schema
-  component?: Component
+  id: string;
+  title?: string;
+  disabled?: () => boolean;
+  schema?: Schema;
+  component?: Component;
 }
 
 export let useStorage = function useStorage<T extends object>(
@@ -36,17 +36,17 @@ export let useStorage = function useStorage<T extends object>(
   version?: number,
   fallback?: () => T,
 ): RemovableRef<T> {
-  const initial = fallback ? fallback() : {} as T
-  ;(initial as { __version__?: number })['__version__'] = version
-  const storage = useLocalStorage('cordis.webui.' + key, initial)
+  const initial = fallback ? fallback() : ({} as T);
+  (initial as { __version__?: number })['__version__'] = version;
+  const storage = useLocalStorage('cordis.webui.' + key, initial);
   if ((storage as { __version__?: number })['__version__'] !== version) {
-    storage.value = initial
+    storage.value = initial;
   }
-  return storage
-}
+  return storage;
+};
 
 export function provideStorage(factory: typeof useStorage) {
-  useStorage = factory
+  useStorage = factory;
 }
 
 export const original = useStorage<Config>('config', undefined, () => ({
@@ -56,22 +56,22 @@ export const original = useStorage<Config>('config', undefined, () => ({
     light: 'default-light',
   },
   locale: 'zh-CN',
-}))
+}));
 
-export const resolved = ref({} as Config)
+export const resolved = ref({} as Config);
 
 export const useConfig = (useOriginal = false) =>
-  useOriginal ? original : resolved
+  useOriginal ? original : resolved;
 
 export default class SettingService extends Service {
   constructor(ctx: Context) {
-    super(ctx, '$setting')
+    super(ctx, '$setting');
     ctx.mixin('$setting', {
       settings: 'settings',
       extendSchema: 'schema',
-    })
+    });
 
-    ctx.internal.settings = reactive({})
+    ctx.internal.settings = reactive({});
 
     this.settings({
       id: '',
@@ -80,42 +80,46 @@ export default class SettingService extends Service {
       schema: Schema.object({
         locale: Schema.union(['zh-CN', 'en-US']).description('语言设置。'),
       }).description('通用设置'),
-    })
+    });
 
     const schema = computed(() => {
-      const list: Schema[] = []
+      const list: Schema[] = [];
       for (const settings of Object.values(ctx.internal.settings)) {
         for (const options of settings) {
           if (options.schema) {
-            list.push(options.schema)
+            list.push(options.schema);
           }
         }
       }
-      return Schema.intersect(list)
-    })
+      return Schema.intersect(list);
+    });
 
     const doWatch = () =>
-      watch(resolved, (value) => {
-        console.debug('config', value)
-        original.value = schema.value.simplify(value)
-      }, { deep: true })
+      watch(
+        resolved,
+        (value) => {
+          console.debug('config', value);
+          original.value = schema.value.simplify(value);
+        },
+        { deep: true },
+      );
 
-    let stop = doWatch()
+    let stop = doWatch();
 
     const update = () => {
-      stop?.()
+      stop?.();
       try {
-        resolved.value = schema.value(original.value)
+        resolved.value = schema.value(original.value);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
-      stop = doWatch()
-    }
+      stop = doWatch();
+    };
 
-    ctx.effect(() => () => stop?.())
+    ctx.effect(() => () => stop?.());
 
-    ctx.effect(() => watch(original, update, { deep: true }))
-    ctx.effect(() => watch(schema, update))
+    ctx.effect(() => watch(original, update, { deep: true }));
+    ctx.effect(() => watch(schema, update));
   }
 
   // extendSchema(extension: SchemaBase.Extension) {
@@ -127,16 +131,16 @@ export default class SettingService extends Service {
   // }
 
   settings(options: SettingOptions) {
-    markRaw(options)
-    options.order ??= 0
-    options.component = this.ctx.wrapComponent(options.component)
+    markRaw(options);
+    options.order ??= 0;
+    options.component = this.ctx.wrapComponent(options.component);
     return this.ctx.effect(() => {
-      const list = this.ctx.internal.settings[options.id] ||= []
-      insert(list, options)
+      const list = (this.ctx.internal.settings[options.id] ||= []);
+      insert(list, options);
       return () => {
-        remove(list, options)
-        if (!list.length) delete this.ctx.internal.settings[options.id]
-      }
-    })
+        remove(list, options);
+        if (!list.length) delete this.ctx.internal.settings[options.id];
+      };
+    });
   }
 }

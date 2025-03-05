@@ -1,11 +1,14 @@
 {
   "name": "@web/plug-webui",
+  "version": "0.2.0",
   "dependencies": {
+    "@rollup/plugin-yaml": "^4.1.2",
     "cosmokit": "^1.6.3",
     "es-module-lexer": "^1.6.0",
     "mime-types": "^2.1.35",
-    "vite": "6.0.6",
-    "open": "^10.1.0"
+    "open": "^10.1.0",
+    "rollup": "^4.34.9",
+    "vite": "6.0.6"
   },
   "devDependencies": {
     "@types/mime-types": "^2.1.4"

@@ -1,3 +1,3 @@
-import { Import } from '@cordisjs/loader'
+import { Import } from '@cordisjs/loader';
 
-export default Import
+export default Import;

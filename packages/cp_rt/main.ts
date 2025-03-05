@@ -1,1 +1,1 @@
-export const { app } = await import('@p/rt')
+export const { app } = await import('@p/rt');

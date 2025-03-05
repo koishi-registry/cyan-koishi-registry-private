@@ -2,6 +2,21 @@
   "name": "kra",
   "version": "0.5.0",
   "exports": {
-    ".": "./mod.ts"
+    ".": "./mod.ts",
+    "./group": "./plugins/group.ts",
+    "./import": "./plugins/import.ts",
+    "./loader": "./plugins/loader.ts",
+    "./logger": "./plugins/logger.ts"
+  },
+  "cordis": {
+    "exports": {
+      ".": null,
+      "./group": {
+        "description": "Group Plugins"
+      },
+      "./import": {
+        "description": "Import Configurations"
+      }
+    }
   }
 }
