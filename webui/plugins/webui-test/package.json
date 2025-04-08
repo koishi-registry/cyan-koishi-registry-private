@@ -2,7 +2,7 @@
   "name": "@web/example",
   "version": "0.1.0",
   "peerDependencies": {
-    "@web/client": "worksapce:^"
+    "@web/client": "workspace:*"
   },
   "exports": {
     ".": "./mod.ts"
