@@ -1,6 +1,12 @@
-import { type Context, Service, Schema } from '@p/core';
-import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
-import pg from 'pg';
+import { type Context, Schema, Service } from '@p/core';
+// import pg from 'pg';
+import { SQL } from 'bun';
+// import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
+import {
+  BunSQLSession,
+  type BunSQLDatabase as DrizzleDB,
+  drizzle,
+} from 'drizzle-orm/bun-sql';
 
 declare module '@p/core' {
   export interface Context {
@@ -8,29 +14,25 @@ declare module '@p/core' {
   }
 }
 
-export interface DrizzleService extends NodePgDatabase {}
+export interface DrizzleService extends DrizzleDB {}
 
 export class DrizzleService extends Service {
-  pool: pg.Pool;
-  drizzle: NodePgDatabase;
+  client: SQL;
+  drizzle: DrizzleDB;
 
   constructor(ctx: Context, connectionString: DrizzleService.Config) {
     super(ctx, 'database');
 
-    ctx.logger.info('pg pool create');
-    this.pool = new pg.Pool({
-      connectionString,
-    });
-    ctx.logger.info('drizzle orm create');
-    this.drizzle = drizzle(this.pool);
+    this.client = new SQL(connectionString);
+    this.drizzle = drizzle({ client: this.client });
 
-    ctx.on('dispose', () => this.pool.end());
+    ctx.on('dispose', () => this.client.close());
 
-    // deno-lint-ignore no-explicit-any
-    return new Proxy<this & NodePgDatabase>(this.drizzle as any, {
+    // biome-ignore lint/suspicious/noExplicitAny: make ts happy
+    return new Proxy<this & DrizzleDB>(this.drizzle as any, {
       get: (target, key, receiver) => {
         if (key in this) return Reflect.get(this, key, receiver);
-        return target[key as keyof NodePgDatabase];
+        return target[key as keyof DrizzleDB];
       },
       set: (target, key, value, receiver) => {
         if (key in this) return Reflect.set(target, key, value, receiver);
@@ -48,7 +50,7 @@ export class DrizzleService extends Service {
 export namespace DrizzleService {
   export type Config = string;
   export const Config: Schema<Config> = Schema.string().description(
-    'Postgres Connection string',
+    'Bun SQL Connection string',
   );
 }
 

@@ -1,9 +1,11 @@
 {
-  "name": "kra",
+  "name": "@root/kra",
   "private": true,
-  "version": "0.5.0-rc.2",
+  "version": "0.5.0-rc.3",
   "scripts": {
-    "start": "bun run ./runner.ts"
+    "start": "bun run ./runner.ts",
+    "setup": "deno -A ./tools/setup.ts",
+    "test:replicate_sim": "deno --allow-net ./tools/sim.ts"
   },
   "workspaces": [
     "./hono-mod",
@@ -12,6 +14,7 @@
     "./webui/plugins/*",
     "./webui/packages/*",
     "./cordis/packages/*",
+    "./cordis/plugins/*",
     "./packages/*",
     "./plugins/*"
   ],
@@ -28,10 +31,11 @@
     "@std/semver": "npm:@jsr/std__semver@^1.0.3",
     "@std/streams": "npm:@jsr/std__streams@^1.0.9",
     "avsc": "^5.7.7",
+    "better-sqlite3": "^11.8.1",
     "bson": "^6.10.3",
     "cosmokit": "^1.7.2",
     "drizzle-kit": "^0.30.5",
-    "drizzle-orm": "^0.39.3",
+    "drizzle-orm": "^0.40.0",
     "inaba": "^1.1.1",
     "js-yaml": "^4.1.0",
     "lodash.merge": "^4.6.2",
@@ -41,6 +45,8 @@
     "paseto-ts": "^1.5.7",
     "pg": "^8.13.3",
     "reggol": "^1.7.1",
+    "rolldown": "^1.0.0-beta.7",
+    "rolldown-vite": "^0.3.2",
     "schemastery": "^3.16.1",
     "typescript": "^5.8.2",
     "yml-register": "^1.2.5",
@@ -49,6 +55,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/bun": "^1.2.8",
     "bun-types": "^1.2.4"
   }
 }

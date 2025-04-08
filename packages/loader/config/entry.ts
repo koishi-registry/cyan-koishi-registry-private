@@ -1,4 +1,4 @@
-import { composeError, type Context, type EffectScope } from '@cordisjs/core';
+import { type Context, type EffectScope, composeError } from '@cordisjs/core';
 import { isNullable } from 'cosmokit';
 import type { Loader } from '../loader.ts';
 import { EntryGroup } from './group.ts';

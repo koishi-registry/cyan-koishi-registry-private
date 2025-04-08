@@ -10,8 +10,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ComputedRef, ref, inject } from 'vue';
-import { Activity, useConfig, useContext } from '@web/client';
+import { type Activity, useConfig, useContext } from '@web/client';
+import { type ComputedRef, inject, ref } from 'vue';
 
 type Position = 'top' | 'bottom';
 
@@ -91,8 +91,8 @@ function handleDrop(event: DragEvent) {
         override.order = order -= 100;
       }
     } else {
-      let orderL = list[anchorL].options.order;
-      let orderR = list[anchorR].options.order;
+      const orderL = list[anchorL].options.order;
+      const orderR = list[anchorR].options.order;
       for (let index = anchorL + 1; index < anchorR; index++) {
         const override = (config.value.activities[list[index].id] ??= {});
         override.order =

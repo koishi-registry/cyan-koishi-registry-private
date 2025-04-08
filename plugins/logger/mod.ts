@@ -1,12 +1,12 @@
-import type { Context } from '@p/core';
-import { Schema } from '@cordisjs/plugin-schema';
 import { join, resolve } from 'node:path';
-import { toTransformStream, DelimiterStream } from '@std/streams';
+import { Schema } from '@cordisjs/plugin-schema';
 import { ensureDirSync, walkSync } from '@kra/fs';
-import Logger from 'reggol';
-import { type Dict, noop, remove, Time } from 'cosmokit';
-import { createRegExp, digit, oneOrMore } from 'magic-regexp';
+import type { Context } from '@p/core';
+import { DelimiterStream, toTransformStream } from '@std/streams';
 import type { BunFile, FileSink } from 'bun';
+import { type Dict, Time, noop, remove } from 'cosmokit';
+import { createRegExp, digit, oneOrMore } from 'magic-regexp';
+import Logger from 'reggol';
 
 export const name = 'logging-persist';
 

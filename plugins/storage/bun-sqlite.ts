@@ -1,6 +1,6 @@
 import { Database, type Statement } from 'bun:sqlite';
+import { type Context, Schema, symbols } from '@p/core';
 import { Storage } from '@p/storage';
-import { type Context, symbols, Schema } from '@p/core';
 import type { Awaitable } from 'cosmokit';
 
 declare module '@p/storage' {

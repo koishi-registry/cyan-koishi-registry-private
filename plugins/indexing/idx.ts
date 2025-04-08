@@ -1,0 +1,131 @@
+import type { ResultSet } from '@libsql/client';
+import type { Context } from '@p/core';
+import { pushSQLiteSchema } from 'drizzle-kit/api';
+import type { BuildColumns, ColumnBuilderBase } from 'drizzle-orm';
+import type {
+  GetSelectTableName,
+  GetSelectTableSelection,
+} from 'drizzle-orm/query-builders/select.types';
+import type {
+  BaseSQLiteDatabase,
+  CreateSQLiteSelectFromBuilderMode,
+  SQLiteInsertBuilder,
+  SQLiteTableWithColumns,
+  SelectedFields,
+  TableConfig,
+} from 'drizzle-orm/sqlite-core';
+import type { IndexService } from './mod';
+await import(import.meta.resolve('drizzle-kit/api'));
+
+type TBuilderMode = 'db';
+type TResultType = 'async';
+type TRunResult = ResultSet;
+
+type TableOf<TConfig extends TableConfig> = SQLiteTableWithColumns<TConfig>;
+
+export interface Injects<T extends TableConfig> {
+  selectFrom(): CreateSQLiteSelectFromBuilderMode<
+    TBuilderMode,
+    GetSelectTableName<TableOf<T>>,
+    TResultType,
+    TRunResult,
+    GetSelectTableSelection<TableOf<T>>,
+    'single'
+  >;
+  selectFrom<TSelection extends SelectedFields>(
+    fields: TSelection,
+  ): CreateSQLiteSelectFromBuilderMode<
+    TBuilderMode,
+    GetSelectTableName<TableOf<T>>,
+    TResultType,
+    TRunResult,
+    TSelection extends undefined
+      ? GetSelectTableSelection<TableOf<T>>
+      : TSelection,
+    TSelection extends undefined ? 'single' : 'partial'
+  >;
+  insertTo(): SQLiteInsertBuilder<TableOf<T>, TResultType, TRunResult>;
+}
+
+const injects = {
+  selectFrom: function selectFrom(
+    this: Idx<TableConfig>,
+    fields?: SelectedFields,
+  ) {
+    if (typeof fields === 'undefined')
+      return this.parent.drizzle.select().from(this.table);
+    return this.parent.drizzle.select(fields).from(this.table);
+  },
+  insertTo: function insertTo(this: Idx<TableConfig>) {
+    return this.parent.drizzle.insert(this.table);
+  },
+  // biome-ignore lint/complexity/noBannedTypes: make ts happy
+} satisfies Record<keyof Injects<TableConfig>, Function>;
+
+export interface Idx<T extends TableConfig> extends Injects<T> {}
+export interface Idx<T extends TableConfig>
+  extends BaseSQLiteDatabase<
+    TResultType,
+    TRunResult,
+    { [K in T['name']]: SQLiteTableWithColumns<T> }
+  > {}
+
+export class Idx<T extends TableConfig> {
+  static {
+    for (const inject in injects) {
+      Idx.prototype[inject] = injects[inject];
+    }
+  }
+
+  constructor(
+    protected ctx: Context,
+    public parent: IndexService,
+    public table: SQLiteTableWithColumns<T>,
+  ) {
+    return new Proxy<this & BaseSQLiteDatabase<TResultType, TRunResult>>(this, {
+      get(target, p, receiver) {
+        if (p in injects) return Reflect.get(target, p, receiver);
+        return Reflect.get(target.parent, p);
+      },
+      set(target, p, newValue, receiver) {
+        if (p in this) Reflect.set(this, p, newValue);
+        throw new TypeError(
+          `Cannot set property ${String(p)} on ${this.constructor.name}`,
+        );
+      },
+      ownKeys(target) {
+        return [...Reflect.ownKeys(target.parent), ...Reflect.ownKeys(target)];
+      },
+      has(target, p) {
+        return Reflect.has(target.parent, p) || Reflect.has(target, p);
+      },
+    });
+  }
+
+  async create() {
+    const result = await pushSQLiteSchema(
+      {
+        [this.table._.name]: this.table,
+      },
+      this.parent.drizzle,
+    );
+    console.log('drizzle push', result);
+  }
+}
+
+export namespace Idx {
+  export type Columns<RawColumns extends Record<string, ColumnBuilderBase>> =
+    BuildColumns<string, RawColumns, 'sqlite'>;
+  export type From<
+    RawColumns extends Record<string, ColumnBuilderBase>,
+    TName extends string = string,
+    TSchema extends string | undefined = undefined,
+  > = Idx<{
+    name: TName;
+    schema: TSchema;
+    columns: Columns<RawColumns>;
+    dialect: 'sqlite';
+  }>;
+}
+
+export default Idx;

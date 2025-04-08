@@ -1,7 +1,7 @@
 import type { Context } from '@p/core';
-import type {} from '@plug/koishi';
 import type { Features } from '@plug/k-registry';
 import type { KoishiMarket } from '@plug/k-registry/types';
+import type {} from '@plug/koishi';
 
 export const inject = [
   'server',

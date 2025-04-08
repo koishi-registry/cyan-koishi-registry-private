@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts" setup>
-import { MaybeGetter, useContext } from '@web/client';
+import { type MaybeGetter, useContext } from '@web/client';
 import { computed } from 'vue';
 
 const props = defineProps<{

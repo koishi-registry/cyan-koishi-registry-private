@@ -1,4 +1,3 @@
-import { useContext } from '../context';
 import {
   type App,
   type Component,
@@ -6,6 +5,7 @@ import {
   defineComponent,
   h,
 } from 'vue';
+import { useContext } from '../context';
 
 export interface SlotItem {
   order?: number;

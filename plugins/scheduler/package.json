@@ -1,0 +1,8 @@
+{
+  "name": "@plug/scheduler",
+  "exports": {
+    ".": "./mod.ts",
+    "./state": "./state.ts",
+    "./retry": "./retry.ts"
+  }
+}

@@ -27,20 +27,20 @@
 </template>
 
 <script lang="ts" setup>
+import { useFloating } from '@floating-ui/vue';
+import { type Activity, useConfig, useMenu } from '@web/client';
 import { computed, ref } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { Activity, useConfig, useMenu } from '@web/client';
 // import { Placement } from 'element-plus'
 import ActivityButton from './button.vue';
-import { watch, onMounted } from 'vue';
-import { useFloating } from '@floating-ui/vue';
 
 const show = ref(false);
 const float = ref();
 const button = ref<HTMLElement>();
 const { floatingStyles } = useFloating(button, float, {
-  placement: 'right'
-})
+  placement: 'right',
+});
 
 // function showPop(ev) {
 //   float.value.

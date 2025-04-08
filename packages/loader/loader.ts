@@ -1,5 +1,5 @@
-import type { Context } from '@p/core';
 import type * as cordis from '@cordisjs/core';
+import type { Context } from '@p/core';
 import type { Dict } from 'cosmokit';
 import {
   Entry,

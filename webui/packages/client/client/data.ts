@@ -1,8 +1,8 @@
 import type { ClientConfig, Events, WebSocket } from '@cordisjs/plugin-webui';
 import type { Promisify } from 'cosmokit';
 import { markRaw, ref } from 'vue';
-import type { Context } from './context';
 import { root } from '.';
+import type { Context } from './context';
 
 declare const CLIENT_CONFIG: ClientConfig;
 export const global = CLIENT_CONFIG;
@@ -42,7 +42,7 @@ export async function send(type: string, ...args: any[]) {
 export function connect(ctx: Context, callback: () => EventSource) {
   const value = callback();
 
-  value.onmessage = console.log
+  value.onmessage = console.log;
 
   let closeTimer: number;
   const refresh = () => {
@@ -65,8 +65,8 @@ export function connect(ctx: Context, callback: () => EventSource) {
   };
 
   value.addEventListener('entry:init', (ev) => {
-    ctx.emit('entry:init', JSON.parse(ev.data))
-  })
+    ctx.emit('entry:init', JSON.parse(ev.data));
+  });
   value.addEventListener('message', (ev) => {
     refresh();
     const data = JSON.parse(ev.data);

@@ -1,9 +1,9 @@
+import type { EffectScope } from 'cordis';
+import { type Dict, defineProperty } from 'cosmokit';
 import { type Ref, ref, shallowReactive } from 'vue';
 import type { Context } from '../context';
-import { Service } from '../utils';
-import type { EffectScope } from 'cordis';
-import { defineProperty, type Dict } from 'cosmokit';
 import { clientId } from '../data';
+import { Service } from '../utils';
 
 declare module '../context' {
   interface Context {

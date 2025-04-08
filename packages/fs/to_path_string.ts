@@ -1,1 +1,1 @@
-export { toPathString } from '@kra/path/to_path_string'
+export { toPathString } from '@kra/path/to_path_string';

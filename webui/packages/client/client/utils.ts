@@ -1,5 +1,5 @@
-import { getCurrentScope, markRaw, onScopeDispose } from 'vue';
 import * as cordis from 'cordis';
+import { getCurrentScope, markRaw, onScopeDispose } from 'vue';
 import type { Context } from './context';
 
 export abstract class Service<

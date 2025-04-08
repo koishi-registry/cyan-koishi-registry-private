@@ -1,14 +1,14 @@
-import { Context } from 'cordis';
+import LoggerService from '@cordisjs/plugin-logger';
+import TimerService from '@cordisjs/plugin-timer';
 import { delay } from '@std/async';
 import { ensureSymlink } from '@std/fs';
-import { resolve, join } from '@std/path';
-import TimerService from '@cordisjs/plugin-timer';
-import LoggerService from '@cordisjs/plugin-logger';
-import { CommunicationService } from './packages/communicate/mod.ts';
+import { join, resolve } from '@std/path';
+import { Context } from 'cordis';
 import { noop } from 'cosmokit';
 import type BunIPCCommunicator from './packages/communicate/communicator/bun_ipc.ts';
+import { CommunicationService } from './packages/communicate/mod.ts';
 
-const PING_TIMEOUT = 5000;
+const PING_TIMEOUT = 10000;
 const AUTO_RESTART = true;
 
 const app = new Context();
@@ -59,7 +59,7 @@ function createWorker() {
     process.on(signal, async () => {
       await fork.post('exit', {});
       await Promise.any([
-        Bun.sleep(500).then(() => conn.getInner().kill('SIGKILL')),
+        Bun.sleep(3000).then(() => conn.getInner().kill('SIGKILL')),
         conn.getInner().exited,
       ]);
       process.exit(0);

@@ -1,5 +1,5 @@
-import { shortnameOf } from './mod.ts';
 import { assertEquals } from '@std/assert';
+import { shortnameOf } from './mod.ts';
 
 Deno.test('shortnameOf', () => {
   assertEquals(shortnameOf('@koishijs/plugin-echo'), 'echo');

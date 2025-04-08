@@ -1,11 +1,5 @@
-import {
-  createRouter,
-  createWebHistory,
-  type RouteLocation,
-  START_LOCATION,
-} from 'vue-router';
-import type { Context } from '../context';
-import { insert, Service } from '../utils';
+import type { Disposable } from 'cordis';
+import { type Dict, omit, remove } from 'cosmokit';
 import {
   type Component,
   type MaybeRefOrGetter,
@@ -13,10 +7,16 @@ import {
   ref,
   toValue,
 } from 'vue';
-import { global } from '../data';
-import { type Dict, omit, remove } from 'cosmokit';
-import type { Disposable } from 'cordis';
+import {
+  type RouteLocation,
+  START_LOCATION,
+  createRouter,
+  createWebHistory,
+} from 'vue-router';
 import type { SlotOptions } from '../components';
+import type { Context } from '../context';
+import { global } from '../data';
+import { Service, insert } from '../utils';
 
 declare module 'vue-router' {
   interface RouteMeta {

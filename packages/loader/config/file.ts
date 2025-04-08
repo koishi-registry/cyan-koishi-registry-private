@@ -1,13 +1,13 @@
-import { access, constants } from 'node:fs/promises';
+import { constants, access } from 'node:fs/promises';
+import { rename } from 'node:fs/promises';
+import { Module } from 'node:module';
+import { dirname } from 'node:path';
 import { toFileUrl } from '@std/path';
 import { remove } from 'cosmokit';
 import * as yaml from 'js-yaml';
 import type { EntryOptions } from './entry.ts';
 import type { ImportTree } from './import.ts';
 import { JsExpr, unwrapExports } from './utils.ts';
-import { dirname } from 'node:path';
-import { rename } from 'node:fs/promises';
-import { Module } from 'node:module';
 
 export const schema = yaml.JSON_SCHEMA.extend(JsExpr);
 

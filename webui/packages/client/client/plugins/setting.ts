@@ -1,10 +1,10 @@
 import { Schema } from '@cordisjs/plugin-schema';
-import type { Context } from '../context';
-import { insert, type Ordered, Service } from '../utils';
+import { type RemovableRef, useLocalStorage } from '@vueuse/core';
 import { type Dict, remove } from 'cosmokit';
 import { type Component, computed, markRaw, reactive, ref, watch } from 'vue';
 import type { Config } from '..';
-import { type RemovableRef, useLocalStorage } from '@vueuse/core';
+import type { Context } from '../context';
+import { type Ordered, Service, insert } from '../utils';
 
 // declare module '@cordisjs/schema' {
 //   interface SchemaService {

@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["hono-mod/", "cache/", "data/", "node_modules/"]
+    "ignore": ["hono-mod/", "cache/", "data/", "cordis/", "node_modules/"]
   },
   "formatter": {
     "enabled": true,
@@ -20,6 +20,9 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "correctness": {
+        "noConstructorReturn": "off"
+      },
       "style": {
         "noNonNullAssertion": "off",
         "noParameterAssign": "off",

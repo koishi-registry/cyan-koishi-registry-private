@@ -30,8 +30,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useRoute } from 'vue-router';
 import { useMenu } from '@web/client';
+import { useRoute } from 'vue-router';
 
 const props = defineProps<{
   isLeftAsideOpen: boolean;

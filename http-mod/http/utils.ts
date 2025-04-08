@@ -1,4 +1,4 @@
-import { LookupAddress } from 'node:dns';
+import type { LookupAddress } from 'node:dns';
 
 /* eslint-disable no-multi-spaces */
 const bogonV4 = [

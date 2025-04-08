@@ -4,12 +4,12 @@ export class SyncError extends Error {
     message?: string,
   ) {
     super(message ?? SyncError.Code[code]);
-    this.name = "GenerateError";
+    this.name = 'GenerateError';
   }
 }
 
 export namespace SyncError {
-  export const symbol = Symbol.for("kra.k-registry.error");
+  export const symbol = Symbol.for('kra.k-registry.error');
   export type Code = keyof typeof Code;
 
   export function E(code: SyncError.Code) {
@@ -18,9 +18,9 @@ export namespace SyncError {
 
       static is(ty: unknown): ty is SyncError {
         return (
-          typeof ty === "object" &&
+          typeof ty === 'object' &&
           Reflect.get(ty, symbol) === true &&
-          Reflect.get(ty, "code") === code
+          Reflect.get(ty, 'code') === code
         );
       }
 
@@ -30,9 +30,9 @@ export namespace SyncError {
     };
   }
 
-  export const NO_VERSION = E("NO_VERSION");
+  export const NO_VERSION = E('NO_VERSION');
 
   export const Code = {
-    NO_VERSION: "no version available for the package",
+    NO_VERSION: 'no version available for the package',
   } as const;
 }

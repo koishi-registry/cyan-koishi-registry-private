@@ -1,33 +1,31 @@
-import type { Context } from '@p/core';
-import { Service } from 'cordis';
-import Schema from 'schemastery';
-import Random from 'inaba';
-import { noop, remove } from 'cosmokit';
-import type { Awaitable, Dict, Promisify } from 'cosmokit';
-import type Communicator from './communicator/base.ts';
 import * as cp from 'node:child_process';
 import process from 'node:process';
-import { InWorkerCommunicator } from './communicator/in_worker.ts';
-import { ChildProcessCommunicator } from './communicator/child_process.ts';
-import { ProcessCommunicator } from './communicator/process.ts';
-import { NoopCommunicator } from './communicator/noop.ts';
-import { WorkerCommunicator } from './communicator/worker.ts';
-import { pathToFileURL, fileURLToPath } from 'bun';
+import type { Context } from '@p/core';
+import { fileURLToPath, pathToFileURL } from 'bun';
+import { Service } from 'cordis';
+import { noop, remove } from 'cosmokit';
+import type { Awaitable, Dict, Promisify } from 'cosmokit';
+import Random from 'inaba';
+import Schema from 'schemastery';
+import type Communicator from './communicator/base.ts';
 import BunIPCCommunicator from './communicator/bun_ipc.ts';
+import { ChildProcessCommunicator } from './communicator/child_process.ts';
+import { InWorkerCommunicator } from './communicator/in_worker.ts';
+import { NoopCommunicator } from './communicator/noop.ts';
+import { ProcessCommunicator } from './communicator/process.ts';
+import { WorkerCommunicator } from './communicator/worker.ts';
 
 export const kProtocol: unique symbol = Symbol.for('communicate.protocol');
 
 declare module 'cordis' {
   interface Context {
-    [Context.CommunicateProtocol]: Context.CommunicateProtocol<this>;
     [kProtocol]: { Server: Packages; Client: Packages };
     $communicate: CommunicationService<
-      this[typeof kProtocol] & this[typeof Context.CommunicateProtocol]
+      this[typeof kProtocol] & Context.CommunicateProtocol<this>
     >;
   }
 
   namespace Context {
-    const CommunicateProtocol: unique symbol;
     interface CommunicateProtocol<C extends Context = Context> {
       Server: S2CPackages;
       Client: C2SPackages;
@@ -70,7 +68,7 @@ export type EventBodyOf<T extends Record<string, any>> = {
   };
 };
 
-type Stringify<T> = T extends string ? T : never;
+type Stringify<T> = T & string;
 
 export type RequestBodyOf<
   // deno-lint-ignore no-explicit-any
@@ -147,12 +145,11 @@ export function detect(): CommunicationService.Type {
     // deno-lint-ignore ban-ts-comment
     // @ts-expect-error
     self instanceof WorkerGlobalScope
-  ) {
+  )
     return 'worker';
-  }
-  if (process.channel) {
-    return 'process';
-  }
+
+  if (process.channel) return 'process';
+
   return undefined;
 }
 
@@ -203,10 +200,6 @@ export class CommunicationService<
     }
 
     this.isWorker = this.conn.name === 'worker';
-    // FIXME: deno type check doesn't work here somehow
-    // deno-lint-ignore ban-ts-comment
-    // @ts-ignore
-    if (this.isWorker) ctx.logger.debug('running in worker');
 
     this._self.register('ping', noop);
     if (ctx.get('info')?.remotePlug)
@@ -301,9 +294,9 @@ export class CommunicationService<
     await this._self.post('ready', {});
   }
 
-  public receive<K extends Stringify<keyof this['S']['event']>>(
+  public receive<K extends Stringify<keyof Protocol['Server']['event']>>(
     name: K,
-    handler: Listener<this['S']['event'][K]>,
+    handler: Listener<Protocol['Server']['event'][K]>,
   ) {
     this.listeners[name] ??= [];
 
@@ -314,8 +307,8 @@ export class CommunicationService<
   }
 
   public register<
-    K extends Stringify<keyof this['S']['request']>,
-    H extends this['S']['request'][K],
+    K extends Stringify<keyof Protocol['Server']['request']>,
+    H extends Protocol['Server']['request'][K],
   >(name: K, handler: H) {
     if (name in this.handlers) throw new Error('handler already exists');
 
@@ -326,10 +319,10 @@ export class CommunicationService<
   }
 
   public async call<
-    K extends Stringify<keyof this['C']['request']>,
+    K extends Stringify<keyof Protocol['Client']['request']>,
     // deno-lint-ignore no-explicit-any
-    H extends this['C']['request'][K] extends (...args: any[]) => any
-      ? this['C']['request'][K]
+    H extends Protocol['Client']['request'][K] extends (...args: any[]) => any
+      ? Protocol['Client']['request'][K]
       : never,
   >(name: K, ...args: Parameters<H>): Promisify<ReturnType<H>> {
     const id = `${name}-${Random.id()}`;
@@ -345,24 +338,24 @@ export class CommunicationService<
       id,
       name,
       args,
-    } satisfies MessagesOf<this['C']>['request'][K]);
+    } satisfies MessagesOf<Protocol['Client']>['request'][K]);
 
     return await promise;
   }
 
-  public async post<K extends Stringify<keyof this['C']['event']>>(
+  public async post<K extends Stringify<keyof Protocol['Client']['event']>>(
     name: K,
-    data: this['C']['event'][K],
+    data: Protocol['Client']['event'][K],
   ) {
     this.sendHost('event', {
       name,
       data,
-    } as MessagesOf<this['C']>['event'][K]);
+    } as MessagesOf<Protocol['Client']>['event'][K]);
   }
 
   public sendHost<T extends MessageType>(
     type: T,
-    body: BodyOf<T, this['C']>[keyof BodyOf<T, this['C']>],
+    body: BodyOf<T, Protocol['Client']>[keyof BodyOf<T, Protocol['Client']>],
   ) {
     if (!this.conn.open) throw new Error('send on a closed channel');
 
@@ -372,7 +365,7 @@ export class CommunicationService<
     });
   }
 
-  protected async onRequest(body: BodyOf<'request', this['S']>) {
+  protected async onRequest(body: BodyOf<'request', Protocol['Server']>) {
     const verify = Schema.object({
       id: Schema.string().required(),
       name: Schema.string().required(),
@@ -406,7 +399,7 @@ export class CommunicationService<
     return true;
   }
 
-  protected async onResponse(body: BodyOf<'response', this['S']>) {
+  protected async onResponse(body: BodyOf<'response', Protocol['Server']>) {
     const verify = Schema.object({
       id: Schema.string().required(),
       error: Schema.string(),
@@ -424,7 +417,7 @@ export class CommunicationService<
     return delete this.responseHooks[id];
   }
 
-  protected async onEvent(body: BodyOf<'response', this['S']>) {
+  protected async onEvent(body: BodyOf<'response', Protocol['Server']>) {
     const verify = Schema.object({
       name: Schema.string().required(),
       data: Schema.any(),

@@ -1,5 +1,12 @@
 {
   "name": "@plug/indexing",
   "version": "1.0.0",
-  "exports": "./mod.ts"
+  "dependencies": {
+    "drizzle-kit": "0.30.5"
+  },
+  "exports": {
+    ".": "./mod.ts",
+    "./declare": "./declare.ts",
+    "./idx": "./idx.ts"
+  }
 }

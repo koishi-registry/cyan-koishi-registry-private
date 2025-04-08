@@ -1,8 +1,8 @@
+import { EventEmitter } from 'node:events';
+import type { ErrorLike, Subprocess } from 'bun';
 import type { Context } from 'cordis';
 import type Base from './base.ts';
 import type { Handler } from './base.ts';
-import type { ErrorLike, Subprocess } from 'bun';
-import { EventEmitter } from 'node:events';
 
 export class BunIPCCommunicator implements Base {
   #event = new EventEmitter();
@@ -29,7 +29,9 @@ export class BunIPCCommunicator implements Base {
   }
 
   get open(): boolean {
-    return this.subproc.exitCode === null;
+    if ('connected' in this.subproc)
+      return <boolean>this.subproc?.['connected'];
+    return this.subproc.exitCode !== null;
   }
 
   get name(): string {

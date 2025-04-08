@@ -1,10 +1,11 @@
-import type { WebUI } from './mod.ts'
-import type { Awaitable } from "cosmokit";
+import type { Awaitable } from 'cosmokit';
+import type { WebUI } from './mod.ts';
 
-export type WatchType = "unlink";
+export type WatchType = 'unlink';
 
 export class WebUIHMR {
-  readonly watchers: Record<WatchType, ((file: string) => Awaitable<void>)[]> = Object.create(null);
+  readonly watchers: Record<WatchType, ((file: string) => Awaitable<void>)[]> =
+    Object.create(null);
 
   constructor(public core: WebUI) {}
 

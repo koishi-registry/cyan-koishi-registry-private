@@ -1,14 +1,15 @@
-import * as vite from 'vite';
-import type { RollupOutput } from 'rollup';
-import { existsSync, promises as fs } from 'node:fs';
-import { resolve } from '@std/path';
-// import type { Context } from 'yakumo'
-import unocss from 'unocss/vite';
-import uno from 'unocss/preset-uno';
-import vue from '@vitejs/plugin-vue';
-import yaml from '@maikolib/vite-plugin-yaml';
 // import { fileURLToPath, pathToFileURL } from 'node:url'
 import { fileURLToPath } from 'node:url';
+import { copyFile, exists } from '@kra/fs';
+import { asPath, dirname, join, resolve } from '@kra/path';
+import yaml from '@maikolib/vite-plugin-yaml';
+import vue from '@vitejs/plugin-vue';
+import type { RollupOutput } from 'rollup';
+import uno from 'unocss/preset-uno';
+// import type { Context } from 'yakumo'
+import unocss from 'unocss/vite';
+import * as vite from 'vite';
+import o from '../../../cache/vite/ui/vendors/bruh-webui-test/entry-mi7zbt9a.mjs';
 
 // declare module 'yakumo' {
 //   interface PackageConfig {
@@ -16,38 +17,37 @@ import { fileURLToPath } from 'node:url';
 //   }
 // }
 
-export async function build(root: string, config: vite.UserConfig = {}) {
-  if (!existsSync(root + '/client')) return;
-
-  const outDir = root + '/dist';
-  if (existsSync(outDir)) {
-    await fs.rm(outDir, { recursive: true });
-  }
-  await fs.mkdir(root + '/dist', { recursive: true });
+export async function buildEntry(
+  root: string | undefined,
+  entry: string,
+  config: vite.UserConfig = {},
+) {
+  if (!(await exists(join(root || '', entry)))) return;
 
   const results = (await vite.build(
     vite.mergeConfig(
       {
         root,
         build: {
-          write: false,
-          outDir: 'dist',
-          assetsDir: '',
           minify: true,
           emptyOutDir: true,
           commonjsOptions: {
             strictRequires: true,
           },
           lib: {
-            entry: root + '/client/index.ts',
-            fileName: 'index',
+            entry: entry,
+            fileName: '[name]-[hash]',
+            cssFileName: 'index',
             formats: ['es'],
           },
+          manifest: 'manifest.json',
           rollupOptions: {
             makeAbsoluteExternalsRelative: true,
             external: ['vue', 'vue-router', '@web/client'],
             output: {
-              format: 'iife',
+              format: 'module',
+              assetFileNames: '[name]-[hash][extname]',
+              hashCharacters: 'base36',
             },
           },
         },
@@ -62,10 +62,15 @@ export async function build(root: string, config: vite.UserConfig = {}) {
             ],
           }),
           {
-            name: 'auto-import',
+            name: 'unocss-auto-import',
             transform(code, id, _options) {
-              if (id !== root + '/client/index.ts') return;
-              code = 'import "virtual:uno.css";\n\n' + code;
+              if (id !== entry) return;
+              code = [
+                'import "virtual:uno.css";',
+                '',
+                '',
+                code
+              ].join('\n')
               return { code, map: null };
             },
           },
@@ -91,36 +96,177 @@ export async function build(root: string, config: vite.UserConfig = {}) {
     ),
   )) as RollupOutput[];
 
-  for (const item of results[0].output) {
-    if (item.fileName === 'index.mjs') item.fileName = 'index.js';
-    const dest = root + '/dist/' + item.fileName;
-    if (item.type === 'asset') {
-      await fs.writeFile(dest, item.source);
-    } else {
-      const result = await vite.transformWithEsbuild(item.code, dest, {
-        minifyWhitespace: true,
-        charset: 'utf8',
-      });
-      await fs.writeFile(dest, result.code);
-    }
-  }
+  return results;
 }
 
 export interface InlineConfig extends vite.InlineConfig {}
 
-export async function createServer(baseDir: string, config: InlineConfig = {}) {
+export async function buildComponent(
+  root: string,
+  base: string,
+  config: vite.UserConfig = {},
+  isClient = false,
+) {
+  const { rollupOptions = {} } = config.build || {};
+  return (await vite.build({
+    root,
+    build: {
+      ...config.build,
+      rollupOptions: {
+        ...rollupOptions,
+        makeAbsoluteExternalsRelative: true,
+        external: [
+          base + '/vue.js',
+          base + '/vue-router.js',
+          base + '/client.js',
+          base + '/vueuse.js',
+        ],
+        output: {
+          format: 'module',
+          entryFileNames: '[name].js',
+          chunkFileNames: '[name].js',
+          assetFileNames: '[name].[ext]',
+          ...rollupOptions.output,
+        },
+      },
+    },
+    plugins: [vue(), yaml(), ...(config.plugins || [])],
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern-compiler',
+        },
+      },
+    },
+    resolve: {
+      alias: {
+        vue: base + '/vue.js',
+        'vue-router': base + '/vue-router.js',
+        '@vueuse/core': base + '/vueuse.js',
+        '@web/client': base + '/client.js',
+        ...(isClient
+          ? {
+              'vue-i18n': resolveModuleDist(
+                'vue-i18n',
+                'vue-i18n.esm-browser.prod.js',
+              ),
+              '@intlify/core-base': resolveModuleDist(
+                '@intlify/core-base',
+                'core-base.esm-browser.prod.js',
+              ),
+            }
+          : {
+              'vue-i18n': base + '/client.js',
+            }),
+      },
+    },
+  })) as RollupOutput;
+}
+
+function resolveModuleDist(id: string, dist: string) {
+  return fileURLToPath(import.meta.resolve(`${id}/dist/${dist}`));
+}
+
+export async function copyComponentVue(outDir: string) {
+  await copyFile(
+    resolveModuleDist('vue', 'vue.runtime.esm-browser.prod.js'),
+    join(outDir, 'vue.js'),
+  );
+}
+
+export async function buildComponents(
+  base: string,
+  outDir: string,
+  condSkip: Partial<{
+    vue?: boolean;
+    'vue-router'?: boolean;
+    vueuse?: boolean;
+  }> = {},
+) {
+  await Promise.all([
+    !condSkip['vue'] && copyComponentVue(outDir),
+    !condSkip['vue-router'] &&
+      buildComponent(
+        dirname(import.meta.resolve('vue-router/package.json')),
+        base,
+        {
+          build: {
+            outDir,
+            emptyOutDir: false,
+            rollupOptions: {
+              input: {
+                'vue-router': resolveModuleDist(
+                  'vue-router',
+                  'vue-router.esm-browser.js',
+                ),
+              },
+              preserveEntrySignatures: 'strict',
+            },
+          },
+        },
+      ),
+    !condSkip['vueuse'] &&
+      buildComponent(dirname(import.meta.resolve('@vueuse/core')), base, {
+        build: {
+          outDir,
+          emptyOutDir: false,
+          rollupOptions: {
+            input: {
+              vueuse: import.meta.resolve('@vueuse/core'),
+            },
+            preserveEntrySignatures: 'strict',
+          },
+        },
+      }),
+  ]);
+}
+
+export async function buildClient(base: string, outDir: string) {
+  await buildComponent(
+    asPath(new URL('../app', import.meta.resolve('@web/client/package.json'))),
+    base,
+    {
+      build: {
+        outDir,
+        emptyOutDir: false,
+        chunkSizeWarningLimit: 1024 * 1024,
+        rollupOptions: {
+          input: {
+            client: asPath(import.meta.resolve('@web/client')),
+          },
+          output: {
+            manualChunks: {
+              primevue: ['primevue', '@primevue/core', '@primevue/icons'],
+              primeuix: [
+                '@primeuix/themes',
+                '@primeuix/styled',
+                '@primeuix/styles',
+                '@primeuix/utils',
+              ],
+            },
+          },
+          preserveEntrySignatures: 'strict',
+        },
+      },
+    },
+    true,
+  );
+}
+
+export async function infraGen(
+  base: string,
+  outDir: string,
+  config: InlineConfig = {},
+) {
   const root = resolve(fileURLToPath(import.meta.url), '../app');
-  return vite.createServer(
+
+  const { rollupOptions = {} } = config.build || {};
+
+  return (await vite.build(
     vite.mergeConfig(
       {
         root,
-        base: '/vite/',
-        server: {
-          middlewareMode: true,
-          fs: {
-            allow: [baseDir],
-          },
-        },
+        base,
         plugins: [
           vue(),
           yaml(),
@@ -146,10 +292,18 @@ export async function createServer(baseDir: string, config: InlineConfig = {}) {
             'xss',
           ],
           alias: {
-            // for backward compatibility
-            // '../client.js': '@web/client',
-            // '../vue.js': 'vue',
-            // '../vue-router.js': 'vue-router',
+            vue: base + '/vue.js',
+            'vue-router': base + '/vue-router.js',
+            '@vueuse/core': base + '/vueuse.js',
+            '@web/client': base + '/client.js',
+            'vue-i18n': resolveModuleDist(
+              'vue-i18n',
+              'vue-i18n.esm-browser.prod.js',
+            ),
+            '@intlify/core-base': resolveModuleDist(
+              '@intlify/core-base',
+              'core-base.esm-browser.prod.js',
+            ),
           },
         },
         optimizeDeps: {
@@ -173,14 +327,30 @@ export async function createServer(baseDir: string, config: InlineConfig = {}) {
           },
         },
         build: {
+          ...rollupOptions,
           rollupOptions: {
-            input: root + '/index.html',
+            preserveEntrySignatures: 'strict',
+            input: join(root, 'index.html'),
+            external: [
+              base + '/vue.js',
+              base + '/vue-router.js',
+              base + '/vueuse.js',
+              base + '/client.js',
+            ],
           },
+          output: {
+            format: 'module',
+            entryFileNames: '[name].js',
+            chunkFileNames: '[name].js',
+            assetFileNames: '[name].[ext]',
+            ...rollupOptions.output,
+          },
+          outDir,
         },
       } as vite.InlineConfig,
       config,
     ),
-  );
+  )) as RollupOutput;
 }
 
 // export const inject = ['yakumo']

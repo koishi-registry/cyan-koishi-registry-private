@@ -1,6 +1,6 @@
 import { Context } from '@p/core';
 import Loader from '@p/loader';
-import Logger from 'reggol'
+import Logger from 'reggol';
 // import NpmSynchronizer from '@plug/npm'
 // import Koishi from '@plug/koishi'
 // import * as KoishiRegistry from '@plug/k-registry'
@@ -16,9 +16,9 @@ import Logger from 'reggol'
 const host = Bun.env.HOST ?? '127.0.0.1';
 const port = Number.parseInt(Bun.env.PORT ?? '5477');
 
-Error.stackTraceLimit = 20
+Error.stackTraceLimit = 60;
 
-Logger.levels.base = 5
+Logger.levels.base = 5;
 export const app = new Context({
   server: {
     host,
@@ -26,7 +26,8 @@ export const app = new Context({
   },
 });
 
-app.on('internal/error', console.error)
+app.on('internal/error', console.error);
+app.on('internal/warning', console.warn);
 
 await app.plugin(Loader, {
   name: 'kra',

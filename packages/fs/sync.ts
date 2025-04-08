@@ -1,7 +1,18 @@
-import { mkdirSync, lstatSync, readdirSync } from 'node:fs';
-import type { WalkOptions, WalkEntry } from './types.ts';
+import { lstatSync, mkdirSync, readdirSync } from 'node:fs';
+import * as fs from 'node:fs';
+import { join, parse, resolve } from 'node:path';
 import { toPathString } from './to_path_string.ts';
-import { parse, join, resolve } from 'node:path';
+import type { WalkEntry, WalkOptions } from './types.ts';
+
+export function exists(path: string | URL) {
+  if (fs.existsSync) return fs.existsSync(path);
+  try {
+    fs.lstatSync(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function ensureDir(path: string | URL) {
   return mkdirSync(path, { recursive: true });
@@ -47,13 +58,4 @@ export function walk(
         isSymlink: stat.isSymbolicLink(),
       } satisfies WalkEntry;
     });
-}
-
-export async function exists(path: string | URL): boolean {
-  try {
-    lstatSync(path);
-    return true;
-  } catch {
-    return false;
-  }
 }

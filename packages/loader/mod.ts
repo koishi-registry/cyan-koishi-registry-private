@@ -1,14 +1,14 @@
 import { readFile } from 'node:fs/promises';
-import { Loader } from './loader.ts';
 // import * as dotenv from 'npm:dotenv'
 // import * as path from 'node:path'
 import * as process from 'node:process';
+import { Loader } from './loader.ts';
 
 export * from './loader.ts';
 
 const oldEnv = { ...Bun.env };
 
-namespace DenoLoader {
+namespace BunLoader {
   export interface Config extends Loader.Config {}
 }
 

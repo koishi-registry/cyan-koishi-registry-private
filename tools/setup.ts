@@ -1,17 +1,17 @@
+import { Ask } from 'jsr:@sallai/ask';
 import { parseArgs } from 'jsr:@std/cli/parse-args';
-import { join, resolve, relative } from '@std/path';
-import { walk, exists } from '@std/fs';
-import { parse, format, type SemVer } from '@std/semver';
+import { exists, walk } from '@std/fs';
+import { join, relative, resolve } from '@std/path';
+import { type SemVer, format, parse } from '@std/semver';
+import { capitalize, snakeCase } from 'cosmokit';
 import {
+  anyOf,
   createRegExp,
+  digit,
   exactly,
   maybe,
   wordChar,
-  anyOf,
-  digit,
 } from 'magic-regexp';
-import { capitalize, snakeCase } from 'cosmokit';
-import { Ask } from 'jsr:@sallai/ask';
 import z from 'zod';
 import { fromError } from 'zod-validation-error';
 import mkdir = Deno.mkdir;

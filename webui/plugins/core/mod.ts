@@ -1,16 +1,17 @@
 import { type Context, Service } from '@p/core';
+import type { C, SSECallback } from '@plug/server';
+import type { ServerWebSocket } from 'bun';
 import type { Dict } from 'cosmokit';
-import { Client } from './client.ts';
-import { Entry } from './entry.ts';
 // import type { WebSocket } from './types.ts'
 import type * as hono from 'hono';
 import type { WSContext, WSEvents } from 'hono/ws';
-import type { ServerWebSocket } from 'bun';
+import { Client } from './client.ts';
+import { Entry } from './entry.ts';
 import { WebUIHMR } from './hmr.ts';
-import type { SSECallback, C } from '@plug/server';
 
 export * from './client.ts';
 export * from './entry.ts';
+export * from './manifest.ts';
 
 declare module '@p/core' {
   interface Context {
@@ -27,27 +28,27 @@ export type SocketListener = (this: Client, ...args: any) => void;
 
 export abstract class WebUI extends Service {
   public id = Math.random().toString(36).slice(2);
-  public hmr: WebUIHMR = new WebUIHMR(this)
+  public hmr: WebUIHMR = new WebUIHMR(this);
 
   readonly entries: Dict<Entry> = Object.create(null);
   // deno-lint-ignore no-explicit-any
   readonly listeners: Dict<(args?: any) => unknown> = Object.create(null);
   readonly clients: Dict<Client> = Object.create(null);
-  public abstract baseURL: URL
+  public abstract baseURL: URL;
 
   protected constructor(public override ctx: Context) {
     super(ctx, 'webui');
   }
 
-  abstract resolveEntry(files: Entry.Files, key: string): string[];
+  abstract resolveEntry(entry: Entry): Promise<string[]>;
 
   abstract addListener<K extends keyof Events>(
     event: K,
     callback: Events[K],
   ): void;
 
-  addEntry<T>(files: Entry.Files, data?: (client: Client) => T) {
-    return new Entry(this.ctx, files, data);
+  addEntry<T>(info: Entry.Info, data?: (client: Client) => T) {
+    return new Entry(this.ctx, info, data);
   }
 
   async broadcast<T>(type: string, body: T) {
@@ -63,7 +64,11 @@ export abstract class WebUI extends Service {
   }
 
   protected accept(c: C): SSECallback {
-    return (stream) => new Client(this.ctx, stream).closed
+    return async (stream) => {
+      const client = new Client(this.ctx, stream);
+      await client.init();
+      await client.closed;
+    };
   }
 }
 

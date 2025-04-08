@@ -1,6 +1,6 @@
-import type { App } from 'vue';
-import Markdown from 'marked-vue';
 import components from '@web/components';
+import Markdown from 'marked-vue';
+import type { App } from 'vue';
 
 import common from './common';
 import * as icons from './icons';

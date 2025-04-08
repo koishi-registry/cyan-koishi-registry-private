@@ -4,7 +4,7 @@
 
 <template>
   <Panel header="Welcome">
-      Koishi Registry WebUI - preview.0
+      Koishi Registry WebUI - preview.2 (Basepoint)
   </Panel>
 </template>
 

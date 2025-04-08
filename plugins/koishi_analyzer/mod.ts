@@ -1,11 +1,11 @@
+import { Schema } from '@cordisjs/plugin-schema';
+import type { CheckResult as KMCheck } from '@km-api/km-api/check';
+import type { Score as RegistryScore } from '@koishijs/registry';
 import { type Context, Service } from '@p/core';
+import type { KoishiMarket, NpmRegistry } from '@plug/k-registry/types';
 import { Time } from 'cosmokit';
 import type { Awaitable, Dict } from 'cosmokit';
-import type { KoishiMarket, NpmRegistry } from '@plug/k-registry/types';
-import { Schema } from '@cordisjs/plugin-schema';
-import type { Score as RegistryScore } from '@koishijs/registry';
 import merge from 'lodash.merge';
-import type { CheckResult as KMCheck } from '@km-api/km-api/check';
 
 declare module '@plug/koishi' {
   export interface Koishi {

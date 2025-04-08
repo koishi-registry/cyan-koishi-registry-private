@@ -1,20 +1,20 @@
-import * as cordis from 'cordis';
 import type { ClientEvents } from '@web/plug-webui';
+import * as cordis from 'cordis';
 import {
   type App,
   type Component,
+  type DefineComponent,
+  type InjectionKey,
+  type Ref,
   createApp,
   customRef,
-  type DefineComponent,
   defineComponent,
   h,
   inject,
-  type InjectionKey,
   markRaw,
   onErrorCaptured,
   onScopeDispose,
   provide,
-  type Ref,
   ref,
   resolveComponent,
 } from 'vue';
@@ -114,7 +114,7 @@ export class Context extends cordis.Context {
     );
 
     this.on('ready', async () => {
-      console.log('ready')
+      console.log('ready');
       await this.$loader.initTask;
       this.app.use(this.$i18n.i18n);
       this.app.use(this.$router.router);

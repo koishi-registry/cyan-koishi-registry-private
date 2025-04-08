@@ -1,8 +1,8 @@
 import type { Context } from '@p/core';
-import type {} from '@plug/npm';
-import type {} from '@plug/koishi';
 import type {} from '@plug/k-analyzer';
 import type {} from '@plug/k-registry';
+import type {} from '@plug/koishi';
+import type {} from '@plug/npm';
 
 export const name = 'api';
 export const inject = ['server', 'timer'];

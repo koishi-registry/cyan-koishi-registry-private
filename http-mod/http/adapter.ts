@@ -1,9 +1,9 @@
-import { fileURLToPath } from 'node:url';
-import { basename } from 'node:path';
-import { fileTypeFromBuffer } from 'file-type';
-import { FileResponse } from './mod.ts';
 import { readFile } from 'node:fs/promises';
+import { basename } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Binary } from 'cosmokit';
+import { fileTypeFromBuffer } from 'file-type';
+import type { FileResponse } from './mod.ts';
 
 export { lookup } from 'node:dns/promises';
 

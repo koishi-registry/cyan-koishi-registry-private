@@ -1,8 +1,8 @@
 import { watchEffect } from 'vue';
 import { createI18n } from 'vue-i18n';
-import { useConfig } from './setting';
 import type { Context } from '../context';
 import { Service } from '../utils';
+import { useConfig } from './setting';
 
 declare module '../context' {
   interface Context {

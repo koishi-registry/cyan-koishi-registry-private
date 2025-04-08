@@ -29,7 +29,7 @@ export abstract class EntryTree<C extends Context = Context> {
   }
 
   async wait() {
-    while (1) {
+    while (true) {
       await new Promise((resolve) => setTimeout(resolve, 100));
       const pending = [...this.entries()]
         .map((entry) => entry._initTask || entry.scope?.pending!)
@@ -72,7 +72,7 @@ export abstract class EntryTree<C extends Context = Context> {
   async create(
     options: Omit<EntryOptions, 'id'>,
     parent: string | null = null,
-    position = Infinity,
+    position = Number.POSITIVE_INFINITY,
   ) {
     const group = this.resolveGroup(parent);
     group.data.splice(position, 0, options as EntryOptions);
@@ -97,7 +97,11 @@ export abstract class EntryTree<C extends Context = Context> {
     if (parent !== undefined) {
       const target = this.resolveGroup(parent);
       source.unlink(entry.options);
-      target.data.splice(position ?? Infinity, 0, entry.options);
+      target.data.splice(
+        position ?? Number.POSITIVE_INFINITY,
+        0,
+        entry.options,
+      );
       target.tree.write();
       entry.parent = target;
     }

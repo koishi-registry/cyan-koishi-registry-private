@@ -1,10 +1,11 @@
-import { type Context, Service } from '@cordisjs/core';
-import { noop } from 'cosmokit';
-import { dirname, extname, join, resolve } from 'node:path';
 import { lstat } from 'node:fs/promises';
-import { EntryTree } from './tree.ts';
-import { LoaderFile } from './file.ts';
+import { dirname, extname, join, resolve } from 'node:path';
+import { type Context, Service } from '@cordisjs/core';
+import { asPath } from '@kra/path';
+import { noop } from 'cosmokit';
 import type Loader from '../loader.ts';
+import { LoaderFile } from './file.ts';
+import { EntryTree } from './tree.ts';
 
 export class ImportTree<C extends Context = Context> extends EntryTree<C> {
   public file!: LoaderFile;
@@ -107,7 +108,7 @@ export class Import extends ImportTree {
 
   async [Service.setup]() {
     const { url } = this.config;
-    const filename = Bun.fileURLToPath(
+    const filename = asPath(
       new URL(url, this.ctx.scope.entry!.parent.tree.url),
     );
     const ext = extname(filename);

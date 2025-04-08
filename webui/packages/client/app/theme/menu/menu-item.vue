@@ -11,8 +11,8 @@
 </template>
 
 <script lang="ts" setup>
-import { MaybeGetter, useContext, MenuItem } from './transf';
 import { computed } from 'vue';
+import { type MaybeGetter, type MenuItem, useContext } from './transf';
 
 const props = defineProps<MenuItem & { prefix: string }>();
 

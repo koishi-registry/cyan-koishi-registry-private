@@ -1,9 +1,10 @@
+import type { Storage } from '@p/storage';
 import { type Context, Service, symbols } from 'cordis';
 import type { Awaitable } from 'cosmokit';
-import type { Storage } from '@p/storage';
+import StorageLibSQL from './libsql.ts';
 import StorageLocalStorage from './localstorage.ts';
 import StorageRemoteStorage from './remote.ts';
-import StorageBunSqlite from './bun-sqlite.ts';
+// import StorageBunSqlite from './bun-sqlite.ts';
 
 declare module '@p/core' {
   export interface Context {
@@ -23,7 +24,8 @@ export class StorageService extends Service {
 
     const scope1 = ctx1.plugin(StorageLocalStorage);
     const scope2 = ctx1.plugin(StorageRemoteStorage);
-    const scope3 = ctx1.plugin(StorageBunSqlite);
+    const scope3 = ctx1.plugin(StorageLibSQL);
+    // const scope3 = ctx1.plugin(StorageBunSqlite);
     ctx.on('dispose', () => {
       scope1.dispose();
       scope2.dispose();
@@ -40,7 +42,7 @@ export class StorageService extends Service {
       this.ctx.$communicate.conn.name === 'worker'
         ? 'remote'
         : typeof Deno === 'undefined'
-          ? 'bun.sqlite'
+          ? 'libsql'
           : 'localstorage';
 
     return new Promise<void>((resolve) => {

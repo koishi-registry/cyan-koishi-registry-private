@@ -9,9 +9,11 @@ declare module '@p/core' {
 export function isKoishiPlugin(name: string): boolean {
   if (name.startsWith('@koishijs/plugin-')) return true;
   if (!name.includes('koishi-plugin-')) return false;
-  return !!name.match(
-    /^(@[a-z0-9-~][a-z0-9-._~]*\/)?koishi-plugin-[a-z0-9-._~]*$/,
-  );
+  if (name.startsWith('@')) {
+    const [_scope, child] = name.split('/', 1);
+    return child?.startsWith?.('koishi-plugin-');
+  }
+  return false;
 }
 
 export class Koishi extends Service {

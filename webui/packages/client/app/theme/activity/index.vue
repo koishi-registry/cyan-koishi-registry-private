@@ -18,9 +18,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, provide } from 'vue';
 import { useWindowSize } from '@vueuse/core';
-import { Activity, useConfig, useContext, useMenu } from '@web/client';
+import { type Activity, useConfig, useContext, useMenu } from '@web/client';
+import { computed, provide } from 'vue';
 import ActivityItem from './item.vue';
 import ActivitySeparator from './separator.vue';
 

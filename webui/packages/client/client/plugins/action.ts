@@ -1,14 +1,14 @@
+import { type Dict, type Intersect, remove } from 'cosmokit';
 import {
-  markRaw,
   type MaybeRefOrGetter,
+  markRaw,
   reactive,
   shallowReactive,
   toValue,
 } from 'vue';
-import { type Context, useContext } from '../context';
-import { type Dict, type Intersect, remove } from 'cosmokit';
-import { insert, Service } from '../utils';
 import type { ActionContext } from '..';
+import { type Context, useContext } from '../context';
+import { Service, insert } from '../utils';
 
 declare module '../context' {
   interface Context {
@@ -77,7 +77,7 @@ export function useMenu<K extends keyof ActionContext>(id: K) {
     ctx.define(id, value);
     event.preventDefault();
     const { clientX, clientY } = event;
-    ctx.internal.activeMenus.splice(0, Infinity, {
+    ctx.internal.activeMenus.splice(0, Number.POSITIVE_INFINITY, {
       id,
       relative: {
         left: clientX,

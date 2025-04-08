@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useContext } from '@web/client';
 import { useEventListener } from '@vueuse/core';
+import { useContext } from '@web/client';
 import KMenu from './menu.vue';
 
 const ctx = useContext();

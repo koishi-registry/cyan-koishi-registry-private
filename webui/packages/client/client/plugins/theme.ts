@@ -1,10 +1,10 @@
-import type { Dict } from 'cosmokit';
-import { Schema } from '@web/components';
-import type { Context } from '../context';
-import { type Component, computed, markRaw, reactive, watchEffect } from 'vue';
-import { useConfig } from './setting';
-import { Service } from '../utils';
 import { usePreferredDark } from '@vueuse/core';
+import { Schema } from '@web/components';
+import type { Dict } from 'cosmokit';
+import { type Component, computed, markRaw, reactive, watchEffect } from 'vue';
+import type { Context } from '../context';
+import { Service } from '../utils';
+import { useConfig } from './setting';
 
 declare module '../context' {
   interface Context {

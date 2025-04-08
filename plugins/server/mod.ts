@@ -1,26 +1,26 @@
-import type { Context } from '@p/core';
-import { symbols } from '@cordisjs/core'
-import { Schema } from '@cordisjs/plugin-schema';
-import { Service } from 'cordis';
-import { pick, type Awaitable } from 'cosmokit';
-import type * as hono from 'hono';
-import { serve, type Http2Bindings } from '@hono/node-server'
-import type { UpgradeWebSocket, WSContext, WSEvents } from 'hono/ws';
-import { streamSSE, type SSEStreamingApi } from 'hono/streaming'
-import type { WebSocket } from 'ws'
-import { createNodeWebSocket } from '@hono/node-ws';
-import { TrieRouter } from 'hono/router/trie-router';
-import type { BlankInput, H, Handler, RouterRoute } from 'hono/types';
 // import type { Server as BunServer, ServerWebSocket } from 'bun';
-import { createServer, type Http2Server } from 'node:http2'
+import { type HttpServer, createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { Hono, type Bindings } from './cx'
-import type { WebSocketCallback } from './ws';
+import { symbols } from '@cordisjs/core';
+import { Schema } from '@cordisjs/plugin-schema';
+import { type Http2Bindings, serve } from '@hono/node-server';
+import { createNodeWebSocket } from '@hono/node-ws';
+import type { Context } from '@p/core';
+import { Service } from 'cordis';
+import { type Awaitable, pick } from 'cosmokit';
+import type * as hono from 'hono';
+import { TrieRouter } from 'hono/router/trie-router';
+import { type SSEStreamingApi, streamSSE } from 'hono/streaming';
+import type { BlankInput, H, Handler, RouterRoute } from 'hono/types';
+import type { UpgradeWebSocket, WSContext, WSEvents } from 'hono/ws';
+import type { WebSocket } from 'ws';
+import { type Bindings, Hono } from './cx';
 import type { SSEHandler } from './sse';
+import type { WebSocketCallback } from './ws';
 
-export * from './cx'
-export * from './sse'
-export * from './ws'
+export * from './cx';
+export * from './sse';
+export * from './ws';
 
 declare module '@p/core' {
   export interface Context {
@@ -43,9 +43,9 @@ export class Server extends Hono {
     associate: 'server',
     property: 'ctx',
   };
-  public _server?: Http2Server;
+  public _server?: HttpServer;
 
-  #upgradeWebSocket: UpgradeWebSocket<WebSocket>
+  #upgradeWebSocket: UpgradeWebSocket<WebSocket>;
 
   public host!: string;
   public port!: number;
@@ -66,8 +66,10 @@ export class Server extends Hono {
     this.router = router;
     Object.assign(this, pick(config, ['host', 'port']));
 
-    const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app: this })
-    this.#upgradeWebSocket = upgradeWebSocket
+    const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({
+      app: this,
+    });
+    this.#upgradeWebSocket = upgradeWebSocket;
 
     this.ctx.on('server/ready', () => {
       this.ctx.logger.info('listening on %C', this.selfUrl);
@@ -80,19 +82,23 @@ export class Server extends Hono {
       });
 
       if (!this._server) {
-        this._server = <Http2Server>serve({
+        this._server = <HttpServer>serve({
           fetch: this.fetch,
           hostname: config.host,
           port: config.port,
-          createServer
-        })
-        injectWebSocket(this._server)
+          createServer,
+        });
+        injectWebSocket(this._server);
         // this._server.on('request', ()=>console.log('request'))
         // this._server.on('stream', ()=>console.log('stream'))
         this.ctx.emit('server/ready', <AddressInfo>this._server.address());
       }
 
-      this.ctx.on('dispose', () => new Promise<void>(resolve => this._server?.close(() => resolve())));
+      this.ctx.on(
+        'dispose',
+        () =>
+          new Promise<void>((resolve) => this._server?.close(() => resolve())),
+      );
     });
 
     ctx.set('server', this);
@@ -101,7 +107,11 @@ export class Server extends Hono {
 
     ctx.on(
       'internal/listener',
-      function (this: Context, name: string, listener: (...args: unknown[]) => unknown) {
+      function (
+        this: Context,
+        name: string,
+        listener: (...args: unknown[]) => unknown,
+      ) {
         if (
           name !== 'server/ready' ||
           Reflect.get(self, symbols.filter)?.(this) ||
@@ -114,14 +124,11 @@ export class Server extends Hono {
     );
   }
 
-  sse(
-    path: string,
-    callback: SSEHandler
-  ) {
+  sse(path: string, callback: SSEHandler) {
     this.get(path, async (c) => {
-      const cb = await callback(c)
-      return streamSSE(c, async (stream) => cb(stream))
-    })
+      const cb = await callback(c);
+      return streamSSE(c, async (stream) => cb(stream));
+    });
   }
 
   ws = (path: string, callback: WebSocketCallback) => {
@@ -146,7 +153,7 @@ export class Server extends Hono {
         break;
     }
     if (this._server) {
-      const addr = <AddressInfo>this._server.address()
+      const addr = <AddressInfo>this._server.address();
       const url = new URL(`${protocol}//${host}:${addr.port}`);
       url.protocol = protocol;
       url.hostname = host;

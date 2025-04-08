@@ -1,26 +1,20 @@
-import { compare, format, parse, type SemVer } from '@std/semver';
-import type { Awaitable } from 'cosmokit';
-import * as cordis from 'cordis';
-import { join } from '@std/path';
+import HttpService from '@cordisjs/plugin-http';
+import LoggerService from '@cordisjs/plugin-logger';
+import { Schema } from '@cordisjs/plugin-schema';
+import TimerService from '@cordisjs/plugin-timer';
+import { CommunicationService } from '@p/communicate';
+import CacheService from '@plug/cache';
+import * as LogPersist from '@plug/logger';
 import { Server } from '@plug/server';
 import StorageService from '@plug/storage';
-import CacheService from '@plug/cache';
+import { join } from '@std/path';
+import { type SemVer, compare, format, parse } from '@std/semver';
+import * as cordis from 'cordis';
+import type { Awaitable } from 'cosmokit';
 import Logger from 'reggol';
-import * as yaml from 'js-yaml';
-import { Schema } from '@cordisjs/plugin-schema';
-import HttpService from '@cordisjs/plugin-http';
-import TimerService from '@cordisjs/plugin-timer';
-import LoggerService from '@cordisjs/plugin-logger';
-import * as LogPersist from '@plug/logger';
 import meta from './package.json' with { type: 'json' };
-import { CommunicationService } from '@p/communicate';
 
-const appMeta = yaml.load(
-  await Bun.file(join(process.cwd(), 'kra.yaml')).text(),
-);
-
-export interface Events<in C extends Context = Context>
-  extends cordis.Events<C> {
+export interface Events<C extends Context = Context> extends cordis.Events<C> {
   'core/updated'(previous: SemVer, current: SemVer): void;
 
   exit(signal?: NodeJS.Signals): Promise<void>;
@@ -39,17 +33,25 @@ function registerSignalHandler(
 export const appName = 'koishi-registry';
 export const runtimeName: 'bun' = <never>'Bun';
 
+export interface Context {
+  [Context.events]: Events<this>;
+  [Context.intercept]: Intercept<this>;
+  $kra: Kra;
+  info: Kra;
+  baseDir: string;
+}
+
 export class Context extends cordis.Context {
-  declare baseDir: string;
-  declare [Context.events]: Events<this>;
-  declare [Context.intercept]: Intercept<this>;
-
-  info: AppInfo;
-
   constructor(config: Context.Config = {}) {
     super();
 
-    this.info = new AppInfo(this);
+    const kra = new Kra(this);
+    this.set('$kra', kra);
+    this.accessor('info', { get: () => this.get('$kra') });
+    this.on(
+      'internal/inject',
+      (prop, provider) => provider?.uid === this.scope.uid,
+    );
 
     this.plugin(LoggerService);
     this.plugin(LogPersist);
@@ -63,7 +65,11 @@ export class Context extends cordis.Context {
     this.plugin(CacheService);
 
     const handleSignal = (signal: NodeJS.Signals) => {
-      return this.parallel('exit', signal);
+      // if (config.autoRestart) {
+      // this.$communicate.post("exit", {});
+      // }
+      this.emit(this, 'internal/info', 'terminated by %C', signal);
+      return this.parallel('exit', signal).then(() => process.exit());
     };
 
     registerSignalHandler('SIGINT', handleSignal);
@@ -84,9 +90,9 @@ export const Updated = {
   None: 'None' as Updated,
   Upgrade: 'Upgrade' as Updated,
   Downgrade: 'Downgrade' as Updated,
-};
+} as const;
 
-export class AppInfo {
+export class Kra {
   isUpdated: Promise<boolean>;
   isUpgrade: Promise<boolean>;
   isDowngrade: Promise<boolean>;
@@ -97,7 +103,7 @@ export class AppInfo {
   remotePlug = Boolean(Bun.env.REMOTE_PLUG ?? false);
 
   constructor(protected ctx: Context) {
-    ctx.mixin('info', ['baseDir']);
+    ctx.mixin('$kra', ['baseDir']);
 
     this.checkTask = new Promise((resolve) => {
       ctx.inject(['storage'], (ctx) => {
@@ -129,7 +135,6 @@ export class AppInfo {
         ctx.emit('core/updated', this.previous, current);
         return Updated.Upgrade;
       }
-      // biome-ignore lint/suspicious/noAssignInExpressions: assign
       const previous = (this.previous = parse(original));
       const ordering = compare(previous, current);
       if (ordering !== 0) {

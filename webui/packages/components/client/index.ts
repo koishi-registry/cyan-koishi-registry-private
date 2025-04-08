@@ -1,11 +1,11 @@
-import type { App } from 'vue';
-import PrimeVue from 'primevue/config';
 import Aura from '@primeuix/themes/aura';
 import Button from 'primevue/button';
+import PrimeVue from 'primevue/config';
 import Panel from 'primevue/panel';
-import ScrollPanel from 'primevue/scrollpanel';
 import Popover from 'primevue/popover';
+import ScrollPanel from 'primevue/scrollpanel';
 import Tooltip from 'primevue/tooltip';
+import type { App } from 'vue';
 
 export * from '@cordisjs/plugin-schema';
 

@@ -1,6 +1,6 @@
+import type * as cp from 'node:child_process';
 import type { Context } from 'cordis';
 import Base, { type Handler } from './base.ts';
-import type * as cp from 'node:child_process';
 
 export class ChildProcessCommunicator extends Base {
   constructor(

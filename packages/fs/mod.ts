@@ -2,5 +2,5 @@ export {
   ensureDir as ensureDirSync,
   walk as walkSync,
   exists as existsSync,
-} from './sync';
-export { ensureDir } from './async';
+} from './sync.ts';
+export { ensureDir, exists, rmdir, copyFile } from './async.ts';

@@ -1,33 +1,43 @@
-import type { Context } from '@p/core';
-import { Schema } from '@cordisjs/plugin-schema';
-import { type Awaitable, type Dict, makeArray, Time } from 'cosmokit';
-import {} from '@plug/server';
-import { existsSync } from '@kra/fs';
-import { basename, dirname, extname, join, resolve } from 'node:path';
-import type { ViteDevServer, FileSystemServeOptions } from 'vite'
-import { parse } from 'es-module-lexer';
-import { Client, type Entry, type Events, WebUI } from '@web/core';
-import open from 'open';
-import mime from 'mime-types';
 import * as http from 'node:http';
-import type { StatusCode } from 'hono/utils/http-status';
-import { serveStatic } from '@hono/node-server/serve-static'
+import { basename, dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Schema } from '@cordisjs/plugin-schema';
+import { serveStatic } from '@hono/node-server/serve-static';
+import { exists, existsSync, rmdir } from '@kra/fs';
+import { match } from '@kra/meta';
+import { asPath } from '@kra/path';
+import { noop } from '@kra/utils';
+import type { Context } from '@p/core';
+import {} from '@plug/server';
+import { buildComponents } from '@web/client/lib';
+import {
+  type Client,
+  type Entry,
+  type Events,
+  type Manifest,
+  WebUI,
+} from '@web/core';
+import { type Awaitable, type Dict, Time, makeArray } from 'cosmokit';
+import { parse } from 'es-module-lexer';
+import type { CustomHeader, RequestHeader } from 'hono/utils/headers';
+import type { StatusCode } from 'hono/utils/http-status';
+import mime from 'mime-types';
+import open from 'open';
+import type { OutputAsset, RollupOutput } from 'rollup';
+import sirv from 'sirv';
 import {
   DEP_VERSION_RE,
+  NULL_BYTE_PLACEHOLDER,
   injectQuery,
   isCSSRequest,
   isDirectCSSRequest,
   isDirectRequest,
-  NULL_BYTE_PLACEHOLDER,
   removeImportQuery,
   removeTimestampQuery,
   stripBase,
-  unwrapId
+  unwrapId,
 } from './helper';
-import sirv from 'sirv'
-import type { CustomHeader, RequestHeader } from 'hono/utils/headers';
-
+import { UIPaths } from './paths';
 
 declare module 'cordis' {
   interface EnvData {
@@ -62,20 +72,44 @@ interface HeartbeatConfig {
 
 export interface CallContext {
   headers: Record<RequestHeader | (string & CustomHeader), string>;
-  client?: Client
+  client?: Client;
 }
 
-export type Listener = (body: unknown, cx?: CallContext) => Awaitable<unknown>
+export type Listener = (body: unknown, cx?: CallContext) => Awaitable<unknown>;
+
+export interface State {
+  buildTime: number;
+  versions: {
+    '@web/client': string;
+    vue: string;
+    'vue-router': string;
+    '@vueuse/core': string;
+    primevue: string;
+    '@primeuix/themes': string;
+  };
+}
+
+export const DEFAULT_STATE: State = {
+  buildTime: new Date(0).getTime(),
+  versions: {
+    '@web/client': '0.0.0',
+    vue: '0.0.0',
+    'vue-router': '0.0.0',
+    '@vueuse/core': '0.0.0',
+    primevue: '0.0.0',
+    '@primeuix/themes': '0.0.0',
+  },
+};
 
 class BunWebUI extends WebUI {
   static inject = ['server'];
 
-  public vite!: ViteDevServer;
-  public root: string;
+  public infra!: Promise<void>;
+  public readonly paths: UIPaths;
 
   transpiler = new Bun.Transpiler({
-    loader: "ts"
-  })
+    loader: 'ts',
+  });
 
   get baseURL() {
     return new URL(this.config.uiPath, this.ctx.server.selfUrl);
@@ -91,8 +125,9 @@ class BunWebUI extends WebUI {
       return this.accept(c);
     });
 
-    this.root = Bun.fileURLToPath(
-      new URL('./app', import.meta.resolve('@web/client/package.json')),
+    this.paths = new UIPaths(
+      ctx,
+      this.config.cacheDir || join(ctx.cacheDir, 'vite'),
     );
   }
 
@@ -110,11 +145,16 @@ class BunWebUI extends WebUI {
   }
 
   override async start() {
-    await this.createVite();
+    await this.paths.ensureDir();
+    const prepare = this.prepare();
+    await prepare.next();
     this.serveAssets();
+    await prepare.next();
 
-    this.ctx.on('server/ready', () => {
+    this.ctx.on('server/ready', async () => {
       const target = new URL(this.config.uiPath, this.ctx.server.selfUrl);
+
+      await prepare.next();
 
       if (this.config.open) {
         open(target.href);
@@ -127,12 +167,15 @@ class BunWebUI extends WebUI {
   addListener<K extends keyof Events>(event: K, callback: Events[K]) {
     this.ctx.server.post(`${this.config.apiPath}/${event}`, async (c) => {
       const clientId = c.req.header('X-Client-ID');
+      if (!clientId) return c.text('X-Client-ID is not set', 400);
       try {
-        const client = this.clients?.[clientId]
-        return c.json((await (callback as Listener).call(await c.req.json(), {
-          client,
-          header: c.req.header()
-        })) ?? {});
+        const client = this.clients?.[clientId];
+        return c.json(
+          (await (callback as Listener).call(await c.req.json(), {
+            client,
+            header: c.req.header(),
+          })) ?? {},
+        );
       } catch (error) {
         this.ctx.logger.warn(error);
         return c.text('internal server error', 500);
@@ -140,30 +183,35 @@ class BunWebUI extends WebUI {
     });
   }
 
-  resolveEntry(files: Entry.Files, key: string) {
-    return this.getPaths(files).map((path, index) => {
-      // if (this.config.devMode) {
-      // return `/vite/@fs/${path}`;
-      // } else {
-        return `${this.config.uiPath}/@vendor/${key}/${index}${extname(path)}`;
-      // }
-    });
-  }
+  async getPaths(entry: Entry) {}
 
-  private getPaths(files: Entry.Files) {
-    if (this.config.devMode && files.dev) {
-      const filename = Bun.fileURLToPath(new URL(files.dev, files.base));
-      if (existsSync(filename)) return [filename];
+  async resolveEntry(entry: Entry) {
+    if (this.config.devMode) {
+      const url = new URL(entry.files.entry, entry.files.base);
+      if (await exists(url))
+        return [
+          `${this.config.uiPath}/@vendor/${entry.id}/${entry.files.entry}`,
+        ];
+      throw new Error(
+        `could not resolve entry '${entry.id}', file does not exists`,
+      );
     }
-    return makeArray(files.prod).map((url) =>
-      Bun.fileURLToPath(new URL(url, files.base)),
+    const result = await entry.executeOnceFallible(
+      'compile',
+      () => false as const,
+    );
+    if (result === false)
+      throw new Error(`could not compile entry-${entry.id}`);
+    return Object.values(result).map(
+      (chunk, key) =>
+        `${this.config.uiPath}/@vendor/${entry.id}/${key}/${chunk.file}`,
     );
   }
 
   private serveAssets() {
     const { uiPath } = this.config;
 
-    this.ctx.server.get(uiPath + '/*', async (c, next) => {
+    this.ctx.server.get(`${uiPath}/*`, async (c, next) => {
       await next();
       if (c.res.status !== 404) return;
 
@@ -174,50 +222,52 @@ class BunWebUI extends WebUI {
 
       const name = c.req.path.slice(uiPath.length).replace(/^\/+/, '');
       const sendFile = async (file: string) => {
-        return c.body(Bun.file(file).readable, 200, {
-          'Content-Type':
+        return c.body(await Bun.file(file).arrayBuffer(), 200, {
+          'content-type':
             mime.lookup(extname(file)) || 'application/octet-stream',
         });
       };
 
       if (name.startsWith('@vendor/')) {
-        const [key, value] = name.slice(8).split('/');
+        const [key, value, tag] = name.slice(8).split('/', 3);
         if (!this.entries[key]) return await c.notFound();
-        const paths = this.getPaths(this.entries[key].files);
-        const type = extname(value);
+        const entry = this.entries[key];
+        const paths = await this.resolveEntry(entry);
+        const type = extname(tag || value);
         const index = value.slice(0, -type.length);
-        if (!paths[+index]) return await c.notFound();
-        const file = paths[+index];
+        if (!paths[+index]) return c.notFound();
+        if (!paths[+index].startsWith(c.req.path)) return c.notFound();
+        const file = join(this.paths.entryVendor(entry.id), tag || value);
         // ctx.type = type;
         if (
           // this.config.devMode ||
-          c.req.header('Content-Type') !== 'application/javascript'
+          mime.lookup(type) !== 'application/javascript' &&
+          c.req.header('content-type') !== 'application/javascript'
         ) {
           return await sendFile(file);
         }
 
         const source = await Bun.file(file).text();
-        return c.body(await this.transformImport(source), {
-          headers: {
-            'Content-Type': 'application/javascript',
-          },
+        return c.body(await this.transformImport(source), 200, {
+          'content-type': 'application/javascript',
         });
       }
 
-      const filename = resolve(this.root, name);
+      await this.infra;
+      const filename = resolve(this.paths.infra, name);
       if (
-        !filename.startsWith(this.root) ||
+        !filename.startsWith(resolve(this.paths.infra)) ||
         basename(filename).startsWith('.')
       ) {
-        return c.text('Unauthorized', 403);
+        return c.notFound();
       }
 
       const exists = await Bun.file(filename).exists();
       if (exists) return sendFile(filename);
-      const template = await Bun.file(resolve(this.root, 'index.html')).text();
-      return c.body(await this.transformHtml(template), 200, {
-        'Content-Type': 'text/html',
-      });
+      const template = await Bun.file(
+        resolve(this.paths.infra, 'index.html'),
+      ).text();
+      return c.html(this.transformHtml(template), 200);
     });
   }
 
@@ -228,7 +278,7 @@ class BunWebUI extends WebUI {
     }
     return (
       {
-        'vue': this.config.uiPath + '/vue.js',
+        vue: this.config.uiPath + '/vue.js',
         'vue-router': this.config.uiPath + '/vue-router.js',
         '@web/client': this.config.uiPath + '/client.js',
       }[name] ?? name
@@ -246,11 +296,10 @@ class BunWebUI extends WebUI {
     return output + source.slice(lastIndex);
   }
 
-  private async transformHtml(template_: string) {
+  private async transformHtml(template: string) {
     const { uiPath, head = [] } = this.config;
-    const template = this.vite
-      ? await this.vite.transformIndexHtml(uiPath, template_)
-      : template_.replace(/(href|src)="(?=\/)/g, (_, $1) => `${$1}="${uiPath}`);
+
+    // const template = template_.replace(/(href|src)="(?=\/)/g, (_, $1) => `${$1}="${uiPath}`);
     let headInjection = `<script>CLIENT_CONFIG = ${JSON.stringify(
       this.createGlobal(),
     )}</script>`;
@@ -260,91 +309,159 @@ class BunWebUI extends WebUI {
         .join('');
       headInjection += `<${tag}${attrString}>${content ?? ''}</${tag}>`;
     }
-    return template.replace('<title>', headInjection + '<title>');
+    return template.replace('<title>', `${headInjection}<title>`);
   }
 
-  override addEntry<T>(files: Entry.Files, data?: (client: Client) => T): Entry<T> {
-    const fs = this.vite.config.server.fs
-    if (files.base) fs.allow.push(files.base)
-    fs.allow.push(dirname(files.dev))
-    fs.allow.push(...makeArray(files.prod).map(dirname))
-    return super.addEntry(files, data)
-  }
-
-  private async createVite() {
-    const { cacheDir, dev } = this.config;
-    const { createServer } = await import('@web/client/lib');
-
-    this.vite = await createServer(this.ctx.baseDir, {
-      customLogger: this.ctx.logger('vite'),
-      cacheDir: cacheDir && resolve(this.ctx.baseDir, cacheDir),
-      server: {
-        fs: {
-          strict: dev?.fs?.strict ?? true,
-          allow: dev?.fs.allow ??
-            [fileURLToPath(
-              new URL('../', import.meta.resolve('@web/client/lib')),
-            )],
-          deny: [
-            cacheDir,
-            ...[
-              'data',
-              'pair.json',
-              'packages',
-              'plugins/koishi_analyezr',
-              'plugins/koishi_registry'
-            ].map(x => join(this.ctx.baseDir, x))
-          ]
-        },
+  async compileEntry(entry: Entry) {
+    const { devMode } = this.config;
+    const { buildEntry } = await import('@web/client/lib');
+    const files = entry.files;
+    const results = await buildEntry(files.base && asPath(files.base), files.entry, {
+      build: {
+        minify: !devMode,
+        outDir: resolve(this.paths.entryVendor(entry.id)),
       },
-      plugins: [{
-        name: 'cordis-hmr',
-        transform: (code, id, _options) => {
-          for (const [key, { files }] of Object.entries(this.entries)) {
-            const index = this.getPaths(files).indexOf(id)
-            if (index < 0) continue
-            code += [
-              'if (import.meta.hot) {',
-              '  import.meta.hot.accept(async (module) => {',
-              '    const { root } = await import("@web/client");',
-              `    const fork = root.$loader.entries["${key}"]?.forks[${index}];`,
-              '    return fork?.update(module, true);',
-              '  });',
-              '}',
-            ].join('\n') + '\n'
-            return { code }
-          }
-        },
-      }],
-    })
+    });
 
-    this.ctx.server.use('/vite/*', async (c, next) => {
-      const { promise, resolve, reject } = Promise.withResolvers()
-      c.env.outgoing.addListener("finish", resolve)
-      c.env.outgoing.addListener("error", reject)
-      this.vite.middlewares(c.env.incoming, c.env.outgoing, next)
-      return promise.then(() => {
-        c.finalized = true
-      })
-    })
+    if (!results) return {};
 
-    this.ctx.on('dispose', () => this.vite.close());
+    const manifestAsset: OutputAsset = <OutputAsset>(
+      results[0].output.find(
+        (x) =>
+          x.type === 'asset' &&
+          x.fileName === 'manifest.json' &&
+          !x.originalFileNames.length,
+      )
+    );
+    const manifest: Manifest =
+      manifestAsset && JSON.parse(<string>manifestAsset.source);
+
+    if (entry.temporal)
+      this.ctx.effect(
+        () => async () => rmdir(this.paths.entryVendor(entry.id)),
+      );
+
+    if (!manifest) throw new TypeError('could not locate manifest.json');
+
+    return manifest;
+  }
+
+  override addEntry<T>(
+    files: Entry.Info,
+    data?: (client: Client) => T,
+  ): Entry<T> {
+    const entry = super.addEntry(files, data);
+    entry.defTask('compile', async () => {
+      return await this.compileEntry(entry);
+    });
+    return entry;
+  }
+
+  private async *prepare() {
+    const { cacheDir, devMode, uiPath } = this.config;
+    const { infraGen } = await import('@web/client/lib');
+
+    const versions = {
+      '@web/client':
+        (await import('@web/client/package.json')).version +
+        (devMode ? '-dev' : ''),
+      vue: (await import('vue/package.json')).version,
+      'vue-router': (await import('vue-router/package.json')).version,
+      '@vueuse/core': (
+        await import(import.meta.resolve('@vueuse/core/package.json'))
+      ).version,
+      primevue: (await import(import.meta.resolve('primevue/package.json')))
+        .version,
+      '@primeuix/themes': (
+        await import(import.meta.resolve('@primeuix/themes/package.json'))
+      ).version,
+    };
+
+    const stateFile = Bun.file(resolve(this.paths.infra, 'state.json'));
+    const state: State = await match({
+      true: async () => <State>await stateFile.json(),
+      false: async () => DEFAULT_STATE,
+      default: (v) => {
+        throw new TypeError(`unreachable: expect boolean, got ${typeof v}`);
+      },
+    })(await stateFile.exists());
+
+    if (
+      Bun.deepEquals(versions, state.versions) &&
+      existsSync(resolve(this.paths.infra))
+    ) {
+      this.infra = Promise.resolve();
+      return;
+    }
+
+    const base = uiPath;
+    const outDir = resolve(this.paths.infra);
+
+    const component = buildComponents(base, outDir, {
+      vue: versions['vue'] === state.versions['vue'],
+      'vue-router': versions['vue-router'] === state.versions['vue-router'],
+      vueuse: versions['@vueuse/core'] === state.versions['@vueuse/core'],
+    });
+
+    this.infra =
+      versions['@web/client'] !== state.versions['@web/client']
+        ? infraGen(base, outDir, {
+            cacheDir: cacheDir && resolve(this.ctx.baseDir, cacheDir),
+            base: this.config.uiPath,
+            build: {
+              minify: !devMode,
+            },
+            plugins: [
+              {
+                name: 'cordis-hmr',
+                transform: (code, id, _options) => {
+                  for (const [key, entry] of Object.entries(this.entries)) {
+                    const filename = fileURLToPath(
+                      new URL(entry.files.entry, entry.files.base),
+                    );
+                    if (id !== filename) continue;
+                    code += [
+                      'if (import.meta.hot) {',
+                      '  import.meta.hot.accept(async (module) => {',
+                      '    const { root } = await import("@cordisjs/client");',
+                      `    const fiber = root.$loader.entries["${key}"]?.forks["${id}"];`,
+                      '    return fiber?.update(module, true);',
+                      '  });',
+                      '}',
+                      '',
+                    ].join('\n');
+                    return { code };
+                  }
+                },
+              },
+            ],
+          }).then(noop)
+        : Promise.resolve();
+
+    await stateFile.write(
+      JSON.stringify(
+        {
+          buildTime: new Date().getTime(),
+          versions,
+        } satisfies State,
+        null,
+        2,
+      ),
+    );
+
+    yield;
+
+    await Promise.all([this.infra, component]);
+    yield;
+
+    // this.ctx.on('dispose', () => this.vite.close());
   }
 }
 
 namespace BunWebUI {
-  export interface Dev {
-    fs: FileSystemServeOptions;
-  }
+  export interface Dev {}
 
-  export const Dev: Schema<Dev> = Schema.object({
-    fs: Schema.object({
-      strict: Schema.boolean().default(true),
-      // deno-lint-ignore no-explicit-any
-      allow: Schema.array(String).default(null as any),
-      deny: Schema.array(String).default(['cache/**', '.git/**', '.env']),
-    }).hidden(),
-  });
+  export const Dev: Schema<Dev> = Schema.object({});
 
   export interface Head {
     tag: string;

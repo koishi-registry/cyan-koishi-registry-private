@@ -1,9 +1,9 @@
 // modified from https://github.com/Kaciras/fetch-socks/blob/41cec5a02c36687279ad2628f7c46327f7ff3e2d/index.ts
 
-import {} from '@cordisjs/plugin-http';
 import { lookup } from 'node:dns/promises';
-import { Context } from 'cordis';
-import { SocksClient, SocksProxy } from 'socks';
+import {} from '@cordisjs/plugin-http';
+import type { Context } from 'cordis';
+import { SocksClient, type SocksProxy } from 'socks';
 import type { buildConnector } from 'undici';
 
 export const name = 'http-socks';
@@ -16,7 +16,7 @@ export function apply(ctx: Context) {
 
     // From RFC 1928, Section 3: https://tools.ietf.org/html/rfc1928#section-3
     // "The SOCKS service is conventionally located on TCP port 1080"
-    const port = parseInt(url.port, 10) || 1080;
+    const port = Number.parseInt(url.port, 10) || 1080;
     const host = url.hostname;
 
     // figure out if we want socks v4 or v5, based on the "protocol" used.

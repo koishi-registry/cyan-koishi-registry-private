@@ -1,6 +1,6 @@
 import _l from 'npm:lodash';
 
-export let missings: string[] = [];
+export const missings: string[] = [];
 
 export function info(text: string) {
   console.log('%c I %c %s', 'background-color: cyan', 'color: cyan', text);

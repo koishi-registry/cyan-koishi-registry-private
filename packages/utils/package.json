@@ -1,6 +1,9 @@
 {
   "name": "@kra/utils",
   "version": "0.1.0",
+  "dependencies": {
+    "cosmokit": "^1"
+  },
   "exports": {
     ".": "./mod.ts"
   }

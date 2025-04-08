@@ -43,9 +43,9 @@
 </template>
 
 <script lang="ts" setup>
+import { type LegacyMenuItem, useContext } from '@web/client';
 import { computed, ref, useSlots } from 'vue';
 import { useRoute } from 'vue-router';
-import { LegacyMenuItem, useContext } from '@web/client';
 import LayoutHeader from './header.vue';
 import LayoutMenuItem from './menu-item.vue';
 

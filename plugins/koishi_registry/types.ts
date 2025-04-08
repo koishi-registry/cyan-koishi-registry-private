@@ -1,12 +1,12 @@
 import type {
   Manifest as KoishiManifest,
   Registry as RegistryResult,
+  User as RegistryUser,
   RemotePackage,
   Score,
   SearchObject,
   SearchPackage,
   SearchResult,
-  User as RegistryUser,
 } from '@koishijs/registry';
 import type { Dict } from 'cosmokit';
 

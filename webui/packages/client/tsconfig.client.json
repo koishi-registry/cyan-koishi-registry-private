@@ -12,9 +12,7 @@
     "moduleResolution": "bundler",
     "strict": true,
     "noImplicitAny": false,
-    "types": [
-      "@web/client/global"
-    ],
+    "types": ["@web/client/global"],
     "lib": ["DOM", "ES2022"]
   }
 }

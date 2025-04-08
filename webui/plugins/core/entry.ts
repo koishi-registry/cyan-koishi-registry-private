@@ -1,91 +1,224 @@
+import { type Disposable, DisposableList, mapValues, omit } from '@kra/utils';
 import type { Context } from '@p/core';
+import type { Awaitable, Dict, Promisify } from 'cosmokit';
+import type { Manifest } from './manifest.ts';
 import type { Client } from './mod.ts';
-import type { Dict } from 'cosmokit';
 
-export namespace Entry {
-  export interface Files {
-    base?: string;
-    dev: string;
-    prod: string | string[];
-  }
-
-  export interface Data {
-    files: string[];
-    entryId?: string;
-    // deno-lint-ignore no-explicit-any
-    data?: any;
-  }
-
-  export interface Init {
-    entries: Dict<Entry.Data>;
-    serverId: string;
-    clientId: number;
-  }
-
-  export interface Update extends Data {
-    id: string;
-  }
-
-  export interface Patch extends Data {
-    id: string;
-    key?: string;
-  }
-}
-
-// deno-lint-ignore no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: any by default
 export class Entry<T = any> {
-  public id = Math.random().toString(36).slice(2);
-  public dispose: () => void;
+  public id: string;
+  public temporal = false;
+
+  taskDefs: Partial<Entry.TaskDef> = Object.create(null);
+  tasks: Partial<Entry.TaskInfo> = Object.create(null);
+  disposables: DisposableList<Disposable> = new DisposableList();
 
   constructor(
     public ctx: Context,
-    public files: Entry.Files,
-    public data?: (client: Client) => T,
+    public files: Entry.Info,
+    data?: Entry.TaskDef['data'],
   ) {
+    this.id = ctx.loader.locate(ctx);
+    if (!this.id) {
+      this.temporal = true;
+      this.id = Math.random().toString(36).slice(2);
+    }
     ctx.webui.entries[this.id] = this;
-    ctx.webui.broadcast('entry:init', (client: Client) => ({
-      serverId: ctx.webui.id,
-      clientId: client.id,
-      entries: {
-        [this.id]: this.toJSON(client),
-      },
-    }));
-    this.dispose = ctx.effect(() => () => {
-      delete this.ctx.webui.entries[this.id];
-      ctx.webui.broadcast('entry:init', (client: Client) => ({
-        serverId: ctx.webui.id,
-        clientId: client.id,
-        entries: {
-          [this.id]: null,
-        },
-      }));
-    });
+    this.taskDefs['data'] = data;
   }
 
-  refresh() {
-    this.ctx.webui.broadcast('entry:update', (client: Client) => ({
-      id: this.id,
-      data: this.data?.(client),
-    }));
+  defTask<K extends keyof Entry.TaskDef>(name: K, fn: Entry.TaskDef[K]) {
+    this.taskDefs[name] = fn;
+  }
+
+  async execute<K extends keyof Entry.TaskDef>(
+    name: K,
+    ...args: Parameters<Entry.TaskDef[K]>
+  ) {
+    const promise = Promise.try(() =>
+      this.taskDefs?.[name]?.call(this, ...args),
+    );
+    this.tasks[name] = { promise, state: 'Pending' };
+    promise
+      .then(() => (this.tasks[name].state = 'Complete'))
+      .catch(() => (this.tasks[name].state = 'Error'));
+    return promise;
+  }
+
+  async executeFallible<R, K extends keyof Entry.TaskDef>(
+    name: K,
+    fallback: (
+      ...args: Parameters<Entry.TaskDef[K]>
+    ) => R | ReturnType<Entry.TaskDef[K]>,
+    ...args: Parameters<Entry.TaskDef[K]>
+  ) {
+    const promise = Promise.try(() =>
+      (this.taskDefs?.[name] || fallback)?.call(this, ...args),
+    );
+    this.tasks[name] = { promise, state: 'Pending' };
+    promise
+      .then(() => (this.tasks[name].state = 'Complete'))
+      .catch(() => (this.tasks[name].state = 'Error'));
+    return promise as Promise<ReturnType<Entry.TaskDef[K]> | R>;
+  }
+
+  async executeOnce<K extends keyof Entry.TaskDef>(
+    name: K,
+    ...args: Parameters<Entry.TaskDef[K]>
+  ) {
+    if (this.tasks[name]) return this.tasks[name].promise;
+    const promise = Promise.try(() =>
+      this.taskDefs?.[name]?.call(this, ...args),
+    );
+    this.tasks[name] = { promise, state: 'Pending' };
+    promise
+      .then(() => (this.tasks[name].state = 'Complete'))
+      .catch(() => (this.tasks[name].state = 'Error'));
+    return promise;
+  }
+
+  async executeOnceFallible<R, K extends keyof Entry.TaskDef>(
+    name: K,
+    fallback: (
+      ...args: Parameters<Entry.TaskDef[K]>
+    ) => R | ReturnType<Entry.TaskDef[K]>,
+    ...args: Parameters<Entry.TaskDef[K]>
+  ) {
+    if (this.tasks[name]) return this.tasks[name].promise;
+    const promise = Promise.try(() =>
+      (this.taskDefs?.[name] || fallback)?.call(this, ...args),
+    );
+    this.tasks[name] = { promise, state: 'Pending' };
+    promise
+      .then(() => (this.tasks[name].state = 'Complete'))
+      .catch(() => (this.tasks[name].state = 'Error'));
+    return promise as Promise<ReturnType<Entry.TaskDef[K]> | R>;
+  }
+
+  async init() {
+    const dispose = this.ctx.effect(() => {
+      const ctx = this.ctx;
+
+      ctx.webui.broadcast(
+        'entry:init',
+        async (client: Client) =>
+          ({
+            serverId: ctx.webui.id,
+            clientId: client.id,
+            entries: {
+              [this.id]: await this.toJSON(client),
+            },
+          }) satisfies Entry.Init,
+      );
+
+      return () => {
+        delete this.ctx.webui.entries[this.id];
+        return ctx.webui.broadcast(
+          'entry:init',
+          (client: Client) =>
+            ({
+              serverId: ctx.webui.id,
+              clientId: client.id,
+              entries: {
+                [this.id]: null,
+              },
+            }) satisfies Entry.Init,
+        );
+      };
+    });
+    this.disposables.push(dispose);
+  }
+
+  public async dispose() {
+    await Promise.all(
+      this.disposables.clear().map(async (disposable) => await disposable()),
+    );
+  }
+
+  async refresh() {
+    return await this.ctx.webui.broadcast(
+      'entry:update',
+      async (client: Client) => ({
+        id: this.id,
+        data: await this.execute('data', client),
+      }),
+    );
   }
 
   patch<T>(data: T, key?: string) {
-    this.ctx.webui.broadcast('entry:patch', {
+    return this.ctx.webui.broadcast('entry:patch', {
       id: this.id,
       data,
       key,
     });
   }
 
-  toJSON(client: Client): Entry.Data | undefined {
+  async toJSON(client: Client): Promise<Entry.Data<T> | undefined> {
     try {
+      // biome-ignore lint/suspicious/noExplicitAny: make ts happy
+      const tasks = mapValues(<any>(<Entry.TaskInfo>this.tasks), (value) =>
+        omit(value as any, ['promise']),
+      );
       return {
-        files: this.ctx.webui.resolveEntry(this.files, this.id),
+        files: await this.ctx.webui.resolveEntry(this),
         entryId: this.ctx.get('loader')?.locate(),
-        data: JSON.parse(JSON.stringify(this.data?.(client))),
+        data: structuredClone(await this.executeOnce('data', client)) ?? null,
+        tasks,
       };
     } catch (e) {
-      this.ctx.logger.error(e);
+      this.ctx.logger.warn(e);
     }
+  }
+}
+
+export namespace Entry {
+  export interface TaskDef {
+    data(this: Entry, client: Client): Awaitable<unknown>;
+    compile(this: Entry): Promise<Manifest>;
+  }
+
+  export const TaskState = {
+    Pending: 'Pending',
+    Complete: 'Complete',
+    Error: 'Error',
+  };
+  export type TaskState = (typeof TaskState)[keyof typeof TaskState];
+
+  // biome-ignore lint/complexity/noBannedTypes: shorthand
+  export type TaskInfo = TaskDef[keyof TaskDef] extends Function
+    ? {
+        [key in keyof TaskDef]: {
+          promise?: Promisify<ReturnType<TaskDef[key]>>;
+          state: TaskState;
+        };
+      }
+    : never;
+
+  export interface Info {
+    base?: string | URL;
+    entry: string;
+  }
+
+  // biome-ignore lint/suspicious/noExplicitAny: generic default
+  export interface Data<T = any> {
+    files: string[];
+    tasks: Partial<TaskInfo>;
+    entryId?: string;
+    data?: T;
+  }
+
+  export interface Init<T = unknown> {
+    entries: Dict<Entry.Data<T>>;
+    serverId: string;
+    clientId: number;
+  }
+
+  export interface Update<T = unknown> extends Data<T> {
+    id: string;
+  }
+
+  export interface Patch<T = unknown> extends Data<T> {
+    id: string;
+    key?: string;
   }
 }

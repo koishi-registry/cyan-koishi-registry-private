@@ -12,8 +12,8 @@
 </template>
 
 <script lang="ts" setup>
+import type { Activity } from '@web/client';
 import { ref } from 'vue';
-import { Activity } from '@web/client';
 
 const props = defineProps<{
   data: Activity;

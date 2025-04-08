@@ -2,9 +2,18 @@
   name: '@plug/api'
   config: null
   disabled: false
+- id: bruh-indexing
+  name: '@plug/indexing'
+  config: null
+- id: bruh-scheduler
+  name: '@plug/scheduler'
+  config: null
 - id: bruh-drizzle
   name: '@p/database'
   config: 'postgresql://127.0.0.1:5432/kra'
+- id: bruh-npm
+  name: '@plug/npm'
+  config: null
 - id: bruh-koishi-base
   name: '@plug/koishi'
   config: null
@@ -22,7 +31,9 @@
 - id: bruh-manage
   name: '@plug/manage'
   config: null
-- id: bruh1
+- id: bruh-webui
   name: '@web/plug-webui'
   config: null
   disabled: false
+- id: bruh-webui-test
+  name: '@web/example'

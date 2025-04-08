@@ -1,4 +1,4 @@
-import { valueMap, isNullable } from 'cosmokit';
+import { isNullable, valueMap } from 'cosmokit';
 import * as yaml from 'js-yaml';
 
 // eslint-disable-next-line no-new-func
@@ -15,13 +15,14 @@ export const evaluate = new Function(
 export function interpolate(ctx: object, value: any) {
   if (isJsExpr(value)) {
     return evaluate(ctx, value.__jsExpr);
-  } else if (!value || typeof value !== 'object') {
-    return value;
-  } else if (Array.isArray(value)) {
-    return value.map((item) => interpolate(ctx, item));
-  } else {
-    return valueMap(value, (item) => interpolate(ctx, item));
   }
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => interpolate(ctx, item));
+  }
+  return valueMap(value, (item) => interpolate(ctx, item));
 }
 
 function isJsExpr(value: any): value is JsExpr {

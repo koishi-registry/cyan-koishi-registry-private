@@ -1,12 +1,18 @@
-import { Context, Service } from 'cordis';
-import { Schema } from '@cordisjs/plugin-schema';
-import { Awaitable, Binary, defineProperty, Dict, isNullable } from 'cosmokit';
-import { loadFile, lookup } from './adapter.ts';
-import { ReadableStream } from 'node:stream/web';
 import { createRequire } from 'node:module';
+import type { ReadableStream } from 'node:stream/web';
+import { Schema } from '@cordisjs/plugin-schema';
+import { Context, Service } from 'cordis';
+import {
+  type Awaitable,
+  Binary,
+  type Dict,
+  defineProperty,
+  isNullable,
+} from 'cosmokit';
+import mimedb from 'mime-db';
+import { loadFile, lookup } from './adapter.ts';
 // import type { Dispatcher, RequestInit, WebSocketInit } from 'undici'
 import { isLocalAddress } from './utils.ts';
-import mimedb from 'mime-db';
 
 declare module 'cordis' {
   interface Context {
@@ -50,6 +56,9 @@ class HTTPError extends Error {
     public code?: HTTP.Error.Code,
   ) {
     super(message);
+    // const lines = this.stack!.split('\n');
+    // lines.splice(1, 1);
+    // this.stack = lines.join('\n');
   }
 }
 
@@ -327,11 +336,10 @@ export class HTTP extends Service {
     const type = response.headers.get('Content-Type');
     if (type?.startsWith('application/json')) {
       return response.json();
-    } else if (type?.startsWith('text/')) {
+    } if (type?.startsWith('text/')) {
       return response.text();
-    } else {
-      return response.arrayBuffer();
     }
+    return response.arrayBuffer();
   }
 
   async [Service.invoke](...args: any[]) {
@@ -353,11 +361,16 @@ export class HTTP extends Service {
       });
     }
 
+
     const dispose = this.ctx.effect(() => {
+      const error = new HTTPError(
+        `request timeout after ${config.timeout}ms`,
+        'ETIMEDOUT',
+      )
       const timer =
         config.timeout &&
-        setTimeout(() => {
-          controller.abort(new HTTPError('request timeout', 'ETIMEDOUT'));
+        setTimeout(function timeout() {
+          controller.abort(error);
         }, config.timeout);
       return () => {
         clearTimeout(timer);
@@ -392,10 +405,10 @@ export class HTTP extends Service {
           config,
           error: cause,
         });
-        if (HTTP.Error.is(cause)) throw cause;
-        const error = new HTTP.Error(`fetch ${url} failed`);
+        if (HTTP.Error.is(cause)) return Promise.reject(cause);
+        const error = new HTTP.Error(`error fetching '${url}'`);
         error.cause = cause;
-        throw error;
+        return Promise.reject(error);
       })) as unknown as globalThis.Response;
       this.ctx.emit(this, 'http/after-fetch', {
         url,

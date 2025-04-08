@@ -9,8 +9,8 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import { useContext, ActiveMenu } from './transf';
 import MenuItem from './menu-item.vue';
+import { type ActiveMenu, useContext } from './transf';
 
 const props = defineProps<ActiveMenu>();
 
