@@ -2,13 +2,7 @@ import type { HTTP } from '@cordisjs/plugin-http';
 import { Schema } from '@cordisjs/plugin-schema';
 import { NpmWatcher as preload } from '@km-api/km-api/preload';
 import { type Context, Service, symbols } from '@p/core';
-import {
-  SQLiteColumn,
-  type SQLiteTableWithColumns,
-  integer,
-  sqliteTable,
-  text,
-} from '@plug/indexing/declare';
+import { desc } from '@plug/indexing/declare'
 import type Idx from '@plug/indexing/idx';
 import type { ScheduleState } from '@plug/scheduler';
 import { delay } from '@std/async';
@@ -19,6 +13,7 @@ import { eq } from 'drizzle-orm/sql';
 import trimEnd from 'lodash.trimend';
 import { type Range, chunksIter, take } from './helper';
 import { type ParserOptions, parseStream } from './parse';
+import type { WriterRSide } from './worker/shared';
 
 declare module '@p/core' {
   export interface Context {
@@ -73,31 +68,16 @@ export interface ReplicateInfo {
   uuid: string;
 }
 
-const historyColumns = {
-  seq: integer('seq').primaryKey(),
-  name: text('name').notNull(),
-  deleted: integer({ mode: 'boolean' }).default(false),
-  changes: text({ mode: 'json' }).default([]),
-} as const;
-
-const prepareColumns = {
-  id: integer('block_id').primaryKey(),
-  begin: integer().notNull(),
-  end: integer().notNull(),
-  progress: integer().default(0).notNull(),
-  done: integer({ mode: 'boolean' }).default(false),
-} as const;
-
 export class NpmSync extends Service {
-  static inject = ['http', 'indexing', 'scheduler'];
+  static inject = ['http', 'indexing', 'scheduler', 'worker'];
 
   _prepareTask: Promise<void>;
 
   http: HTTP;
-  history: Idx.From<typeof historyColumns>;
-  prepare: Idx.From<typeof prepareColumns>;
   concurrent: ScheduleState;
   nextQuery: ScheduleState;
+
+  writer: WriterRSide
 
   state = 0;
 
@@ -108,17 +88,21 @@ export class NpmSync extends Service {
     super(ctx, 'npm');
     this.options.endpoint = trimEnd(this.options.endpoint, '/');
 
-    this.history = ctx.indexing.section(
-      sqliteTable(`${this.options.section}$history`, historyColumns),
-    );
-    this.prepare = ctx.indexing.section(
-      sqliteTable(`${this.options.section}$prepare`, prepareColumns),
-    );
-
     this.http = ctx.http.extend({
       baseURL: this.options.endpoint,
       timeout: this.options.timeout,
     });
+
+    this.writer = ctx.worker.spawn(import.meta.resolve('./worker/writer.ts'), options.section).cast()
+
+    ctx.on('npm/changes', async (changes) => {
+      // await this.history.insertValues(changes.map(change => ({
+      //   seq: change.seq,
+      //   name: change.id,
+      //   deleted: !!change.deleted,
+      //   changes: change.changes
+      // })))
+    })
 
     // ctx.on(
     //   'npm/changes',
@@ -139,7 +123,6 @@ export class NpmSync extends Service {
 
   async changes(
     since: number,
-    interval: number|undefined = undefined,
     options?: ParserOptions,
   ) {
     const res = await this.http<ReadableStream<Uint8Array>>('/_changes', {
@@ -149,7 +132,6 @@ export class NpmSync extends Service {
       },
       params: {
         since: since,
-        seq_interval: interval,
       },
       responseType: (r) => r.body,
     });
@@ -169,7 +151,6 @@ export class NpmSync extends Service {
     const abort = new AbortController();
     // let seq = this.state
     const dispose = this.ctx.effect(() => () => abort.abort())
-    const persist = this.prepare;
 
     const [count, iter] = chunksIter(
       [this.state, target],
@@ -207,7 +188,7 @@ export class NpmSync extends Service {
       let retries = this.options.max_retries;
       while (seq <= chunk[1] && retries --> 0) {
         await this.nextQuery.period('tickHttp');
-        const stream = await this.changes(seq, this.options.block_size, {
+        const stream = await this.changes(seq, {
           signal: abort.signal,
           intercept: (value) => {
             seq = value;
@@ -216,8 +197,10 @@ export class NpmSync extends Service {
         }).catch(noop);
         if (abort.signal.aborted) return;
         if (!stream) continue;
-        for await (const changes of stream)
+        for await (const changes of stream) {
+          this.writer.post("records", changes).then()
           await this.ctx.parallel('npm/changes', changes);
+        }
       }
       if (retries <= 0) throw new Error('retry limit exceed');
 
@@ -254,14 +237,19 @@ export class NpmSync extends Service {
   protected async fetcher() {
     const abort = new AbortController();
     this.ctx.effect(() => () => abort.abort());
-    while (this.ctx.scope.active)
-      await this.changes(this.state, this.options.block_size, {
+    while (this.ctx.scope.active) {
+      const stream = await this.changes(this.state, {
         signal: abort.signal,
         intercept: (value) => {
           this.state = value;
           return false;
         },
       });
+      for await (const changes of stream) {
+        this.writer.post("records", changes).then()
+        await this.ctx.parallel("npm/changes", changes)
+      }
+    }
   }
 
   async [symbols.setup]() {
@@ -269,7 +257,7 @@ export class NpmSync extends Service {
     const info = await statistics();
 
     const prepare = (this._prepareTask = this.catchUp(
-      info.committed_update_seq,
+      info.update_seq,
     ).then(() => this.ctx.emit('npm/synchronized')));
 
     await prepare.then(() => this.fetcher());

@@ -1,7 +1,7 @@
 import * as cp from 'node:child_process';
 import process from 'node:process';
 import type { Context } from '@p/core';
-import { fileURLToPath, pathToFileURL } from 'bun';
+import util from 'node:util'
 import { Service } from 'cordis';
 import { noop, remove } from 'cosmokit';
 import type { Awaitable, Dict, Promisify } from 'cosmokit';
@@ -14,21 +14,25 @@ import { InWorkerCommunicator } from './communicator/in_worker.ts';
 import { NoopCommunicator } from './communicator/noop.ts';
 import { ProcessCommunicator } from './communicator/process.ts';
 import { WorkerCommunicator } from './communicator/worker.ts';
+import { isMainThread, threadId } from 'node:worker_threads'
 
 export const kProtocol: unique symbol = Symbol.for('communicate.protocol');
 
-declare module 'cordis' {
+declare module '@p/core' {
   interface Context {
-    [kProtocol]: { Server: Packages; Client: Packages };
+    [kProtocol]: { Remote: Packages; Local: Packages };
     $communicate: CommunicationService<
       this[typeof kProtocol] & Context.CommunicateProtocol<this>
     >;
   }
 
   namespace Context {
+    type Remote = S2CPackages
+    type Local = C2SPackages
+
     interface CommunicateProtocol<C extends Context = Context> {
-      Server: S2CPackages;
-      Client: C2SPackages;
+      Remote: Remote;
+      Local: Local;
     }
   }
 }
@@ -43,7 +47,6 @@ interface Message {
 
 export interface Requests {
   ping(): void;
-  plug(name: string): void;
 }
 
 export interface Events {
@@ -52,11 +55,15 @@ export interface Events {
   exit: {};
   error: {
     message: string;
+    stack?: string;
+    cause?: unknown;
   };
 }
 
 export interface C2SRequests extends Requests {}
-export interface S2CRequests extends Requests {}
+export interface S2CRequests extends Requests {
+  plug(name: string): void;
+}
 export interface C2SEvents extends Events {}
 export interface S2CEvents extends Events {}
 
@@ -137,6 +144,8 @@ export type Handler = <T extends any[], R>(
 ) => void | R | Awaitable<void | R>;
 export type Listener<T> = (data: T) => Awaitable<void>;
 
+declare let self: Worker|undefined;
+
 export function detect(): CommunicationService.Type {
   if (
     // deno-lint-ignore ban-ts-comment
@@ -145,6 +154,7 @@ export function detect(): CommunicationService.Type {
     // deno-lint-ignore ban-ts-comment
     // @ts-expect-error
     self instanceof WorkerGlobalScope
+    || (!isMainThread && typeof self?.['onmessage'] !== 'undefined')
   )
     return 'worker';
 
@@ -162,13 +172,13 @@ function unwrapExports(module: any) {
 export const rt_path = await import.meta.resolve('@p/cp-rt');
 
 export class CommunicationService<
-  Protocol extends { Server: S2CPackages; Client: C2SPackages } = {
-    Server: S2CPackages;
-    Client: C2SPackages;
+  Protocol extends { Remote: Packages; Local: Packages } = {
+    Remote: S2CPackages;
+    Local: C2SPackages;
   },
 > extends Service {
-  declare S: Protocol['Server'];
-  declare C: Protocol['Client'];
+  declare S: Protocol['Remote'];
+  declare C: Protocol['Local'];
 
   public readonly isWorker: boolean;
   listeners: Dict<Listener<unknown>[]> = Object.create(null);
@@ -210,8 +220,8 @@ export class CommunicationService<
       });
     this._self.receive('error', (error) => {
       ctx
-        .get('logger')?.(`remote:${this.conn.name}`)
-        ?.warn('error:', error.message);
+        .get('logger')?.(`$comm:remote:${this.conn.name}`)
+        ?.warn(Object.setPrototypeOf(error, Error.prototype));
     });
 
     ctx.mixin('$communicate', {
@@ -220,8 +230,12 @@ export class CommunicationService<
     });
   }
 
-  get _self(): CommunicationService {
-    return <CommunicationService>(<unknown>this);
+  cast<RSide extends Packages, LSide extends Packages>() {
+    return <CommunicationService<{ Remote: RSide, Local: LSide }>>(this as unknown)
+  }
+
+  protected get _self(): CommunicationService {
+    return this.cast();
   }
 
   _workers = () => {
@@ -272,17 +286,19 @@ export class CommunicationService<
     return communicator as CommunicationService;
   }
 
-  registerHandler() {
+  private registerHandler() {
     this.conn.on('message', async (message) => {
       try {
         if (!(await this.handler(message))) {
           this.ctx
             .get('logger')
-            ?.debug('not implemented: ', Bun.inspect(message));
+            ?.debug('not implemented: ', util.inspect(message));
         }
       } catch (e) {
         await this._self.post('error' as const, {
           message: e instanceof Error ? e.message : 'error handling message',
+          stack: e?.stack,
+          cause: e?.cause
         });
       }
     });
@@ -294,9 +310,9 @@ export class CommunicationService<
     await this._self.post('ready', {});
   }
 
-  public receive<K extends Stringify<keyof Protocol['Server']['event']>>(
+  public receive<K extends Stringify<keyof Protocol['Remote']['event']>>(
     name: K,
-    handler: Listener<Protocol['Server']['event'][K]>,
+    handler: Listener<Protocol['Remote']['event'][K]>,
   ) {
     this.listeners[name] ??= [];
 
@@ -307,8 +323,8 @@ export class CommunicationService<
   }
 
   public register<
-    K extends Stringify<keyof Protocol['Server']['request']>,
-    H extends Protocol['Server']['request'][K],
+    K extends Stringify<keyof Protocol['Remote']['request']>,
+    H extends Protocol['Remote']['request'][K],
   >(name: K, handler: H) {
     if (name in this.handlers) throw new Error('handler already exists');
 
@@ -319,10 +335,10 @@ export class CommunicationService<
   }
 
   public async call<
-    K extends Stringify<keyof Protocol['Client']['request']>,
+    K extends Stringify<keyof Protocol['Local']['request']>,
     // deno-lint-ignore no-explicit-any
-    H extends Protocol['Client']['request'][K] extends (...args: any[]) => any
-      ? Protocol['Client']['request'][K]
+    H extends Protocol['Local']['request'][K] extends (...args: any[]) => any
+      ? Protocol['Local']['request'][K]
       : never,
   >(name: K, ...args: Parameters<H>): Promisify<ReturnType<H>> {
     const id = `${name}-${Random.id()}`;
@@ -338,24 +354,24 @@ export class CommunicationService<
       id,
       name,
       args,
-    } satisfies MessagesOf<Protocol['Client']>['request'][K]);
+    } satisfies MessagesOf<Protocol['Local']>['request'][K]);
 
     return await promise;
   }
 
-  public async post<K extends Stringify<keyof Protocol['Client']['event']>>(
+  public async post<K extends Stringify<keyof Protocol['Local']['event']>>(
     name: K,
-    data: Protocol['Client']['event'][K],
+    data: Protocol['Local']['event'][K],
   ) {
     this.sendHost('event', {
       name,
       data,
-    } as MessagesOf<Protocol['Client']>['event'][K]);
+    } as MessagesOf<Protocol['Local']>['event'][K]);
   }
 
   public sendHost<T extends MessageType>(
     type: T,
-    body: BodyOf<T, Protocol['Client']>[keyof BodyOf<T, Protocol['Client']>],
+    body: BodyOf<T, Protocol['Local']>[keyof BodyOf<T, Protocol['Local']>],
   ) {
     if (!this.conn.open) throw new Error('send on a closed channel');
 
@@ -365,11 +381,11 @@ export class CommunicationService<
     });
   }
 
-  protected async onRequest(body: BodyOf<'request', Protocol['Server']>) {
+  protected async onRequest(body: BodyOf<'request', Protocol['Remote']>) {
     const verify = Schema.object({
       id: Schema.string().required(),
       name: Schema.string().required(),
-      args: Schema.array(Object).required(),
+      args: Schema.array(null as unknown).required(),
     });
     const { id, name, args } = verify(body);
 
@@ -399,7 +415,7 @@ export class CommunicationService<
     return true;
   }
 
-  protected async onResponse(body: BodyOf<'response', Protocol['Server']>) {
+  protected async onResponse(body: BodyOf<'response', Protocol['Remote']>) {
     const verify = Schema.object({
       id: Schema.string().required(),
       error: Schema.string(),
@@ -417,14 +433,14 @@ export class CommunicationService<
     return delete this.responseHooks[id];
   }
 
-  protected async onEvent(body: BodyOf<'response', Protocol['Server']>) {
+  protected async onEvent(body: BodyOf<'response', Protocol['Remote']>) {
     const verify = Schema.object({
       name: Schema.string().required(),
       data: Schema.any(),
     });
     const { name, data } = verify(body);
     const listeners = this.listeners[name] ?? [];
-    const tasks = [];
+    const tasks: Promise<void>[]= [];
     for (const listener of listeners) {
       tasks.push(
         (async () => await listener(data))().catch((reason) => {

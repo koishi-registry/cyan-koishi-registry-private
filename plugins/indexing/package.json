@@ -2,6 +2,7 @@
   "name": "@plug/indexing",
   "version": "1.0.0",
   "dependencies": {
+    "@hydrashodon/drizzle-kit": "^0.31.0-rc.2",
     "drizzle-kit": "0.30.5"
   },
   "exports": {

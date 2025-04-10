@@ -14,7 +14,7 @@ interface Record {
 }
 
 hono.get('/', (c) => c.json({
-  committed_update_seq: max
+  update_seq: max
 }))
 hono.all('/_changes', (c) => {
   const since = +(c.req.query('since')??0)

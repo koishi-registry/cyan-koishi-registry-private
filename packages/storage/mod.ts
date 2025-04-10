@@ -3,6 +3,8 @@ import { Service } from 'cordis';
 import type { Awaitable } from 'cosmokit';
 
 export abstract class Storage extends Service {
+  declare protected ctx: Context;
+
   protected constructor(ctx: Context, name: string) {
     ctx.provide(`storage.${name}`, undefined, true);
     super(ctx, `storage.${name}`);

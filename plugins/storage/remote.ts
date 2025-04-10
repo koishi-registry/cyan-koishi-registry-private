@@ -1,5 +1,6 @@
 import type { Context } from '@p/core';
 import { Storage } from '@p/storage';
+import type {} from '@p/communicate'
 
 declare module '@p/storage' {
   export namespace Storage {
@@ -10,10 +11,14 @@ declare module '@p/storage' {
 }
 
 declare module '@p/communicate' {
-  export interface C2SRequests {
-    'storage/has'(key: string): boolean;
-    'storage/remove'(key: string): boolean;
-    'storage/_internal/clear'(): void;
+  export interface Requests {
+    'storage/has'(key: string): Promise<boolean>;
+    'storage/remove'(key: string): Promise<void>;
+    'storage/setRaw'(key: string, value: string): Promise<void>;
+    'storage/set'(key: string, value: unknown): Promise<void>;
+    'storage/getRaw'(key: string): Promise<string | null>;
+    'storage/get'(key: string): Promise<unknown | null>;
+    'storage/_internal/clear'(): Promise<void>;
   }
 }
 
@@ -22,19 +27,27 @@ export class StorageRemoteStorage extends Storage {
     super(ctx, 'remote');
   }
 
-  override has(key: string): Promise<boolean> {
-    return this.ctx.$communicate.call('storage/has', key);
+  override async has(key: string): Promise<boolean> {
+    return await this.ctx.$communicate.call('storage/has', key);
   }
 
-  override getRaw(_key: string): string | null {
-    throw new Error('Not implemented');
+  override async getRaw(key: string): Promise<string | null> {
+    return await this.ctx.$communicate.call('storage/getRaw', key);
   }
 
-  override setRaw(_key: string, _value: string): void {
-    throw new Error('Not implemented');
+  override async setRaw(key: string, value: string): Promise<void> {
+    await this.ctx.$communicate.call('storage/setRaw', key, value);
   }
 
-  override async remove(key: string): void {
+  override async get<T>(key: string): Promise<T | null> {
+    return <T | null>await this.ctx.$communicate.call('storage/get', key);
+  }
+
+  override async set<T>(key: string, value: T): Promise<void> {
+    await this.ctx.$communicate.call('storage/set', key, value);
+  }
+
+  override async remove(key: string): Promise<void> {
     await this.ctx.$communicate.call('storage/remove', key);
   }
 

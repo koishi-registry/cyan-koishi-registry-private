@@ -1,7 +1,8 @@
 import type { ResultSet } from '@libsql/client';
 import type { Context } from '@p/core';
-import { pushSQLiteSchema } from 'drizzle-kit/api';
-import type { BuildColumns, ColumnBuilderBase } from 'drizzle-orm';
+import { getTableName } from 'drizzle-orm'
+import { generateSQLiteDrizzleJson, generateSQLiteMigration, sqlitePushIntrospect, type SQLiteDB } from '@hydrashodon/drizzle-kit/api';
+import { sql, type BuildColumns, type ColumnBuilderBase } from 'drizzle-orm';
 import type {
   GetSelectTableName,
   GetSelectTableSelection,
@@ -9,7 +10,9 @@ import type {
 import type {
   BaseSQLiteDatabase,
   CreateSQLiteSelectFromBuilderMode,
+  SQLiteInsertBase,
   SQLiteInsertBuilder,
+  SQLiteInsertValue,
   SQLiteTableWithColumns,
   SelectedFields,
   TableConfig,
@@ -18,7 +21,7 @@ import type { IndexService } from './mod';
 await import(import.meta.resolve('drizzle-kit/api'));
 
 type TBuilderMode = 'db';
-type TResultType = 'async';
+type TResultType = 'sync';
 type TRunResult = ResultSet;
 
 type TableOf<TConfig extends TableConfig> = SQLiteTableWithColumns<TConfig>;
@@ -45,6 +48,8 @@ export interface Injects<T extends TableConfig> {
     TSelection extends undefined ? 'single' : 'partial'
   >;
   insertTo(): SQLiteInsertBuilder<TableOf<T>, TResultType, TRunResult>;
+  insertValues(value: SQLiteInsertValue<TableOf<T>>): SQLiteInsertBase<TableOf<T>, TResultType, TRunResult>;
+  insertValues(values: SQLiteInsertValue<TableOf<T>>[]): SQLiteInsertBase<TableOf<T>, TResultType, TRunResult>;
 }
 
 const injects = {
@@ -59,6 +64,11 @@ const injects = {
   insertTo: function insertTo(this: Idx<TableConfig>) {
     return this.parent.drizzle.insert(this.table);
   },
+  insertValues: function insertValues(this: Idx<TableConfig>, value: unknown | unknown[]) {
+    return this.parent.drizzle.insert(this.table).values(
+      value as SQLiteInsertValue<TableOf<TableConfig>> | SQLiteInsertValue<TableOf<TableConfig>>[]
+    )
+  }
   // biome-ignore lint/complexity/noBannedTypes: make ts happy
 } satisfies Record<keyof Injects<TableConfig>, Function>;
 
@@ -102,14 +112,30 @@ export class Idx<T extends TableConfig> {
     });
   }
 
-  async create() {
-    const result = await pushSQLiteSchema(
-      {
-        [this.table._.name]: this.table,
-      },
-      this.parent.drizzle,
-    );
-    console.log('drizzle push', result);
+  async migrate() {
+    const tableName = getTableName(this.table)
+
+    const drizzle = this.parent.drizzle
+    const db: SQLiteDB = {
+  		query: async (query: string, params?: any[]) => {
+  			const res = drizzle.all<any>(sql.raw(query));
+  			return res;
+  		},
+  		run: async (query: string) => {
+  			return Promise.resolve(drizzle.run(sql.raw(query))).then(
+  				() => {},
+  			);
+  		},
+  	};
+
+    const { schema: prev } = await sqlitePushIntrospect(db, [tableName])
+    const cur = await generateSQLiteDrizzleJson({
+      [tableName]: this.table
+    })
+
+    const migrations = await generateSQLiteMigration(prev, cur)
+
+    await Promise.all(migrations.map(stmt => drizzle.run(stmt)))
   }
 }
 

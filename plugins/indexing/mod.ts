@@ -1,7 +1,8 @@
 import { join } from '@kra/path';
-import { type Client, createClient } from '@libsql/client';
+// import { type Client, createClient } from '@libsql/client';
+import { Database } from 'bun:sqlite'
 import { type Context, Service, z } from '@p/core';
-import { type LibSQLDatabase as DrizzleDB, drizzle } from 'drizzle-orm/libsql';
+import { type BunSQLiteDatabase as DrizzleDB, drizzle } from 'drizzle-orm/bun-sqlite';
 import type {
   SQLiteTableWithColumns,
   TableConfig,
@@ -22,7 +23,7 @@ export interface IndexService extends DrizzleDB {}
 
 export class IndexService extends Service {
   drizzle: DrizzleDB;
-  client: Client;
+  client: Database;
 
   section<T extends TableConfig>(table: SQLiteTableWithColumns<T>) {
     return new Idx(this.ctx, this, table);
@@ -35,11 +36,9 @@ export class IndexService extends Service {
     super(ctx, 'indexing');
 
     if (options?.file === ':memory:')
-      this.client = createClient({ url: ':memory:' });
+      this.client = new Database(':memory:');
     else
-      this.client = createClient({
-        url: `file:${join(ctx.baseDir, options!.file)}`,
-      });
+      this.client = new Database(join(ctx.baseDir, options!.file));
 
     ctx.on('dispose', () => this.client.close());
     this.drizzle = drizzle({ client: this.client });

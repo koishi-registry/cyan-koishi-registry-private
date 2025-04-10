@@ -1,5 +1,6 @@
 import { Context } from '@p/core';
 import Loader from '@p/loader';
+import { Server } from '@plug/server';
 import Logger from 'reggol';
 // import NpmSynchronizer from '@plug/npm'
 // import Koishi from '@plug/koishi'
@@ -19,15 +20,14 @@ const port = Number.parseInt(Bun.env.PORT ?? '5477');
 Error.stackTraceLimit = 60;
 
 Logger.levels.base = 5;
-export const app = new Context({
-  server: {
-    host,
-    port,
-  },
-});
+export const app = new Context();
 
 app.on('internal/error', console.error);
 app.on('internal/warning', console.warn);
+
+await app.plugin(Server, {
+  host, port
+})
 
 await app.plugin(Loader, {
   name: 'kra',

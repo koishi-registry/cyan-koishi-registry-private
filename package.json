@@ -1,11 +1,11 @@
 {
   "name": "@root/kra",
   "private": true,
-  "version": "0.5.0-rc.3",
+  "version": "0.5.0-rc.4",
   "scripts": {
     "start": "bun run ./runner.ts",
     "setup": "deno -A ./tools/setup.ts",
-    "test:replicate_sim": "deno --allow-net ./tools/sim.ts"
+    "test:replicate_sim": "deno serve --allow-net --unstable-sloppy-imports ./tools/sim.ts"
   },
   "workspaces": [
     "./hono-mod",
@@ -21,6 +21,7 @@
   "dependencies": {
     "@hono/node-server": "^1.13.8",
     "@hono/node-ws": "^1.1.0",
+    "@hydrashodon/drizzle-kit": "^0.31.2",
     "@km-api/km-api": "npm:@jsr/km-api__km-api",
     "@koishijs/registry": "^7.0.3",
     "@p/communicate": "workspace:*",

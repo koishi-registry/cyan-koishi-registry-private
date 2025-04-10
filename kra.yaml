@@ -2,6 +2,9 @@
   name: '@plug/api'
   config: null
   disabled: false
+- id: bruh-offloader
+  name: '@plug/worker'
+  config: null
 - id: bruh-indexing
   name: '@plug/indexing'
   config: null

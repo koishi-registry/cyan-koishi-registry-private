@@ -1,5 +1,5 @@
 // import type { Server as BunServer, ServerWebSocket } from 'bun';
-import { type HttpServer, createServer } from 'node:http';
+import { type Server as HttpServer, createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { symbols } from '@cordisjs/core';
 import { Schema } from '@cordisjs/plugin-schema';
@@ -154,6 +154,8 @@ export class Server extends Hono {
     }
     if (this._server) {
       const addr = <AddressInfo>this._server.address();
+      if (!addr) return new URL(`${protocol}//${host}:${this.port}`)
+
       const url = new URL(`${protocol}//${host}:${addr.port}`);
       url.protocol = protocol;
       url.hostname = host;

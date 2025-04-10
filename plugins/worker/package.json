@@ -1,0 +1,8 @@
+{
+  "name": "@plug/worker",
+  "version": "1.0.0",
+  "exports": "./mod.ts",
+  "dependencies": {
+    "destr": "^2.0.5"
+  }
+}

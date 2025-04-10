@@ -1,6 +1,6 @@
-import type { Context } from 'cordis';
-import Base, { type Handler } from './base.ts';
-import { type OnMessage, symbols } from './worker_base.ts';
+import type { Context } from "cordis";
+import Base, { type Handler } from "./base.ts";
+import { type OnMessage, symbols } from "./worker_base.ts";
 
 export class WorkerCommunicator extends Base {
   constructor(
@@ -8,6 +8,11 @@ export class WorkerCommunicator extends Base {
     protected worker: Worker,
   ) {
     super();
+    if (!worker['onerror'])
+      worker['onerror']= (event: ErrorEvent) => {
+        if (event.error) throw event.error;
+        throw new Error("Error in worker", { cause: event.error || event.message });
+      };
   }
 
   override get open(): boolean {
@@ -15,16 +20,17 @@ export class WorkerCommunicator extends Base {
   }
 
   override get name(): string {
-    return 'child_process';
+    return "child_worker";
   }
 
   override send(message: unknown, handle?: unknown): void {
     // deno-lint-ignore no-explicit-any
-    return this.worker.postMessage(message as any, [handle] as any);
+    if (handle) this.worker.postMessage(message, handle as any);
+    else this.worker.postMessage(message);
   }
 
-  override on(type: 'message', handler: Handler) {
-    if (type !== 'message') throw new Error('non message');
+  override on(type: "message", handler: Handler) {
+    if (type !== "message") throw new Error("on is called with non-'message' type");
     return this.ctx.effect(() => {
       const onmessage = ((event: MessageEvent) => {
         try {
@@ -39,16 +45,16 @@ export class WorkerCommunicator extends Base {
         }
       }) as OnMessage;
       onmessage[symbols.handler] = handler;
-      onmessage[symbols.original] = this.worker.onmessage;
-      this.worker.onmessage = onmessage;
+      onmessage[symbols.original] = this.worker['onmessage'];
+      this.worker['onmessage']= onmessage;
 
       return () => delete onmessage[symbols.handler];
     });
   }
 
-  override off(type: 'message', handler: Handler): void {
-    if (type !== 'message') throw new Error('non message');
-    let onmessage: OnMessage | undefined = this.worker.onmessage as OnMessage;
+  override off(type: "message", handler: Handler): void {
+    if (type !== "message") throw new Error("non message");
+    let onmessage: OnMessage | undefined = this.worker['onmessage'] as OnMessage;
     while (onmessage) {
       if (onmessage[symbols.handler] === handler) {
         delete onmessage[symbols.handler];

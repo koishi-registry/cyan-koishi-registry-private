@@ -120,7 +120,6 @@ export abstract class Loader<
       // plugin hmr: delete(plugin) -> runtime dispose -> scope dispose
       if (!ctx.registry.has(scope.runtime!.callback)) return;
 
-      console.log('scope', scope);
       this.showLog(scope.entry, 'unload');
 
       // case 4: scope is disposed by loader behavior

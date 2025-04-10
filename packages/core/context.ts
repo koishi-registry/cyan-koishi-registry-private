@@ -5,7 +5,6 @@ import TimerService from '@cordisjs/plugin-timer';
 import { CommunicationService } from '@p/communicate';
 import CacheService from '@plug/cache';
 import * as LogPersist from '@plug/logger';
-import { Server } from '@plug/server';
 import StorageService from '@plug/storage';
 import { join } from '@std/path';
 import { type SemVer, compare, format, parse } from '@std/semver';
@@ -56,10 +55,9 @@ export class Context extends cordis.Context {
     this.plugin(LoggerService);
     this.plugin(LogPersist);
     const logger = new Logger('app');
-    logger.info(`${appName}/%C ${runtimeName}/%C`, meta.version, Bun.version);
+    if (!config.noBanner) logger.info(`${appName}/%C ${runtimeName}/%C`, meta.version, Bun.version);
     this.plugin(TimerService);
     this.plugin(HttpService);
-    this.plugin(Server, config.server);
     this.plugin(CommunicationService);
     this.plugin(StorageService);
     this.plugin(CacheService);
@@ -76,11 +74,12 @@ export class Context extends cordis.Context {
     registerSignalHandler('SIGTERM', handleSignal);
 
     this.on('core/updated', () => {
-      this.logger.info(
-        'detected update %c -> %c',
-        format(this.info.previous!),
-        format(this.info.version),
-      );
+      if (config.app === true)
+         this.logger.info(
+          'detected update %c -> %c',
+          format(this.info.previous!),
+          format(this.info.version),
+        );
     });
   }
 }
@@ -152,11 +151,13 @@ export class Kra {
 
 export namespace Context {
   export interface Config {
-    server?: Server.Config;
+    noBanner?: boolean
+    app?: boolean
   }
 
   export const Config: Schema = Schema.object({
-    server: Server.Config,
+    noBanner: Schema.boolean().default(false),
+    app: Schema.boolean().default(true)
   });
 }
 
