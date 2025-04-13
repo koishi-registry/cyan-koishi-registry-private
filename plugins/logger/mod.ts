@@ -2,11 +2,13 @@ import { join, resolve } from 'node:path';
 import { Schema } from '@cordisjs/plugin-schema';
 import { ensureDirSync, walkSync } from '@kra/fs';
 import type { Context } from '@p/core';
+import { TextDecoderStream } from 'node:stream/web'
 import { DelimiterStream, toTransformStream } from '@std/streams';
 import type { BunFile, FileSink } from 'bun';
 import { type Dict, Time, noop, remove } from 'cosmokit';
 import { createRegExp, digit, oneOrMore } from 'magic-regexp';
 import Logger from 'reggol';
+import { rm } from 'node:fs/promises';
 
 export const name = 'logging-persist';
 
@@ -152,11 +154,8 @@ export async function apply(ctx: Context, config: Config) {
     for (const ymd of Object.keys(files)) {
       if (now - +new Date(ymd) < maxAge * Time.day) continue;
       for (const index of files[ymd]) {
-        await Bun.file(join(root, `${ymd}-${index}.log`))
-          .delete()
-          .catch((error) => {
-            ctx.logger('logger').warn(error);
-          });
+        await rm(join(root, `${ymd}-${index}.log`))
+          .catch(error => ctx.logger.warn('can not recycle logs', error))
       }
 
       delete files[ymd];

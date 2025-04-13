@@ -116,8 +116,7 @@ export class Server extends Hono {
           name !== 'server/ready' ||
           Reflect.get(self, symbols.filter)?.(this) ||
           !self.port
-        )
-          return;
+        ) return;
         listener();
         return () => false;
       },

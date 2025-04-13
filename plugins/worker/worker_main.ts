@@ -1,22 +1,31 @@
-import { asURL } from '@kra/path'
-import { Context } from '@p/core'
-import Loader from '@p/loader'
-import { destr } from 'destr'
+import { INDEX } from './worker'
+import { type } from 'arktype'
 
 if (process.argv.length !== 3 && process.argv.length !== 4) throw new TypeError(`Invalid arguments, received ${process.argv}`)
 const [exec, mainEntry, pluginEntry, pluginOpt] = process.argv
 
-const app = new Context({ noBanner: true, app: false })
-app.on('internal/error', console.error)
-app.on('internal/warning', console.warn)
+const { promise: shared, resolve } = Promise.withResolvers<Int32Array>()
 
-const plugin = await import(new URL(pluginEntry).href).then(Loader.unwrapExports).catch(error => {
-  app.emit('internal/error', 'unable to load entry plugin', error)
+const message = type({
+  case: "'initial'",
+  shared: "TypedArray.Int32"
+}).describe("valid initialize message")
+
+function onmessage(ev: MessageEvent<{ case: 'initial', shared: Int32Array }>) {
+  const { case: type, shared } = message.assert(ev.data)
+  resolve(shared)
+}
+
+declare let self: Worker
+
+Reflect.set(self, 'onmessage', onmessage)
+self.postMessage({
+  ready: true
 })
-if (!plugin) throw new Error("Invalid Plugin")
+shared.then(async shared => {
+  Reflect.set(self, 'onmessage', null)
+  const { default: load } = await import('./worker_app')
 
-const scope = app.plugin(plugin, destr(pluginOpt))
-
-setInterval(async () => {
-  if (scope.active) await scope
-}, 100)
+  const [app, scope] = await load(pluginEntry, pluginOpt)
+  scope.then(() => Atomics.notify(shared, INDEX))
+})

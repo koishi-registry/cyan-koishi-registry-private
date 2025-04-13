@@ -25,6 +25,7 @@
   config: null
 - id: bruh-registry
   name: '@plug/k-registry'
+  disabled: true
   config:
     generator:
       refreshInterval: 3600

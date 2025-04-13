@@ -1,5 +1,3 @@
-export type Range = [number, number];
-
 export function chunksIter(
   range: [number, number],
   chunkSize: number,

@@ -1,2 +1,2 @@
-export * from '@cordisjs/loader';
-export { default } from '@cordisjs/logger';
+export * from '@cordisjs/plugin-loader';
+export { default } from '@cordisjs/plugin-logger';

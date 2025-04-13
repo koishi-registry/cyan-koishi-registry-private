@@ -1,8 +1,7 @@
 import * as cp from 'node:child_process';
 import process from 'node:process';
-import type { Context } from '@p/core';
 import util from 'node:util'
-import { Service } from 'cordis';
+import { type Context, Service } from 'cordis';
 import { noop, remove } from 'cosmokit';
 import type { Awaitable, Dict, Promisify } from 'cosmokit';
 import Random from 'inaba';
@@ -18,7 +17,7 @@ import { isMainThread, threadId } from 'node:worker_threads'
 
 export const kProtocol: unique symbol = Symbol.for('communicate.protocol');
 
-declare module '@p/core' {
+declare module '@cordisjs/core' {
   interface Context {
     [kProtocol]: { Remote: Packages; Local: Packages };
     $communicate: CommunicationService<
@@ -41,18 +40,19 @@ export type MessageType = 'event' | 'request' | 'response';
 
 interface Message {
   type: string;
-  // deno-lint-ignore no-explicit-any
-  body: any;
+  // biome-ignore lint/complexity/noBannedTypes: any non-null
+  body: {};
 }
 
 export interface Requests {
   ping(): void;
 }
 
+type Empty = Record<PropertyKey, never>;
+
 export interface Events {
-  disposed: {};
-  ready: {};
-  exit: {};
+  ready: Empty;
+  disposed: Empty;
   error: {
     message: string;
     stack?: string;
@@ -169,7 +169,7 @@ function unwrapExports(module: any) {
   return module;
 }
 
-export const rt_path = await import.meta.resolve('@p/cp-rt');
+export const rt_path = import.meta.resolve('@p/cp-rt');
 
 export class CommunicationService<
   Protocol extends { Remote: Packages; Local: Packages } = {
@@ -177,8 +177,8 @@ export class CommunicationService<
     Local: C2SPackages;
   },
 > extends Service {
-  declare S: Protocol['Remote'];
-  declare C: Protocol['Local'];
+  declare Remote: Protocol['Remote'];
+  declare Local: Protocol['Local'];
 
   public readonly isWorker: boolean;
   listeners: Dict<Listener<unknown>[]> = Object.create(null);
@@ -295,7 +295,7 @@ export class CommunicationService<
             ?.debug('not implemented: ', util.inspect(message));
         }
       } catch (e) {
-        await this._self.post('error' as const, {
+        this._self.post('error' as const, {
           message: e instanceof Error ? e.message : 'error handling message',
           stack: e?.stack,
           cause: e?.cause
@@ -307,7 +307,7 @@ export class CommunicationService<
   override async [Service.setup]() {
     this.registerHandler();
 
-    await this._self.post('ready', {});
+    this._self.post('ready', {});
   }
 
   public receive<K extends Stringify<keyof Protocol['Remote']['event']>>(
@@ -359,7 +359,7 @@ export class CommunicationService<
     return await promise;
   }
 
-  public async post<K extends Stringify<keyof Protocol['Local']['event']>>(
+  public post<K extends Stringify<keyof Protocol['Local']['event']>>(
     name: K,
     data: Protocol['Local']['event'][K],
   ) {
@@ -447,7 +447,7 @@ export class CommunicationService<
           // FIXME: deno type check doesn't work here somehow
           // deno-lint-ignore ban-ts-comment
           // @ts-ignore
-          this.ctx.logger.warn('error executing listener %c', listener);
+          this.ctx.logger.warn('error executing listener %C', listener);
           // deno-lint-ignore ban-ts-comment
           // @ts-ignore
           this.ctx.logger.warn(reason);

@@ -3,7 +3,7 @@ import { delay } from '@std/async'
 import { Hono } from 'hono'
 import { streamText } from 'hono/streaming'
 import crypto from 'node:crypto';
-const max = 100000;
+const max = 1000000;
 
 const hono = new Hono()
 
@@ -18,12 +18,13 @@ hono.get('/', (c) => c.json({
 }))
 hono.all('/_changes', (c) => {
   const since = +(c.req.query('since')??0)
+  const limit = +(c.req.query('limit')??1000)
   console.log("@_changes", since)
   return streamText(c, async (stream) => {
     let counter = since;
     await stream.writeln(`{"results":[`);
-    const count = crypto.randomInt(1000, 5000);
-    for (let i = 0; i < count; i++) {
+    const count = limit;
+    for (let i = 0; i <= count; i++) {
       if (stream.closed) break;
       const id = `this-is-a-package-${i}`
       // console.log('@serve', id)

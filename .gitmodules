@@ -1,6 +1,3 @@
 [submodule "cordis"]
 	path = cordis
 	url = https://github.com/CyanProjects/cordis-mod
-[submodule "packages/drizzle"]
-	path = packages/drizzle
-	url = https://github.com/CyanProjects/unleashed-drizzle-orm

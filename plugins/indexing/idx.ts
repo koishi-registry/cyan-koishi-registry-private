@@ -14,10 +14,14 @@ import type {
   SQLiteInsertBuilder,
   SQLiteInsertValue,
   SQLiteTableWithColumns,
+  SQLiteUpdateBase,
+  SQLiteUpdateSetSource,
+  SQLiteUpdateWithout,
   SelectedFields,
   TableConfig,
 } from 'drizzle-orm/sqlite-core';
 import type { IndexService } from './mod';
+import { noop } from 'cosmokit';
 await import(import.meta.resolve('drizzle-kit/api'));
 
 type TBuilderMode = 'db';
@@ -50,6 +54,7 @@ export interface Injects<T extends TableConfig> {
   insertTo(): SQLiteInsertBuilder<TableOf<T>, TResultType, TRunResult>;
   insertValues(value: SQLiteInsertValue<TableOf<T>>): SQLiteInsertBase<TableOf<T>, TResultType, TRunResult>;
   insertValues(values: SQLiteInsertValue<TableOf<T>>[]): SQLiteInsertBase<TableOf<T>, TResultType, TRunResult>;
+  updateSet(values: SQLiteUpdateSetSource<TableOf<T>>): SQLiteUpdateWithout<SQLiteUpdateBase<TableOf<T>, TResultType, TRunResult>, false, 'leftJoin' | 'rightJoin' | 'innerJoin' | 'fullJoin'>;
 }
 
 const injects = {
@@ -67,6 +72,11 @@ const injects = {
   insertValues: function insertValues(this: Idx<TableConfig>, value: unknown | unknown[]) {
     return this.parent.drizzle.insert(this.table).values(
       value as SQLiteInsertValue<TableOf<TableConfig>> | SQLiteInsertValue<TableOf<TableConfig>>[]
+    )
+  },
+  updateSet: function updateSet(this: Idx<TableConfig>, values: unknown) {
+    return this.parent.drizzle.update(this.table).set(
+      values as SQLiteUpdateSetSource<TableOf<TableConfig>>
     )
   }
   // biome-ignore lint/complexity/noBannedTypes: make ts happy
@@ -92,10 +102,12 @@ export class Idx<T extends TableConfig> {
     public parent: IndexService,
     public table: SQLiteTableWithColumns<T>,
   ) {
-    return new Proxy<this & BaseSQLiteDatabase<TResultType, TRunResult>>(this, {
+    // biome-ignore lint/suspicious/noExplicitAny: make ts happy
+    return new Proxy<this & BaseSQLiteDatabase<TResultType, TRunResult>>(<any>this, {
       get(target, p, receiver) {
         if (p in injects) return Reflect.get(target, p, receiver);
-        return Reflect.get(target.parent, p);
+        if (p in target) return Reflect.get(target, p, receiver);
+        return Reflect.get(target.parent.drizzle, p);
       },
       set(target, p, newValue, receiver) {
         if (p in this) Reflect.set(this, p, newValue);
@@ -117,14 +129,14 @@ export class Idx<T extends TableConfig> {
 
     const drizzle = this.parent.drizzle
     const db: SQLiteDB = {
+  		// biome-ignore lint/suspicious/noExplicitAny: make ts happy
   		query: async (query: string, params?: any[]) => {
+    		// biome-ignore lint/suspicious/noExplicitAny: make ts happy
   			const res = drizzle.all<any>(sql.raw(query));
   			return res;
   		},
   		run: async (query: string) => {
-  			return Promise.resolve(drizzle.run(sql.raw(query))).then(
-  				() => {},
-  			);
+  			return Promise.resolve(drizzle.run(sql.raw(query))).then(noop);
   		},
   	};
 

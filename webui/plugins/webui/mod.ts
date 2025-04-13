@@ -38,6 +38,7 @@ import {
   unwrapId,
 } from './helper';
 import { UIPaths } from './paths';
+import { cordisHmr } from './hmr';
 
 declare module 'cordis' {
   interface EnvData {
@@ -183,8 +184,6 @@ class BunWebUI extends WebUI {
     });
   }
 
-  async getPaths(entry: Entry) {}
-
   async resolveEntry(entry: Entry) {
     if (this.config.devMode) {
       const url = new URL(entry.files.entry, entry.files.base);
@@ -200,7 +199,7 @@ class BunWebUI extends WebUI {
       'compile',
       () => false as const,
     );
-    if (result === false)
+    if (result === false || typeof result === 'undefined')
       throw new Error(`could not compile entry-${entry.id}`);
     return Object.values(result).map(
       (chunk, key) =>
@@ -411,30 +410,7 @@ class BunWebUI extends WebUI {
             build: {
               minify: !devMode,
             },
-            plugins: [
-              {
-                name: 'cordis-hmr',
-                transform: (code, id, _options) => {
-                  for (const [key, entry] of Object.entries(this.entries)) {
-                    const filename = fileURLToPath(
-                      new URL(entry.files.entry, entry.files.base),
-                    );
-                    if (id !== filename) continue;
-                    code += [
-                      'if (import.meta.hot) {',
-                      '  import.meta.hot.accept(async (module) => {',
-                      '    const { root } = await import("@cordisjs/client");',
-                      `    const fiber = root.$loader.entries["${key}"]?.forks["${id}"];`,
-                      '    return fiber?.update(module, true);',
-                      '  });',
-                      '}',
-                      '',
-                    ].join('\n');
-                    return { code };
-                  }
-                },
-              },
-            ],
+            plugins: [cordisHmr(this)],
           }).then(noop)
         : Promise.resolve();
 

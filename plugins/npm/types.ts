@@ -1,3 +1,13 @@
+export type Range = [number, number];
+
+export interface ReplicateInfo {
+  db_name: string;
+  engine: string;
+  doc_count: number;
+  doc_del_count: number;
+  update_seq: number;
+}
+
 export interface Change {
   rev: string;
 }
@@ -10,32 +20,8 @@ export interface ChangeRecord {
 }
 
 export interface Block {
-  id: number;
-  begin: number;
+  chunk: Range;
   end: number;
 }
 
 export type BlockTask = Block & { done: boolean };
-
-export interface ReplicateInfo {
-  db_name: string;
-  engine: string;
-  doc_count: number;
-  doc_del_count: number;
-  update_seq: number;
-  purge_seq: number;
-  compact_running: boolean;
-  sizes: {
-    active: number;
-    external: number;
-    file: number;
-  };
-  disk_size: number;
-  data_size: number;
-  other: { data_size: number };
-  instance_start_time: string;
-  disk_format_version: number;
-  committed_update_seq: number;
-  compacted_seq: number;
-  uuid: string;
-}

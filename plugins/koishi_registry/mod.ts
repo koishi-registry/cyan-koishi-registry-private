@@ -120,26 +120,25 @@ export class KoishiMeta {
   private async _schedule(): Promise<void> {
     this._queries++;
     if (this._queries > this.options.qps!) {
-      if (!this._next) {
-        await (this._next = new Promise((resolve, reject) => {
-          if (!this.context.root.get('timer')) {
-            this.context.logger.warn(
-              'timer service not found, could not reschedule queries',
-            );
-            reject('timer service not available');
-          }
-          this.context.get('timer')!.setTimeout(() => {
-            this._queries = 0;
-            resolve();
-            this._next = undefined;
-          }, 1000);
-        }));
-        await this._schedule();
-      } else {
-        // reschedule after a second
+      if (this._next) {
         await this._next;
-        await this._schedule();
+        await this._schedule()
+        return
       }
+      await (this._next = new Promise((resolve, reject) => {
+        if (!this.context.root.get('timer')) {
+          this.context.logger.warn(
+            'timer service not found, could not reschedule queries',
+          );
+          reject('timer service not available');
+        }
+        this.context.get('timer')!.setTimeout(() => {
+          this._queries = 0;
+          resolve();
+          this._next = undefined;
+        }, 1000);
+      }));
+      await this._schedule();
     }
   }
 
@@ -665,11 +664,15 @@ export class NpmProvider extends Service {
 
   override async start() {
     if (this.ctx.storage.has('koishi.npm.cache')) {
-      this.cache = new Map(
-        Object.entries(
+      let entries: [string, number][];
+      try {
+        entries = Object.entries(
           (await this.ctx.storage.get<Dict<number>>('koishi.npm.cache'))!,
-        ),
-      );
+        )
+      } catch {
+        entries = []
+      }
+      this.cache = new Map(entries);
     }
 
     this.ctx.on('dispose', () => this.saveCache());

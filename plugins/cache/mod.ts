@@ -74,7 +74,9 @@ export type GetRecursive<T, Path> = Path extends [infer Head, ...infer Tail]
     : never
   : T;
 
-export type toObject = object | null;
+type toObject = object | null;
+
+type d<S> = SubDot<S>;
 
 // deno-lint-ignore no-explicit-any
 export class CacheService<
@@ -138,9 +140,9 @@ export class CacheService<
     await file.write(this.encoder.encode(data));
   }
 
-  set<K extends keyof this['Dot']>(
+  set<K extends keyof d<S>>(
     key: K,
-    value: this['Dot'][K] extends toObject ? this['Dot'][K] : never,
+    value: d<S>[K] extends toObject ? d<S>[K] : never,
   ): Promise<void>;
   set(key: string, value: toObject): Promise<void>;
   async set(key_: string | string[], value: toObject) {
@@ -176,9 +178,9 @@ export class CacheService<
     }
   }
 
-  async get<K extends keyof this['Dot']>(
+  async get<K extends keyof d<S>>(
     key: K,
-  ): Promise<this['Dot'][K] | undefined>;
+  ): Promise<d<S>[K] | undefined>;
   async get(key: string): Promise<toObject | undefined>;
   // deno-lint-ignore no-explicit-any
   async get(key_: string): Promise<any | undefined> {
@@ -189,9 +191,9 @@ export class CacheService<
     return await self.get(name);
   }
 
-  async has<K extends keyof this['Dot']>(key: K): Promise<boolean>;
+  async has<K extends keyof d<S>>(key: K): Promise<boolean>;
   async has(key: string): Promise<boolean>;
-  async has<K extends keyof this['Dot']>(key_: K): Promise<boolean> {
+  async has<K extends keyof d<S>>(key_: K): Promise<boolean> {
     const keys = key_.toString().split('.');
     const name = keys.pop()!;
 
@@ -207,9 +209,9 @@ export class CacheService<
     return await self.has(name);
   }
 
-  async delete<K extends keyof this['Dot']>(key: K): Promise<boolean>;
+  async delete<K extends keyof d<S>>(key: K): Promise<boolean>;
   async delete(key: string): Promise<boolean>;
-  async delete<K extends keyof this['Dot']>(key_: K): Promise<boolean> {
+  async delete<K extends keyof d<S>>(key_: K): Promise<boolean> {
     const keys = key_.toString().split('.');
     const name = keys.pop()!;
 

@@ -29,8 +29,7 @@ function registerSignalHandler(
   process.on(signal, handler.bind(null, signal));
 }
 
-export const appName = 'koishi-registry';
-export const runtimeName: 'bun' = <never>'Bun';
+export const appName = 'Kra';
 
 export interface Context {
   [Context.events]: Events<this>;
@@ -55,7 +54,7 @@ export class Context extends cordis.Context {
     this.plugin(LoggerService);
     this.plugin(LogPersist);
     const logger = new Logger('app');
-    if (!config.noBanner) logger.info(`${appName}/%C ${runtimeName}/%C`, meta.version, Bun.version);
+    if (!config.noBanner) logger.info(`${appName}/%C %C`, meta.version, navigator.userAgent);
     this.plugin(TimerService);
     this.plugin(HttpService);
     this.plugin(CommunicationService);
@@ -99,7 +98,7 @@ export class Kra {
   previous: SemVer | null = null;
   version: SemVer = parse(meta.version);
   baseDir = process.cwd();
-  remotePlug = Boolean(Bun.env.REMOTE_PLUG ?? false);
+  remotePlug = Boolean(process.env.REMOTE_PLUG ?? false);
 
   constructor(protected ctx: Context) {
     ctx.mixin('$kra', ['baseDir']);

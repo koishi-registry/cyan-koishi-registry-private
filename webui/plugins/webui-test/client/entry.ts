@@ -11,5 +11,5 @@ export default async (ctx: Context) => {
     component: Page,
     name: 'Kra WebUI / Test Page',
   });
-  console.log(await hello());
+  ctx.logger.info(await hello());
 };
