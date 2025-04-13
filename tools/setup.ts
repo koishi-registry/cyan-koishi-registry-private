@@ -10,10 +10,11 @@ import {
   digit,
   exactly,
   maybe,
+  oneOrMore,
   wordChar,
 } from 'magic-regexp';
-import z from 'zod';
-import { fromError } from 'zod-validation-error';
+import { type } from '@kra/meta'
+import { consola } from 'consola';
 import mkdir = Deno.mkdir;
 
 export type PackType = 'package' | 'plugin';
@@ -34,66 +35,61 @@ function fromScope(scope: Scope): PackType | null {
 }
 
 const regexp = createRegExp(
-  maybe(exactly('@').and(wordChar.groupedAs('scope')).and('/').at.lineStart()),
+  maybe(exactly('@').and(oneOrMore(wordChar).groupedAs('scope')).and('/').at.lineStart()),
   anyOf(wordChar, digit, '-')
     .and(anyOf(wordChar, digit, '-', '_').times.any())
     .groupedAs('name')
     .at.lineEnd(),
 );
 
-const VersionSchema: z.ZodType<SemVer> = z.object({
-  major: z.number(),
-  minor: z.number(),
-  patch: z.number(),
-  prerelease: z.array(z.union([z.string(), z.number()])),
-  build: z.array(z.string()),
+const SemVerSchema: type<SemVer> = type({
+  major: "number",
+  minor: "number",
+  patch: "number",
+  prerelease: '(string | number)[]',
+  build: 'string[]',
+});
+const VersionSchema = type.or(SemVerSchema, type.string.pipe(s => parse(s)));
+
+const schema = type({
+  webui: type('boolean').default(false),
+  'name?': "string | null",
+  'type?': "'package' | 'plugin' | null",
+  version: SemVerSchema.default(() => VersionSchema.assert('1.0.0')),
 });
 
-const schema = z.object({
-  webui: z.boolean().default(false),
-  name: z.string().regex(regexp).nullish(),
-  type: z.enum(['package', 'plugin']).nullish(),
-  version: z
-    .union([VersionSchema, z.string().transform((x) => parse(x))])
-    .default(parse('1.0.0')),
-});
-
-const { error, data: args } = await schema.safeParseAsync(parseArgs(Deno.args));
-if (error) throw fromError(error);
+const args = schema.assert(parseArgs(Deno.args));
 if (!args) throw new Error(`unreachable: args is ${args}`);
 
-let type: PackType = args.type ?? 'plugin';
+let packType: PackType = args.type ?? 'plugin';
 
 if (args.webui) throw new Error('webui template is not supported yet');
 if (!args.name) {
   const { name } = await ask.input({
     name: 'name',
-    message: `${capitalize(type)} Name ›`,
+    message: `${capitalize(packType)} Name ›`,
   } as const);
   if (!name) throw new Error('plugin name is not provided');
-  args.name = z.string().regex(regexp).parse(name);
+  args.name = type(new RegExp(regexp)).assert(name);
 }
 
-const nameSchema = z.object({
-  scope: z.enum(['p', 'plug']).default(toScope(type)!),
-  name: z.string(),
+const nameSchema = type({
+  scope: "'p' | 'plug'",
+  name: "string",
 });
 
 const matched = args.name.match(regexp);
 // deno-lint-ignore no-explicit-any
-const { scope, name } = await nameSchema
-  .parseAsync(<any>matched!.groups)
-  .catch((e) => Promise.reject(fromError(e)));
-if (args.type && toScope(type) != scope)
-  console.warn(
-    `%cwarning%c: expected a scope of @${toScope(type)}, got @${scope}`,
-    'color: yellow',
-    'color: blue',
+const { scope, name } = nameSchema
+  .assert(matched!.groups)
+if (args.type && toScope(packType) !== scope)
+  consola.warn(
+    `expected a scope of @${toScope(packType)}, got @${scope}`
   );
 
-type = fromScope(scope)!;
+packType = fromScope(scope)!;
 
-console.log(`Creating ${capitalize(fromScope(scope)!)} @${scope}/${name}`);
+consola.info(`Creating ${capitalize(packType)} @${scope}/${name}`);
 
 function interpolate(content: string): string {
   return content
@@ -103,7 +99,7 @@ function interpolate(content: string): string {
 }
 
 const template_dir = resolve(import.meta.dirname!, '__template__');
-const target_dir = join(resolve(Deno.cwd(), type + 's'), snakeCase(name));
+const target_dir = join(resolve(Deno.cwd(), packType + 's'), snakeCase(name));
 if (await exists(target_dir))
   throw new Error(relative(Deno.cwd(), target_dir) + ' already exists');
 for await (const entry of walk(template_dir)) {
