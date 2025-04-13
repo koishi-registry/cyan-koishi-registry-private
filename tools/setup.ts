@@ -1,4 +1,3 @@
-import { Ask } from 'jsr:@sallai/ask';
 import { parseArgs } from 'jsr:@std/cli/parse-args';
 import { exists, walk } from '@std/fs';
 import { join, relative, resolve } from '@std/path';
@@ -19,8 +18,6 @@ import mkdir = Deno.mkdir;
 
 export type PackType = 'package' | 'plugin';
 export type Scope = 'p' | 'plug';
-
-const ask = new Ask();
 
 function toScope(typ: PackType): Scope | null {
   if (typ === 'package') return 'p';
@@ -61,20 +58,26 @@ const schema = type({
 const args = schema.assert(parseArgs(Deno.args));
 if (!args) throw new Error(`unreachable: args is ${args}`);
 
+if (!args.type) {
+  args.type = await consola.prompt(`Type ›`, {
+      required: true,
+      type: 'select',
+      options: ['plugin', 'package'] satisfies PackType[],
+    })
+}
+
 let packType: PackType = args.type ?? 'plugin';
 
-if (args.webui) throw new Error('webui template is not supported yet');
 if (!args.name) {
-  const { name } = await ask.input({
-    name: 'name',
-    message: `${capitalize(packType)} Name ›`,
-  } as const);
-  if (!name) throw new Error('plugin name is not provided');
+  const name = await consola.prompt(`${capitalize(packType)} Name ›`, {
+    required: true,
+    type: 'text',
+  })
   args.name = type(new RegExp(regexp)).assert(name);
 }
 
 const nameSchema = type({
-  scope: "'p' | 'plug'",
+  scope: type("'p' | 'plug' | undefined").pipe(scope => scope ?? toScope(args.type)!),
   name: "string",
 });
 
@@ -98,7 +101,7 @@ function interpolate(content: string): string {
     .replace('@version', format(args!.version as SemVer));
 }
 
-const template_dir = resolve(import.meta.dirname!, '__template__');
+const template_dir = resolve(import.meta.dirname!, args.webui ? '__template_webui__' : '__template__');
 const target_dir = join(resolve(Deno.cwd(), packType + 's'), snakeCase(name));
 if (await exists(target_dir))
   throw new Error(relative(Deno.cwd(), target_dir) + ' already exists');

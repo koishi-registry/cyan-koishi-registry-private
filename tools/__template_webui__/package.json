@@ -1,0 +1,8 @@
+{
+  "name": "@scope/name",
+  "version": "@version",
+  "dependencies": {
+    "@web/core": "workspace:*"
+  },
+  "exports": "./mod.ts"
+}
