@@ -8,12 +8,12 @@ import * as LogPersist from '@plug/logger';
 import StorageService from '@plug/storage';
 import { join } from '@std/path';
 import { type SemVer, compare, format, parse } from '@std/semver';
-import * as cordis from 'cordis';
+import * as cordis from '@cordisjs/core';
 import type { Awaitable } from 'cosmokit';
 import Logger from 'reggol';
 import meta from './package.json' with { type: 'json' };
 
-export interface Events<C extends Context = Context> extends cordis.Events<C> {
+export interface Events<in C extends Context = Context> extends cordis.Events<C> {
   'core/updated'(previous: SemVer, current: SemVer): void;
 
   exit(signal?: NodeJS.Signals): Promise<void>;
