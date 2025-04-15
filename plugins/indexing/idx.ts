@@ -2,7 +2,7 @@ import type { ResultSet } from '@libsql/client';
 import type { Context } from '@p/core';
 import { getTableName } from 'drizzle-orm'
 import { generateSQLiteDrizzleJson, generateSQLiteMigration, sqlitePushIntrospect, type SQLiteDB } from '@hydrashodon/drizzle-kit/api';
-import { sql, type BuildColumns, type ColumnBuilderBase } from 'drizzle-orm';
+import { sql, type BuildColumns, type ColumnBuilderBase, type Table } from 'drizzle-orm';
 import type {
   GetSelectTableName,
   GetSelectTableSelection,
@@ -154,16 +154,26 @@ export class Idx<T extends TableConfig> {
 export namespace Idx {
   export type Columns<RawColumns extends Record<string, ColumnBuilderBase>> =
     BuildColumns<string, RawColumns, 'sqlite'>;
-  export type From<
+  export type TableConfigOf<
     RawColumns extends Record<string, ColumnBuilderBase>,
     TName extends string = string,
     TSchema extends string | undefined = undefined,
-  > = Idx<{
+  > = {
     name: TName;
     schema: TSchema;
     columns: Columns<RawColumns>;
     dialect: 'sqlite';
-  }>;
+  };
+  export type TableOf<
+    RawColumns extends Record<string, ColumnBuilderBase>,
+    TName extends string = string,
+    TSchema extends string | undefined = undefined,
+  > = Table<TableConfigOf<RawColumns, TName, TSchema>>;
+  export type From<
+    RawColumns extends Record<string, ColumnBuilderBase>,
+    TName extends string = string,
+    TSchema extends string | undefined = undefined,
+  > = Idx<TableConfigOf<RawColumns, TName, TSchema>>;
 }
 
 export default Idx;

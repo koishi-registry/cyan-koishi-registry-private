@@ -12,7 +12,7 @@ import { defineProperty, noop } from 'cosmokit';
 import trimEnd from 'lodash.trimend';
 import { chunksIter, take } from './worker/helper';
 import { type ParserOptions, parseStream } from './worker/parse';
-import type { Worker } from './worker/shared';
+import { Stage, type Worker } from './worker/shared';
 import type { ReplicateInfo } from './types';
 
 declare module '@p/core' {
@@ -58,6 +58,8 @@ export class NpmSync extends Service {
 
   state = 0;
 
+  stage: Stage
+
   constructor(
     ctx: Context,
     public options: NpmSync.Config,
@@ -82,7 +84,10 @@ export class NpmSync extends Service {
   }
 
   async [symbols.setup]() {
-    this.worker.chan.receive('status', ({stage}) => console.log("$stage", stage))
+    this.worker.chan.receive('status', ({ stage }) => {
+      this.stage = stage
+      if (stage === Stage.Fetching) this.ctx.emit('npm/synchronized')
+    })
     await this.worker.ready
   }
 }
@@ -96,6 +101,7 @@ export namespace NpmSync {
     max_retries: number;
     file: string;
     section: string;
+    print_progress: boolean;
   }
 
   export const Config: Schema<Config> = Schema.object({
@@ -112,6 +118,9 @@ export namespace NpmSync {
     section: Schema.string()
       .default('npm_sync')
       .description('indexing section prefix'),
+    print_progress: Schema.boolean()
+      .default(false)
+      .description("Print progress to console")
   });
 }
 

@@ -3,6 +3,7 @@ import type { ChangeRecord, ReplicateInfo, Range } from '../types'
 import type { WorkerChild } from '@plug/worker'
 
 export interface Block {
+  id: number;
   chunk: Range;
   seq: number;
   done: boolean;
@@ -13,6 +14,7 @@ export interface C2SRequests extends c.Requests {
 export interface S2CRequests extends c.Requests {
   'blocks/get'(): Promise<Block[]>;
   'blocks/set'(blocks: Block[]): Promise<void>;
+  'blocks/new'({ state, blockSize }: { state: number, blockSize: number }): Promise<Block>;
 }
 export interface C2SEvents extends c.Events {
   writes: { count: number }

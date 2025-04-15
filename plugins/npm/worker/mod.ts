@@ -112,7 +112,7 @@ export class NpmSync$worker extends Service {
     ));
 
     await prepare.then(() => {
-      this.stage(Stage.CatchUp);
+      this.stage(Stage.Fetching);
       return this.fetcher();
     });
   }
@@ -139,13 +139,14 @@ export class NpmSync$worker extends Service {
 
     const count = Math.ceil(target / this.options.block_size);
 
-    if ((count - blocks.length) > 0) {
+    if (count > blocks.length) {
       const begin = blocks[blocks.length - 1]?.chunk?.[1] || this.state;
       const [_, iter] = chunksIter([begin, target], this.options.block_size);
       blocks.push(
         ...iter.map(
-          (chunk) =>
+          (chunk, idx) =>
             ({
+              id: blocks.length + idx,
               chunk,
               seq: chunk[0],
               done: false,
@@ -170,7 +171,12 @@ export class NpmSync$worker extends Service {
     const blocks = await this.getBlocks(target);
     const [count, iter] = [blocks.length, blocks[Symbol.iterator]()];
 
-    const progress = Array.from({ length: count }, () => false);
+    const progress = Array.from({ length: count }, (_, idx) => blocks[idx].done);
+
+    const catchUp = blocks
+      .reduce((prev, cur) => cur.chunk[1] < target ? prev && cur.done : prev, true)
+    if (!catchUp) this.stage(Stage.Fetching)
+
     this.ctx.logger.info("catchUp $ chunk", { count });
 
     const print = () => {
@@ -208,14 +214,14 @@ export class NpmSync$worker extends Service {
       update();
 
       let retries = this.options.max_retries;
-      while (seq < chunk[1] && retries-- > 0) {
+      while (seq < chunk[1] && retries --> 0) {
         await this.nextQuery.period("tickHttp");
         const limit = chunk[1] - seq;
         const stream = await this.changes(seq, limit, {
           signal: abort.signal,
           intercept: (value) => {
             seq = value;
-            return !(seq < chunk[1]);
+            return (seq > (chunk[1] - 1));
           },
         }).catch(() => null);
         abort.signal.throwIfAborted();
@@ -242,16 +248,14 @@ export class NpmSync$worker extends Service {
 
     let chunks = take(iter, this.options.concurrent);
 
-    let counter = 0;
     const spices: (() => Promise<void>)[] = [];
     const tasks: Promise<unknown>[] = [];
 
     // const disposeTimer = noop
-    const disposeTimer = this.ctx.timer.setInterval(() => print(), 300) || noop;
+    const disposeTimer = this.options.print_progress ? this.ctx.timer.setInterval(() => print(), 300) || noop : noop;
     do {
       // this.ctx.logger.info('catchUp $ prepare tasks', {counter})
-      for (const { chunk, seq, done } of chunks) {
-        const id = counter++;
+      for (const { id, chunk, seq, done } of chunks) {
         if (done) continue;
         spices.push(() => block(id, seq, chunk));
       }
@@ -272,11 +276,26 @@ export class NpmSync$worker extends Service {
   protected async fetcher() {
     const abort = new AbortController();
     this.ctx.effect(() => () => abort.abort());
+
     while (this.ctx.scope.active) {
-      const stream = await this.changes(this.state, void "unlimited", {
+      const block = await this.writer.chan.call("blocks/new", {
+        state: this.state, blockSize: this.options.block_size
+      });
+
+      const update = this.ctx.timer.throttle(() => {
+        this.writer.chan.post("progress", {
+          id: block.id,
+          chunk: block.chunk,
+          seq: block.seq,
+        });
+      }, 300);
+
+      const stream = await this.changes(block.seq, block.chunk[1] - block.chunk[0], {
         signal: abort.signal,
         intercept: (value) => {
           this.state = value;
+          block.seq = value;
+          update()
           return false;
         },
       });

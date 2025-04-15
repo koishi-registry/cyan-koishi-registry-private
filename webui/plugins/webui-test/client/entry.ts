@@ -5,7 +5,9 @@ export async function hello() {
   return 'Hello from entry.ts';
 }
 
-export default async (ctx: Context) => {
+export const inject = ['logger']
+
+export async function apply(ctx: Context) {
   ctx.page({
     path: '/example',
     component: Page,
