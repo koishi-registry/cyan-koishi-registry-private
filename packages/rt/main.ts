@@ -10,7 +10,7 @@ import Logger from 'reggol';
 // import * as ManageAPI from '@plug/manage'
 // import { SimpleAnalyzer } from '@plug/k-analyzer'
 // import Drizzle from '@p/database'
-// import WebUI from '@web/plug-webui'
+// import WebUI from '@krts/plug-krat'
 
 // TODO: use cordis loader
 

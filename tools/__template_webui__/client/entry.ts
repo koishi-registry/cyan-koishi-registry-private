@@ -1,5 +1,8 @@
-import type { Context } from '@web/client';
+import type { Context } from '@krts/terminal';
 
-export default async (ctx: Context) => {
+export const name = '@name'
+export const inject = ['logger']
+
+export function apply(ctx: Context) {
   ctx.logger.info("Hello from client");
 };

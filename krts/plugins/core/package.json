@@ -1,0 +1,10 @@
+{
+  "name": "@krts/intrinsic",
+  "version": "0.5.0",
+  "exports": {
+    ".": "./mod.ts",
+    "./client": "./client.ts",
+    "./entry": "./entry.ts",
+    "./types": "./types.ts"
+  }
+}

@@ -1,5 +1,5 @@
 import type { Context } from '@p/core';
-import type {} from '@web/core'
+import type {} from '@krts/intrinsic'
 
 export const name = '@name';
 

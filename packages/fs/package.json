@@ -4,6 +4,20 @@
   "exports": {
     ".": "./mod.ts",
     "./sync": "./sync.ts",
-    "./async": "./async.ts"
+    "./async": "./async.ts",
+    "./file": {
+      "types": "./file/file.ts",
+      "import": "./dist/file.mjs"
+    }
+  },
+  "scripts": {
+    "build:file": "tsdown"
+  },
+  "dependencies": {
+    "quansync": "^0.2.10"
+  },
+  "devDependencies": {
+    "tsdown": "^0.8.0",
+    "unplugin-quansync": "^0.3.6"
   }
 }

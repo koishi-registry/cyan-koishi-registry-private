@@ -7,6 +7,8 @@ import { Context } from 'cordis';
 import { noop } from 'cosmokit';
 import type BunIPCCommunicator from './packages/communicate/communicator/bun_ipc.ts';
 import { CommunicationService } from './packages/communicate/mod.ts';
+import { asPath } from '@kra/path';
+import { exists } from '@kra/fs';
 
 const PING_TIMEOUT = 10000;
 const AUTO_RESTART = true;
@@ -15,6 +17,12 @@ const app = new Context();
 
 await app.plugin(TimerService);
 await app.plugin(LoggerService);
+
+if (!exists(join(asPath(import.meta.dir), './packages/fs/dist'))) // compile @kra/fs/file dist
+  await Bun.spawn({
+    cmd: ['bunx', 'tsdown'],
+    cwd: join(asPath(import.meta.dir), './packages/fs')
+  })
 
 await new Promise<void>((resolve) => {
   app.plugin(CommunicationService).then(resolve);

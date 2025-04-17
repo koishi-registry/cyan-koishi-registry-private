@@ -17,6 +17,7 @@
 - id: bruh-npm
   name: '@plug/npm'
   config: null
+  disabled: true
 - id: bruh-koishi-base
   name: '@plug/koishi'
   config: null
@@ -35,9 +36,10 @@
 - id: bruh-manage
   name: '@plug/manage'
   config: null
-- id: bruh-webui
-  name: '@web/plug-webui'
-  config: null
+- id: bruh-krat
+  name: '@krts/plug-krat'
+  config:
+    devMode: true
   disabled: false
-- id: bruh-webui-test
-  name: '@web/example'
+- id: bruh-krts-demo-mod
+  name: '@krts/plug-demo-mod'

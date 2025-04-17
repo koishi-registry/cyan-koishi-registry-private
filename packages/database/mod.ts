@@ -7,6 +7,9 @@ import {
   type BunSQLDatabase as DrizzleDB,
   drizzle,
 } from 'drizzle-orm/bun-sql';
+import type { PgTable } from 'drizzle-orm/pg-core';
+import { pushSchema } from '@hydrashodon/drizzle-kit/api'
+import { getTableName } from 'drizzle-orm';
 
 declare module '@p/core' {
   export interface Context {
@@ -44,6 +47,19 @@ export class DrizzleService extends Service {
       }),
       has: (target, key) => Reflect.has(this, key) || Reflect.has(target, key),
     });
+  }
+
+  pushMigration(
+    tables: PgTable[],
+    schemaFilter?: string[],
+    tableFilter?: string[]
+  ) {
+    return pushSchema(
+      Object.fromEntries(tables.map(table => [getTableName(table), table])),
+      this.drizzle,
+      schemaFilter,
+      tableFilter ?? [...tables.map(getTableName)],
+    )
   }
 }
 

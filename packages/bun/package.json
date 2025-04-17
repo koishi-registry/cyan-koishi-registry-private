@@ -1,0 +1,9 @@
+{
+  "name": "@kra/bunternal",
+  "exports": {
+    ".": {
+      "types": "./wsmug.d.ts",
+      "import": "./wsmug.min.mjs"
+    }
+  }
+}

@@ -2,7 +2,7 @@
   "name": "@scope/name",
   "version": "@version",
   "dependencies": {
-    "@web/core": "workspace:*"
+    "@krts/intrinsic": "workspace:*"
   },
   "exports": "./mod.ts"
 }

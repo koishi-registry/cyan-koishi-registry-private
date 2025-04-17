@@ -1,0 +1,10 @@
+{
+  "name": "@krts/plug-demo-mod",
+  "version": "0.1.1",
+  "peerDependencies": {
+    "@krts/terminal": "workspace:*"
+  },
+  "exports": {
+    ".": "./mod.ts"
+  }
+}

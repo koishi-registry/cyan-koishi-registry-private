@@ -28,7 +28,7 @@
     "noPropertyAccessFromIndexSignature": false,
     "paths": {
       "@cordisjs/loader": ["./packages/loader"],
-      "@web/client": ["./webui/packages/client"]
+      "@krts/terminal": ["./krts/packages/terminal"]
     }
   }
 }
