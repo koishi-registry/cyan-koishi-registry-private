@@ -11,11 +11,13 @@ export class File {
     // biome-ignore lint/complexity/noThisInStatic: i don't think so
     // biome-ignore lint/complexity/noUselessThisAlias: who cares
     const self = this
-    for (const prop in self) {
+    for (const prop of Reflect.ownKeys(self)) {
       if (typeof self[prop] === 'function') {
         self[prop] = optimize(self[prop])
       }
     }
+    optimize(self.path)
+    optimize(self.joinPath)
   }
 
   constructor(public path: string) {
