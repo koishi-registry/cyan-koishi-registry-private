@@ -5,7 +5,8 @@
   "scripts": {
     "start": "bun run ./runner.ts",
     "setup": "deno -A ./tools/setup.ts",
-    "tools:replicate_sim": "deno serve --allow-net --unstable-sloppy-imports ./tools/sim.ts"
+    "tools:replicate_sim": "deno serve --allow-net --unstable-sloppy-imports ./tools/sim.ts",
+    "tools:dkms": "bun ./tools/dkms.ts"
   },
   "workspaces": [
     "./hono-mod",
@@ -39,6 +40,7 @@
     "drizzle-orm": "^0.40.0",
     "inaba": "^1.1.1",
     "js-yaml": "^4.1.0",
+    "json5": "^2.2.3",
     "lodash.merge": "^4.6.2",
     "lodash.trim": "^4.5.1",
     "lodash.trimend": "^4.5.1",

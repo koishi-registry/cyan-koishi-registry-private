@@ -9,6 +9,30 @@ export interface WalkOptions {
   skip: RegExp[];
 }
 
+export interface FileInfo {
+  isFile: boolean;
+  isDirectory: boolean;
+  isSymlink: boolean;
+  size: number;
+  mtime: Date | null;
+  atime: Date | null;
+  birthtime: Date | null;
+  ctime: Date | null;
+  dev: number;
+  ino: number | null;
+  mode: number | null;
+  nlink: number | null;
+  uid: number | null;
+  gid: number | null;
+  rdev: number | null;
+  blksize: number | null;
+  blocks: number | null;
+  isBlockDevice: boolean | null;
+  isCharDevice: boolean | null;
+  isFifo: boolean | null;
+  isSocket: boolean | null;
+}
+
 export interface DirEntry {
   /** The file name of the entry. It is just the entity name and does not
    * include the full path. */

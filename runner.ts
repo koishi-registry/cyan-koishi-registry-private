@@ -18,11 +18,8 @@ const app = new Context();
 await app.plugin(TimerService);
 await app.plugin(LoggerService);
 
-if (!exists(join(asPath(import.meta.dir), './packages/fs/dist'))) // compile @kra/fs/file dist
-  await Bun.spawn({
-    cmd: ['bunx', 'tsdown'],
-    cwd: join(asPath(import.meta.dir), './packages/fs')
-  })
+// Build requirements if needed
+await Bun.$`bun tools:dkms`
 
 await new Promise<void>((resolve) => {
   app.plugin(CommunicationService).then(resolve);

@@ -8,8 +8,27 @@
     "./file": {
       "types": "./file/file.ts",
       "import": "./dist/file.mjs"
+    },
+    "./impl/dir": {
+      "types": "./impl/types/dir.ts",
+      "deno": "./impl/deno/dir.ts",
+      "bun": "./impl/bun/dir.ts",
+      "node": "./impl/node/dir.ts",
+      "import": "./impl/stub/dir.ts"
+    },
+    "./impl/lstat": {
+      "types": "./impl/types/lstat.ts",
+      "deno": "./impl/deno/lstat.ts",
+      "bun": "./impl/bun/lstat.ts",
+      "node": "./impl/node/lstat.ts",
+      "import": "./impl/stub/lstat.ts"
     }
   },
+  "dkms": [{
+    "name": "file",
+    "watch": ["./file/**"],
+    "script": "build:file"
+  }],
   "scripts": {
     "build:file": "tsdown"
   },

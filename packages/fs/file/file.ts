@@ -12,9 +12,7 @@ export class File {
     // biome-ignore lint/complexity/noUselessThisAlias: who cares
     const self = this
     for (const prop of Reflect.ownKeys(self)) {
-      if (typeof self[prop] === 'function') {
-        self[prop] = optimize(self[prop])
-      }
+      if (typeof self[prop] === 'function') optimize(self[prop])
     }
     optimize(self.path)
     optimize(self.joinPath)
