@@ -2,11 +2,17 @@ import type { Context } from 'cordis';
 import Base, { type Handler } from './base.ts';
 import { type OnMessage, symbols } from './worker_base.ts';
 
-declare let self: Worker;
+declare let self: Worker & {addListener?: Function, removeListener?: Function};
 
 export class InWorkerCommunicator extends Base {
   constructor(protected ctx: Context) {
     super();
+  }
+
+  features(): Base.Features {
+    return {
+      transfer: true
+    }
   }
 
   override get open(): boolean {
@@ -14,13 +20,15 @@ export class InWorkerCommunicator extends Base {
   }
 
   override get name(): string {
-    return 'worker';
+    return 'worker'
   }
 
-  override send(message: unknown, handle?: unknown): void {
-    // biome-ignore lint/suspicious/noExplicitAny: it should be work
-    if (handle) self.postMessage(message, [handle] as any);
-    else self.postMessage(message);
+  override get display(): string {
+    return '<- self@worker';
+  }
+
+  override send(message: unknown, ...transfers: unknown[]): void {
+    self.postMessage(message, transfers as MessagePort[]);
   }
 
   override on(type: 'message', handler: Handler) {
@@ -35,12 +43,12 @@ export class InWorkerCommunicator extends Base {
           } finally {
             onmessage[symbols.handler]?.(
               event.data,
-              event.ports,
+              event,
             );
           }
         }) as OnMessage;
         onmessage[symbols.handler] = handler;
-        onmessage[symbols.original] = self['onmessage'];
+        onmessage[symbols.original] = self['onmessage'] || void 0;
         self['onmessage']= onmessage;
         return () => delete onmessage[symbols.handler];
       }

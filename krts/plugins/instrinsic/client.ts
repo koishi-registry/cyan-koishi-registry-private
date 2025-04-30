@@ -11,7 +11,7 @@ import type {} from './mod.ts';
 import { ClientState } from './state.ts';
 import type { WebSocket } from './types.ts';
 
-const logger = new Logger('webui');
+const logger = new Logger('kri');
 
 export interface ClientEvents {
   'entry:init'(data: Entry.Init): void;
@@ -49,32 +49,28 @@ export class Client {
   }
 
   async init() {
-    const webui = this.ctx.get('webui')!;
+    const krat = this.ctx.get('krat')!;
     const body: Entry.Init<unknown> = {
       entries: await asyncMapValues(
-        webui.entries,
-        async (entry) => await entry.toJSON(this)!,
+        krat.entries,
+        async (entry) => (await entry.toJSON(this))!,
       ),
-      serverId: webui.id,
+      serverId: krat.id,
       clientId: this.id,
     };
     this.send({ type: 'entry:init', body });
   }
 
   state(id: string): ClientState {
-    let state: ClientState;
-    this.ctx.effect(() => {
-      const [state_, dispose] = this._state(id);
-      state = state_;
-      return dispose;
-    });
+    const [state, dispose] = this._state(id);
+    this.ctx.effect(() => () => dispose());
     return state;
   }
 
   private _state = (id: string): [ClientState, Disposable] => {
     if (!this.#state.has(id)) this.#state.set(id, new Map());
     return [
-      new ClientState(() => this.#state.get(id)),
+      new ClientState(() => this.#state.get(id)!),
       () => this.#state.delete(id),
     ];
   };
@@ -88,7 +84,7 @@ export class Client {
 
   handle = async (c: C) => {
     const { type, body } = JSON.parse(await c.req.json());
-    const listener = this.ctx.get('webui')!.listeners[type];
+    const listener = this.ctx.get('krat')!.listeners[type];
     if (!listener) {
       logger.debug('unknown rpc:', type, body);
       return;

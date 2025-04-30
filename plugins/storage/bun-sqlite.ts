@@ -1,5 +1,6 @@
 import { Database, type Statement } from 'bun:sqlite';
-import { type Context, Schema, symbols } from '@p/core';
+import { type Context, symbols } from '@cordisjs/core';
+import { Schema } from '@p/core'
 import { Storage } from '@p/storage';
 import type { Awaitable } from 'cosmokit';
 

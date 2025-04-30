@@ -1,4 +1,5 @@
 import { type Context, Service } from '@p/core';
+import { createRegExp, exactly } from 'magic-regexp';
 
 declare module '@p/core' {
   export interface Context {
@@ -16,9 +17,24 @@ export function isKoishiPlugin(name: string): boolean {
   return false;
 }
 
+export function shortnameOf(name: string) {
+  // get shortname of a koishi plugin package
+  return name.replace(
+    createRegExp(
+      exactly('koishi-').or(exactly('@koishijs/').at.lineStart()).grouped(),
+      'plugin-',
+    ),
+    '',
+  );
+}
+
 export class Koishi extends Service {
   constructor(ctx: Context) {
     super(ctx, 'koishi');
+  }
+
+  shortnameOf(name: string) {
+    return shortnameOf(name);
   }
 
   isKoishiPlugin(name: string) {

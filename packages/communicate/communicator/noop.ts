@@ -1,12 +1,12 @@
 import Base, { type Handler } from './base.ts';
 
 export class NoopCommunicator extends Base {
-  constructor() {
-    super();
-  }
-
   override get name(): string {
     return 'noop';
+  }
+
+  override get display(): string {
+    return '=> /dev/null';
   }
 
   override getInner(): unknown {

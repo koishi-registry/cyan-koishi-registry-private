@@ -1,14 +1,14 @@
 import { EventEmitter } from 'node:events';
 import type { ErrorLike, Subprocess } from 'bun';
 import type { Context } from 'cordis';
-import type Base from './base.ts';
 import type { Handler } from './base.ts';
+import Base from './base.ts';
 
-export class BunIPCCommunicator implements Base {
+export class BunIPCCommunicator extends Base {
   #event = new EventEmitter();
   protected subproc!: Subprocess;
 
-  constructor(protected ctx: Context) {}
+  constructor(protected ctx: Context) { super(); }
 
   init(subproc: Subprocess) {
     this.subproc = subproc;
@@ -28,21 +28,25 @@ export class BunIPCCommunicator implements Base {
     this.#event.emit('message', message);
   }
 
-  get open(): boolean {
+  override get open(): boolean {
     if ('connected' in this.subproc)
       return <boolean>this.subproc?.['connected'];
     return this.subproc.exitCode !== null;
   }
 
-  get name(): string {
-    return 'Bun.spawn({ ipc })';
+  override get name(): string {
+    return 'bun_ipc'
   }
 
-  send(message: unknown, handle?: unknown): void {
+  override get display(): string {
+    return 'Bun.spawn({ => ipc })';
+  }
+
+  override send(message: unknown, ..._transfer: unknown[]): void {
     this.subproc.send(message);
   }
 
-  on(
+  override on(
     type: 'exit',
     handler: (
       exitCode: number | null,
@@ -60,11 +64,11 @@ export class BunIPCCommunicator implements Base {
   }
 
   // deno-lint-ignore no-explicit-any
-  off(type: 'message' | 'exit', handler: (...args: any[]) => void): void {
+  override off(type: 'message' | 'exit', handler: (...args: any[]) => void): void {
     this.#event.off(type, handler);
   }
 
-  getInner(): Subprocess {
+  override getInner(): Subprocess {
     return this.subproc;
   }
 }

@@ -1,4 +1,4 @@
-import type { Context } from '@p/core';
+import type { Context } from '@cordisjs/core';
 import { Storage } from '@p/storage';
 
 declare module '@p/storage' {
@@ -30,7 +30,7 @@ export class StorageLocalStorage extends Storage {
     localStorage.removeItem(key);
   }
 
-  protected override _clear(): void {
+  override _clear(): void {
     localStorage.clear();
   }
 }

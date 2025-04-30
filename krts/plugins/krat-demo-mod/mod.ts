@@ -1,10 +1,10 @@
 import type { Context } from '@p/core';
 
-export const name = 'webui-test';
-export const inject = ['webui'];
+export const name = 'krat-demo';
+export const inject = ['krat'];
 
 export function apply(ctx: Context) {
-  ctx.webui.addEntry({
+  ctx.krat.addEntry({
     base: import.meta.dir,
     entry: 'client/entry.ts',
   });

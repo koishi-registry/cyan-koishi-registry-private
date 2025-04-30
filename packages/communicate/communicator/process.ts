@@ -18,6 +18,10 @@ export class ProcessCommunicator extends Base {
     return 'process';
   }
 
+  override get display(): string {
+    return `<- process@${this.p.pid}`;
+  }
+
   override send(message: unknown, handle?: unknown): void {
     // deno-lint-ignore no-explicit-any
     this.p.send?.(message as any, handle as any);

@@ -56,7 +56,6 @@ export function shortnameOf(name: string) {
 declare module '@plug/koishi' {
   export interface Koishi {
     generator: RegistryGenerator;
-    meta: KoishiMeta;
     npm: NpmProvider;
   }
 }
@@ -64,15 +63,10 @@ declare module '@plug/koishi' {
 declare module '@p/core' {
   export interface Context {
     'koishi.generator': RegistryGenerator;
-    'koishi.meta': KoishiMeta;
     'koishi.npm': NpmProvider;
   }
 
   export interface Events {
-    'koishi/is-verified'(meta: NpmRegistry.Result): Awaitable<boolean | void>;
-
-    'koishi/is-insecure'(meta: NpmRegistry.Result): Awaitable<boolean | void>;
-
     'koishi/before-refresh'(): void;
   }
 }
@@ -87,140 +81,9 @@ declare module '@plug/cache' {
   }
 }
 
-// meta cache layer
-export class KoishiMeta {
-  static inject = ['http', 'cache'];
-
-  _internal: Map<string, NpmRegistry.Result | null> = new Map();
-  protected cache: CacheService<Caches['koishi']['registry']>;
-  fetch_tasks = 0;
-  _queries = 0;
-  _next?: Promise<void>;
-  context: Context;
-
-  [Service.tracker] = {
-    associate: 'koishi.meta',
-    name: 'ctx',
-  };
-
-  get cached_size() {
-    return this._internal.size;
-  }
-
-  constructor(
-    protected ctx: Context,
-    public options: KoishiMeta.Config,
-  ) {
-    this.context = ctx;
-    this.cache = ctx.cache.extend('koishi.registry');
-    ctx.set('koishi.meta', this);
-    ctx.alias('koishi.meta', ['koishi.registry']);
-  }
-
-  private async _schedule(): Promise<void> {
-    this._queries++;
-    if (this._queries > this.options.qps!) {
-      if (this._next) {
-        await this._next;
-        await this._schedule()
-        return
-      }
-      await (this._next = new Promise((resolve, reject) => {
-        if (!this.context.root.get('timer')) {
-          this.context.logger.warn(
-            'timer service not found, could not reschedule queries',
-          );
-          reject('timer service not available');
-        }
-        this.context.get('timer')!.setTimeout(() => {
-          this._queries = 0;
-          resolve();
-          this._next = undefined;
-        }, 1000);
-      }));
-      await this._schedule();
-    }
-  }
-
-  private async _query(name: string): Promise<NpmRegistry.OkResult | null> {
-    let retries = this.options.retries;
-    const fetcher = async (): Promise<NpmRegistry.OkResult | null> => {
-      if (!retries) throw new Error('rate limit retries exceeded');
-      const response = await this.ctx
-        .http<NpmRegistry.Result>(`${this.options.endpoint}/${name}`, {
-          validateStatus: (status) =>
-            status === 200 || status === 404 || status === 429,
-        })
-        .catch((e) => {
-          if (HTTP.Error.is(e)) {
-            this.ctx.logger.debug(`🟡 ${aligned(name)} \t\t| error thrown`);
-            this.ctx.logger.debug(e);
-          }
-          return Promise.reject(e);
-        });
-
-      if (response.status === 200) return response.data;
-      if (response.status === 404) return null;
-      if (response.status === 429) {
-        retries--;
-        this.ctx.logger.debug(`🟡 ${aligned(name)} \t\t| rate limited`);
-        return await this._schedule().then(fetcher);
-      }
-      throw new Error('unreachable');
-    };
-    return await this._schedule()
-      .then(fetcher)
-      .catch(async (e) => {
-        if (!HTTP.Error.is(e)) return Promise.reject(e);
-        return await this._schedule().then(fetcher);
-      });
-  }
-
-  async query(
-    name: string,
-    force = false,
-  ): Promise<NpmRegistry.OkResult | null> {
-    this.fetch_tasks++;
-    try {
-      if (force || !(await this.has(name))) {
-        const meta = await this._query(name);
-        await this.set(name, meta);
-        return meta;
-      }
-      return await this.get(name)!;
-    } finally {
-      this.fetch_tasks--;
-    }
-  }
-
-  async get(name: string, clean = false): Promise<NpmRegistry.Result | null> {
-    const result = this._internal.get(name);
-    if (clean || typeof result === 'undefined') {
-      const cached = await this.cache.get(name);
-      if (typeof cached === 'object') {
-        await this.set(name, cached);
-        return cached;
-      }
-      return await this.query(name, true);
-    }
-    return result;
-  }
-
-  async has(name: string): Promise<boolean> {
-    return this._internal.has(name) || (await this.cache.has(name));
-  }
-
-  async set(name: string, meta: NpmRegistry.Result | null): Promise<this> {
-    this._internal.set(name, meta);
-    await this.cache.set(name, meta);
-    return this;
-  }
-
-  async refetchOne(
-    name: string,
-    clean = true,
-  ): Promise<NpmRegistry.OkResult | null> {
-    return await this.query(name, clean);
+declare module '@plug/npm_meta' {
+  interface PackumentVersion {
+    koishi?: KoishiMarket.Manifest
   }
 }
 
@@ -325,7 +188,7 @@ export class RegistryGenerator extends Service {
   private async _generateObject(
     packageName: string,
   ): Promise<KoishiMarket.Object | null> {
-    const pack = await this.ctx.koishi.meta.get(packageName);
+    const pack = await this.ctx.npm.meta.get(packageName);
 
     const convertUser = (
       user: NpmRegistry.User | string,
@@ -365,7 +228,7 @@ export class RegistryGenerator extends Service {
       return user;
     };
 
-    if (!pack?.versions) throw new NO_VERSION();
+    if (!pack?.versions) throw new NO_VERSION;
 
     const compatibles = Object.values(pack.versions)
       .filter((remote) => {
@@ -377,7 +240,7 @@ export class RegistryGenerator extends Service {
       (pack) => typeof pack.deprecated !== 'string',
     );
     const times = versions.map((item) => pack.time[item.version]).sort();
-    if (versions.length === 0) throw new NO_VERSION();
+    if (versions.length === 0) throw new NO_VERSION;
     const meta = versions[versions.length - 1];
 
     const links: Dict<string> = {
@@ -758,7 +621,6 @@ export function apply(ctx: Context, config: Config) {
   // if (!ctx.get('koishi.analyzer'))
   //     ctx.plugin(SimpleAnalyzer)
   ctx.plugin(RegistryGenerator, config.generator);
-  ctx.plugin(KoishiMeta, config.registry);
   ctx.inject(['npm'], (ctx) => {
     ctx.plugin(NpmProvider);
   });

@@ -200,7 +200,7 @@
         "vue-router": "4.5.0",
       },
     },
-    "krts/plugins/core": {
+    "krts/plugins/instrinsic": {
       "name": "@krts/intrinsic",
       "version": "0.5.0",
     },
@@ -339,6 +339,13 @@
     "plugins/npm": {
       "name": "@plug/npm",
       "version": "0.4.0",
+    },
+    "plugins/npm_meta": {
+      "name": "@plug/npm_meta",
+      "version": "1.0.0",
+      "devDependencies": {
+        "@npm/types": "^2.0.0",
+      },
     },
     "plugins/scheduler": {
       "name": "@plug/scheduler",
@@ -530,7 +537,7 @@
 
     "@krts/components": ["@krts/components@workspace:krts/packages/components"],
 
-    "@krts/intrinsic": ["@krts/intrinsic@workspace:krts/plugins/core"],
+    "@krts/intrinsic": ["@krts/intrinsic@workspace:krts/plugins/instrinsic"],
 
     "@krts/plug-demo-mod": ["@krts/plug-demo-mod@workspace:krts/plugins/krat-demo-mod"],
 
@@ -567,6 +574,8 @@
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@0.2.8", "", { "dependencies": { "@emnapi/core": "^1.4.0", "@emnapi/runtime": "^1.4.0", "@tybys/wasm-util": "^0.9.0" } }, "sha512-OBlgKdX7gin7OIq4fadsjpg+cp2ZphvAIKucHsNfTdJiqdOmOEwQd/bHi0VwNrcw5xpBJyUw6cK/QilCqy1BSg=="],
 
     "@neon-rs/load": ["@neon-rs/load@0.0.4", "", {}, "sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw=="],
+
+    "@npm/types": ["@npm/types@2.0.0", "", {}, "sha512-4WqrAc16VKuD8ea+tT8QC/WO+hkn32Z9qMFrG1u3dIAEv3pn0DuIUc7uBpplDJLFIyV7gq1qtm3Yv6kAxJh8KA=="],
 
     "@oxc-parser/binding-darwin-arm64": ["@oxc-parser/binding-darwin-arm64@0.62.0", "", { "os": "darwin", "cpu": "arm64" }, "sha512-p9haXzG2mE0PvfITKY3bTQpwDc+T4H9bG5SC4vp8PbwikmIWGrahASpuO5c2keiahspGTCzqUnl+8PXU/saT/A=="],
 
@@ -701,6 +710,8 @@
     "@plug/manage": ["@plug/manage@workspace:plugins/manage"],
 
     "@plug/npm": ["@plug/npm@workspace:plugins/npm"],
+
+    "@plug/npm_meta": ["@plug/npm_meta@workspace:plugins/npm_meta"],
 
     "@plug/scheduler": ["@plug/scheduler@workspace:plugins/scheduler"],
 

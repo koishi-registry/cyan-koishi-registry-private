@@ -3,10 +3,10 @@ import type {} from '@krts/intrinsic'
 
 export const name = '@name';
 
-export const inject = ['webui']
+export const inject = ['krat']
 
 export function apply(ctx: Context) {
-  ctx.webui.addEntry({
+  ctx.krat.addEntry({
     base: import.meta.url,
     entry: './client/entry.ts'
   })

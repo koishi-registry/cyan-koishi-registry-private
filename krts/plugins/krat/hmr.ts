@@ -1,7 +1,7 @@
 import { asPath } from "@kra/path";
-import type BunWebUI from "@krts/plug-webui";
+import type Krat from "@krts/plug-krat";
 
-export function cordisHmr(webui: BunWebUI) {
+export function cordisHmr(webui: Krat) {
   return {
     name: 'cordis-hmr',
     transform: (code, id, _options) => {

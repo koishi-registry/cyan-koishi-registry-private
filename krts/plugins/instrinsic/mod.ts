@@ -7,7 +7,7 @@ import type * as hono from 'hono';
 import type { WSContext, WSEvents } from 'hono/ws';
 import { Client } from './client.ts';
 import { Entry } from './entry.ts';
-import { WebUIHMR } from './hmr.ts';
+import { HmrInterest } from './hmr.ts';
 
 export * from './client.ts';
 export * from './entry.ts';
@@ -15,20 +15,20 @@ export * from './manifest.ts';
 
 declare module '@p/core' {
   interface Context {
-    webui: WebUI;
+    krat: KratIntrinsic;
   }
 
   interface Events {
-    'webui/connection'(client: Client): void;
+    'krat/connection'(client: Client): void;
   }
 }
 
 // deno-lint-ignore no-explicit-any
 export type SocketListener = (this: Client, ...args: any) => void;
 
-export abstract class WebUI extends Service {
+export abstract class KratIntrinsic extends Service {
   public id = Math.random().toString(36).slice(2);
-  public hmr: WebUIHMR = new WebUIHMR(this);
+  public hmr: HmrInterest = new HmrInterest(this);
 
   readonly entries: Dict<Entry> = Object.create(null);
   // deno-lint-ignore no-explicit-any
@@ -37,7 +37,7 @@ export abstract class WebUI extends Service {
   public abstract baseURL: URL;
 
   protected constructor(public override ctx: Context) {
-    super(ctx, 'webui');
+    super(ctx, 'krat');
   }
 
   abstract resolveEntry(entry: Entry): Promise<string[]>;
@@ -75,9 +75,9 @@ export abstract class WebUI extends Service {
 // deno-lint-ignore no-empty-interface
 export interface Events {}
 
-export namespace WebUI {
+export namespace KratIntrinsic {
   // deno-lint-ignore no-empty-interface
   export interface Services {}
 }
 
-export default WebUI;
+export default KratIntrinsic;

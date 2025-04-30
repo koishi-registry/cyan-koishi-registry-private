@@ -14,6 +14,7 @@ import { chunksIter, take } from './worker/helper';
 import { type ParserOptions, parseStream } from './worker/parse';
 import { Stage, type Worker } from './worker/shared';
 import type { ReplicateInfo } from './types';
+import { MessagePortCommunicator } from '@p/communicate/port';
 
 declare module '@p/core' {
   export interface Context {
@@ -48,15 +49,9 @@ export type BlockTask = Block & { done: boolean };
 export class NpmSync extends Service {
   static inject = ['http', 'indexing', 'scheduler', 'worker', 'timer'];
 
-  _prepareTask: Promise<void>;
-
   http: HTTP;
-  concurrent: ScheduleState;
-  nextQuery: ScheduleState;
 
   worker: Worker
-
-  state = 0;
 
   stage: Stage
 
@@ -79,6 +74,21 @@ export class NpmSync extends Service {
     ctx.on('npm/synchronized', () => ctx.logger.success("npm is synchronized"))
   }
 
+  extension(path: string | URL) {
+    const { port1, port2 } = new MessageChannel()
+    this.ctx.effect(() => {
+      this.worker.chan.call("extension/add", path, port2)
+      return () => this.worker.chan.call("extension/remove", path)
+    })
+    return this.ctx.$communicate[Service.extend]({
+      conn: new MessagePortCommunicator(this.ctx, port1)
+    })
+  }
+
+  get synchronized() {
+    return this.stage === Stage.Fetching
+  }
+
   protected async statistics() {
     return await this.http.get<ReplicateInfo>('/');
   }
@@ -97,6 +107,7 @@ export namespace NpmSync {
     endpoint: string;
     timeout: number;
     concurrent: number;
+    qps: number;
     block_size: number;
     max_retries: number;
     file: string;
@@ -110,6 +121,7 @@ export namespace NpmSync {
       .default(3000)
       .description('connection timeout (ms)'),
     concurrent: Schema.natural().min(1).default(30),
+    qps: Schema.natural().min(1).default(100),
     block_size: Schema.natural().min(100).default(5000).max(10000),
     max_retries: Schema.natural().min(0).default(10),
     file: Schema.string()

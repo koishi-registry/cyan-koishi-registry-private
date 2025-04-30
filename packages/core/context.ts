@@ -12,6 +12,7 @@ import * as cordis from '@cordisjs/core';
 import type { Awaitable } from 'cosmokit';
 import Logger from 'reggol';
 import meta from './package.json' with { type: 'json' };
+import { KraInfo } from './info';
 
 export interface Events<in C extends Context = Context> extends cordis.Events<C> {
   'core/updated'(previous: SemVer, current: SemVer): void;
@@ -34,8 +35,6 @@ export const appName = 'Kra';
 export interface Context {
   [Context.events]: Events<this>;
   [Context.intercept]: Intercept<this>;
-  $kra: Kra;
-  info: Kra;
   baseDir: string;
 }
 
@@ -43,9 +42,9 @@ export class Context extends cordis.Context {
   constructor(config: Context.Config = {}) {
     super();
 
-    const kra = new Kra(this);
+    const kra = new KraInfo(this);
     this.set('$kra', kra);
-    this.accessor('info', { get: () => this.get('$kra') });
+    this.alias('$kra', ['$info', 'info'])
     this.on(
       'internal/inject',
       (prop, provider) => provider?.uid === this.scope.uid,
@@ -61,12 +60,14 @@ export class Context extends cordis.Context {
     this.plugin(StorageService);
     this.plugin(CacheService);
 
+    const self = this as Context
+
     const handleSignal = (signal: NodeJS.Signals) => {
       // if (config.autoRestart) {
       // this.$communicate.post("exit", {});
       // }
-      this.emit(this, 'internal/info', 'terminated by %C', signal);
-      return this.parallel('exit', signal).then(() => process.exit());
+      self.emit(this, 'internal/info', 'terminated by %C', signal);
+      return self.parallel('exit', signal).then(() => process.exit());
     };
 
     registerSignalHandler('SIGINT', handleSignal);
@@ -76,75 +77,10 @@ export class Context extends cordis.Context {
       if (config.app === true)
          this.logger.info(
           'detected update %c -> %c',
-          format(this.info.previous!),
-          format(this.info.version),
+          format(this.$info.previous!),
+          format(this.$info.version),
         );
     });
-  }
-}
-
-export type Updated = 'None' | 'Upgrade' | 'Downgrade';
-export const Updated = {
-  None: 'None' as Updated,
-  Upgrade: 'Upgrade' as Updated,
-  Downgrade: 'Downgrade' as Updated,
-} as const;
-
-export class Kra {
-  isUpdated: Promise<boolean>;
-  isUpgrade: Promise<boolean>;
-  isDowngrade: Promise<boolean>;
-  checkTask: Promise<Updated>;
-  previous: SemVer | null = null;
-  version: SemVer = parse(meta.version);
-  baseDir = process.cwd();
-  remotePlug = Boolean(process.env.REMOTE_PLUG ?? false);
-
-  constructor(protected ctx: Context) {
-    ctx.mixin('$kra', ['baseDir']);
-
-    this.checkTask = new Promise((resolve) => {
-      ctx.inject(['storage'], (ctx) => {
-        resolve(this.check(ctx));
-      });
-    });
-    this.isUpdated = new Promise((r) =>
-      this.checkTask.then((x) => x !== Updated.None).then(r),
-    );
-    this.isUpgrade = new Promise((r) =>
-      this.checkTask.then((x) => x === Updated.Upgrade).then(r),
-    );
-    this.isDowngrade = new Promise((r) =>
-      this.checkTask.then((x) => x === Updated.Downgrade).then(r),
-    );
-  }
-
-  async [cordis.symbols.setup]() {
-    await this.checkTask;
-  }
-
-  async check(ctx: Context): Promise<Updated> {
-    try {
-      const current = this.version;
-      const original = await ctx.storage.get<string>('version');
-      if (original === null) {
-        ctx.logger.info('updated to %c', format(current));
-        this.previous = parse('0.0.1');
-        ctx.emit('core/updated', this.previous, current);
-        return Updated.Upgrade;
-      }
-      const previous = (this.previous = parse(original));
-      const ordering = compare(previous, current);
-      if (ordering !== 0) {
-        ctx.emit('core/updated', previous, current);
-        return ordering === 1 ? Updated.Downgrade : Updated.Upgrade;
-      }
-      return Updated.None;
-    } finally {
-      this.ctx.inject(['storage'], async (ctx) => {
-        await ctx.storage.set('version', meta.version);
-      });
-    }
   }
 }
 

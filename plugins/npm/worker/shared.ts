@@ -21,6 +21,8 @@ export interface C2SRequests extends c.Requests {
 export interface S2CRequests extends c.Requests {
   blocks(): Block[]
   statistics(): ReplicateInfo
+  'extension/add'(module: URL | string, port: MessagePort): Promise<void>
+  'extension/remove'(module: string | URL): Promise<void>
 }
 export interface C2SEvents extends c.Events {
   status: {

@@ -1,7 +1,7 @@
 - id: bruh-core
   name: '@plug/api'
-  config: null
   disabled: false
+  config: null
 - id: bruh-offloader
   name: '@plug/worker'
   config: null
@@ -13,11 +13,10 @@
   config: null
 - id: bruh-drizzle
   name: '@p/database'
-  config: 'postgresql://127.0.0.1:5432/kra'
+  config: postgresql://127.0.0.1:5432/kra
 - id: bruh-npm
   name: '@plug/npm'
   config: null
-  disabled: true
 - id: bruh-koishi-base
   name: '@plug/koishi'
   config: null
@@ -26,10 +25,10 @@
   config: null
 - id: bruh-registry
   name: '@plug/k-registry'
-  disabled: true
   config:
     generator:
       refreshInterval: 3600
+  disabled: true
 - id: bruh-mark
   name: '@plug/k-market'
   config: null
@@ -38,8 +37,8 @@
   config: null
 - id: bruh-krat
   name: '@krts/plug-krat'
+  disabled: true
   config:
     devMode: true
-  disabled: false
 - id: bruh-krts-demo-mod
   name: '@krts/plug-demo-mod'

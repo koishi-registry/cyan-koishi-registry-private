@@ -1,44 +1,49 @@
 import type * as cp from 'node:child_process';
 import type { Context } from 'cordis';
 import Base, { type Handler } from './base.ts';
+import type { TransferListItem } from 'node:worker_threads';
 
-export class ChildProcessCommunicator extends Base {
+export class MessagePortCommunicator extends Base {
+  #closed = false
+
   constructor(
     protected ctx: Context,
-    protected cp: cp.ChildProcess,
+    protected port: MessagePort,
   ) {
     super();
+    port.start()
+    port.on('close', () => this.#closed = true)
   }
 
   override get open(): boolean {
-    return this.cp?.connected && !!this.cp?.channel;
+    return this.port && !this.#closed;
   }
 
   override get name(): string {
-    return 'child_process';
+    return 'message_port';
   }
 
   override get display(): string {
-    return `=> ChildProcess@${this.cp.pid}`;
+    return '<=> MessagePort';
   }
 
-  override send(message: unknown, handle?: unknown): void {
+  override send(message: unknown, ...transfers: unknown[]): void {
     // deno-lint-ignore no-explicit-any
-    this.cp.send(message as any, handle as any);
+    this.port.postMessage(message, transfers as TransferListItem[]);
   }
 
   override on(type: 'message', handler: Handler) {
     return this.ctx.effect(() => {
-      this.cp.on(type, (message, handle) => void handler(message, handle));
+      this.port.on(type, (message, handle) => void handler(message, handle));
       return () => this.off(type, handler);
     });
   }
 
   override off(type: 'message', handler: Handler): void {
-    this.cp.off(type, handler);
+    this.port.off(type, handler);
   }
 
   override getInner(): unknown {
-    return this.cp;
+    return this.port;
   }
 }

@@ -3,7 +3,7 @@ import type { CommunicationService, Packages } from '@p/communicate';
 import { Service, type Context } from '@p/core';
 import { WorkerChild } from './worker';
 
-const mainModule = new URL(import.meta.resolve('./worker_main.ts'))
+const mainModule = new URL(import.meta.resolve('./client/main.ts'))
 
 declare module '@p/core' {
   export interface Context {
@@ -23,12 +23,13 @@ export class WorkerService extends Service {
 
   private _child = <RSide extends Packages, LSide extends Packages>(comm: CommunicationService) => {
     const child = new WorkerChild(
+      this.ctx,
       comm.cast(),
       comm.conn.getInner() as Worker
     )
     this.ctx.effect(() => () => child.terminate())
     this.#children.push(child)
-    return child
+    return child.cast<RSide, LSide>()
   }
 
   spawn<RSide extends Packages, LSide extends Packages>(url: URL | string, config: unknown) {

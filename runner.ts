@@ -27,7 +27,7 @@ await new Promise<void>((resolve) => {
 });
 
 function createWorker() {
-  const fork = app.$communicate.spawn();
+  const fork = app.$communicate.spawn$Bun_spawn(import.meta.resolve('@p/cp-rt'));
   const conn = fork.conn as BunIPCCommunicator;
 
   // https://github.com/koishijs/koishi/blob/master/packages/koishi/src/cli/start.ts#L76

@@ -1,9 +1,15 @@
-import type { Context } from '@p/core';
-import { Service } from 'cordis';
+import type { Context } from '@cordisjs/core';
+import { Service } from '@cordisjs/core';
 import type { Awaitable } from 'cosmokit';
 
+declare module '@cordisjs/core' {
+  interface Context {
+    storage: Storage;
+  }
+}
+
 export abstract class Storage extends Service {
-  declare protected ctx: Context;
+  declare ctx: Context;
 
   protected constructor(ctx: Context, name: string) {
     ctx.provide(`storage.${name}`, undefined, true);
@@ -22,7 +28,7 @@ export abstract class Storage extends Service {
   abstract remove(key: string): Awaitable<void>;
   abstract setRaw(key: string, value: string): Awaitable<void>;
   abstract getRaw(key: string): Awaitable<string | null>;
-  protected _clear(): Awaitable<void> {}
+  _clear(): Awaitable<void> {}
 }
 
 export namespace Storage {

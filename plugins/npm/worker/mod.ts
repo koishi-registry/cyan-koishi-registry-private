@@ -15,6 +15,9 @@ import type { Block, Writer } from "../writer/shared";
 import { Scheduler, type ScheduleState } from "cordis-plugin-scheduler";
 import { parseStream, type ParserOptions } from "./parse";
 import { noop } from "cosmokit";
+import { asPath } from "@kra/path";
+import { unwrapExports } from "@kra/utils";
+import type { EffectScope } from "cordis";
 
 export const inject = ["timer", "http"];
 
@@ -30,6 +33,12 @@ export function generateBlocks(target: number, block_size: number) {
   return [count, iter];
 }
 
+declare module '@p/core' {
+  export interface Context {
+    'npm$worker': NpmSync$worker
+  }
+}
+
 export class NpmSync$worker extends Service {
   http: HTTP;
   c: CommunicationService<{ Remote: S2CPackages; Local: C2SPackages }>;
@@ -42,6 +51,8 @@ export class NpmSync$worker extends Service {
 
   state = 0;
 
+  public extensions: Map<URL | string, EffectScope> = new Map()
+
   static inject = ["worker", "indexing", "scheduler"];
 
   get epId() {
@@ -53,8 +64,8 @@ export class NpmSync$worker extends Service {
     ctx: Context,
     public readonly options: NpmSync.Config,
   ) {
-    super(ctx, "npm_sync$worker");
-    ctx.alias("npm_sync$worker", ["npm"]);
+    super(ctx, "npm$worker");
+    ctx.alias("npm$worker", ["npm"]);
 
     this.c = ctx.$communicate.cast();
     this.c.post("status", {
@@ -66,8 +77,8 @@ export class NpmSync$worker extends Service {
     });
 
     this.http = ctx.http.extend({
-      baseURL: this.options.endpoint,
-      timeout: this.options.timeout,
+      baseURL: options.endpoint,
+      timeout: options.timeout,
     });
 
     const { promise: childPromise, resolve: resolveChild } =
@@ -75,19 +86,19 @@ export class NpmSync$worker extends Service {
 
     this.writer = ctx.worker
       .spawn(import.meta.resolve("../writer/mod.ts"), {
-        file: this.options.file,
+        file: options.file,
         prefix: `npm_sync$${this.epId}`,
       })
       .cast();
 
     this.concurrent = this.ctx.scheduler({
-      cap: this.options.concurrent,
+      cap: options.concurrent,
       mode: "work-steal",
     });
     this.nextQuery = this.ctx.scheduler({
-      id: this.options.endpoint,
+      id: options.endpoint,
       mode: "work-steal",
-      cap: 100,
+      cap: options.concurrent,
     });
   }
 
@@ -106,6 +117,17 @@ export class NpmSync$worker extends Service {
     const statistics = this.concurrent.withRetry(() => this.statistics());
     const info = await statistics();
     c.post("statistics", info);
+
+    c.register('extension/add', async (path, port) => {
+      const plugin = unwrapExports(await import(asPath(path)))
+      const scope = this.ctx.plugin(plugin, port)
+      this.extensions.set(path, scope)
+    })
+    c.register('extension/remove', async (path) => {
+      const scope = this.extensions.get(path)
+      this.extensions.delete(path)
+      if (scope) scope.dispose()
+    })
 
     const prepare = (this._prepareTask = this.catchUp(info.update_seq).then(
       () => this.ctx.emit("npm/synchronized"),

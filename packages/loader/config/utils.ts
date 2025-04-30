@@ -41,12 +41,4 @@ export const JsExpr = new yaml.Type('tag:yaml.org,2002:js', {
   represent: (data) => data['__jsExpr'],
 });
 
-// biome-ignore lint/suspicious/noExplicitAny: module type
-export function unwrapExports(module: any) {
-  if (isNullable(module)) return module;
-  const exports = module.default ?? module;
-  // https://github.com/evanw/esbuild/issues/2623
-  // https://esbuild.github.io/content-types/#default-interop
-  if (!exports.__esModule) return exports;
-  return exports.default ?? exports;
-}
+export { unwrapExports} from '@kra/utils'

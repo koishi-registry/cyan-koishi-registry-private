@@ -15,18 +15,27 @@ export class WorkerCommunicator extends Base {
       };
   }
 
+  features(): Base.Features {
+    return {
+      transfer: true
+    }
+  }
+
   override get open(): boolean {
     return !!this.worker.postMessage;
   }
 
-  override get name(): string {
-    return "child_worker";
+  override get name() {
+    return 'worker'
   }
 
-  override send(message: unknown, handle?: unknown): void {
+  override get display(): string {
+    return `=> Worker@${this.worker.threadId}(...)`;
+  }
+
+  override send(message: unknown, ...transfers: unknown[]): void {
     // deno-lint-ignore no-explicit-any
-    if (handle) this.worker.postMessage(message, handle as any);
-    else this.worker.postMessage(message);
+    this.worker.postMessage(message, transfers as MessagePort[]);
   }
 
   override on(type: "message", handler: Handler) {
@@ -37,15 +46,12 @@ export class WorkerCommunicator extends Base {
           onmessage[symbols.original]?.(event);
         } finally {
           onmessage[symbols.handler]?.(
-            event.data,
-            Array.isArray(event.ports) && event.ports.length
-              ? event.ports[0]
-              : undefined,
+            event.data, event
           );
         }
       }) as OnMessage;
       onmessage[symbols.handler] = handler;
-      onmessage[symbols.original] = this.worker['onmessage'];
+      onmessage[symbols.original] = this.worker['onmessage'] || void 0;
       this.worker['onmessage']= onmessage;
 
       return () => delete onmessage[symbols.handler];

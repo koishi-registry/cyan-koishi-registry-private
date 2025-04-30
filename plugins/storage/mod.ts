@@ -1,11 +1,9 @@
 import type { Storage } from '@p/storage';
-import type { Context } from '@p/core'
-import { Service, symbols } from 'cordis';
+import type { Context } from '@cordisjs/core'
+import { Service, symbols } from '@cordisjs/core';
 import type { Awaitable } from 'cosmokit';
-import StorageLibSQL from './libsql.ts';
-import StorageLocalStorage from './localstorage.ts';
-import StorageRemoteStorage from './remote.ts';
-import type {} from '@p/communicate';
+import type { AllPackagesOf, CommunicationService } from '@p/communicate';
+import { providers, register } from './registry.ts'
 // import StorageBunSqlite from './bun-sqlite.ts';
 
 declare module '@p/core' {
@@ -14,8 +12,9 @@ declare module '@p/core' {
   }
 }
 
-export class StorageService extends Service {
-  declare protected ctx: Context;
+export class StorageService extends Service implements Storage {
+  declare ctx: Context;
+  isolate: Context
 
   constructor(
     ctx: Context,
@@ -23,31 +22,53 @@ export class StorageService extends Service {
   ) {
     ctx.provide('storage', undefined, true);
     super(ctx, 'storage');
-
-    const ctx1 = ctx.isolate('storage');
-
-    const scope1 = ctx1.plugin(StorageLocalStorage);
-    const scope2 = ctx1.plugin(StorageRemoteStorage);
-    const scope3 = ctx1.plugin(StorageLibSQL);
-    // const scope3 = ctx1.plugin(StorageBunSqlite);
-    ctx.on('dispose', () => {
-      scope1.dispose();
-      scope2.dispose();
-      scope3.dispose();
-    });
   }
 
   get provider(): Storage {
-    return this.ctx.get(`storage.${this.serviceName}`)!;
+    return this.isolate?.get?.(`storage.${this.serviceName}`)!;
+  }
+
+  register<K extends keyof providers>(name: keyof providers, implementation: providers[K]) {
+    register(name, implementation)
+  }
+
+  tryForward(comm: CommunicationService) {
+    comm.register('storage/has', async (key: string) => {
+      return await this.has(key)
+    }, true)
+    comm.register('storage/getRaw', async (key: string) => {
+      return await this.provider.getRaw(key)
+    }, true)
+    comm.register('storage/get', async (key: string) => {
+      return await this.get(key)
+    }, true)
+    comm.register('storage/remove', async (key: string) => {
+      return await this.remove(key)
+    }, true)
+    comm.register('storage/setRaw', async (key: string, value: string) => {
+      return await this.provider.setRaw(key, value)
+    }, true)
+    comm.register('storage/set', async (key: string, value: unknown) => {
+      return await this.set(key, value)
+    }, true)
+    comm.register('storage/_internal/clear', () => {
+      return Reflect.apply(Reflect.get(this.provider, 'clear') || (() => {}), this.provider, [])
+    }, true)
   }
 
   override [symbols.setup]() {
-    this.serviceName =
+    this.serviceName ??=
       this.ctx.$communicate.conn.name === 'worker'
         ? 'remote'
-        : typeof Deno === 'undefined'
-          ? 'libsql'
-          : 'localstorage';
+        : typeof Deno !== 'undefined'
+          ? 'localstorage'
+          : 'libsql';
+
+    const ctx1 = this.isolate = this.ctx.isolate('storage').isolate(`storage.${this.serviceName}`);
+
+    const plugin = providers[this.serviceName]
+    const scope = ctx1.plugin(plugin)
+    this.ctx.effect(() => () => scope.dispose())
 
     // 'storage/has'(key: string): boolean;
     // 'storage/remove'(key: string): boolean;
@@ -57,33 +78,13 @@ export class StorageService extends Service {
     // 'storage/get'(key: string): unknown | null;
     // 'storage/_internal/clear'(): void;
 
-    if (this.ctx.get('$communicate')) {
-      this.ctx.$communicate.register('storage/has', async (key: string) => {
-        return await this.has(key)
-      })
-      this.ctx.$communicate.register('storage/getRaw', async (key: string) => {
-        return await this.provider.getRaw(key)
-      })
-      this.ctx.$communicate.register('storage/get', async (key: string) => {
-        return await this.get(key)
-      })
-      this.ctx.$communicate.register('storage/remove', async (key: string) => {
-        return await this.remove(key)
-      })
-      this.ctx.$communicate.register('storage/setRaw', async (key: string, value: string) => {
-        return await this.provider.setRaw(key, value)
-      })
-      this.ctx.$communicate.register('storage/set', async (key: string, value: unknown) => {
-        return await this.set(key, value)
-      })
-      this.ctx.$communicate.register('storage/_internal/clear', () => {
-        return Reflect.apply(Reflect.get(this.provider, 'clear') || (() => { }), this.provider, [])
-      })
-    }
+    this.ctx.inject(['$communicate'], (ctx) => {
+      this.tryForward(ctx.$communicate)
+    })
 
-    return new Promise<void>((resolve) => {
-      this.ctx.inject([`storage.${this.serviceName}`], () => resolve());
-    });
+    return scope.then(() => new Promise<void>(resolve => {
+      ctx1.inject([`storage.${this.serviceName}`], () => resolve());
+    }))
   }
 
   has(key: string): Awaitable<boolean> {
@@ -102,7 +103,15 @@ export class StorageService extends Service {
     return this.provider.remove(key);
   }
 
-  protected _clear(): Awaitable<void> {
+  getRaw(key: string): Awaitable<string | null> {
+    return this.provider.getRaw(key);
+  }
+
+  setRaw(key: string, value: string): Awaitable<void> {
+    return this.provider.setRaw(key, value);
+  }
+
+  _clear(): Awaitable<void> {
     if (this.ctx.scope.uid !== 0) throw new Error('invalid clear');
     return Reflect.get(this.provider, '_clear')?.bind(this.provider)?.();
   }

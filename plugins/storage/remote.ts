@@ -1,4 +1,4 @@
-import type { Context } from '@p/core';
+import type { Context } from '@cordisjs/core';
 import { Storage } from '@p/storage';
 import type {} from '@p/communicate'
 
@@ -7,18 +7,6 @@ declare module '@p/storage' {
     interface Services {
       remote: StorageRemoteStorage;
     }
-  }
-}
-
-declare module '@p/communicate' {
-  export interface Requests {
-    'storage/has'(key: string): Promise<boolean>;
-    'storage/remove'(key: string): Promise<void>;
-    'storage/setRaw'(key: string, value: string): Promise<void>;
-    'storage/set'(key: string, value: unknown): Promise<void>;
-    'storage/getRaw'(key: string): Promise<string | null>;
-    'storage/get'(key: string): Promise<unknown | null>;
-    'storage/_internal/clear'(): Promise<void>;
   }
 }
 
@@ -51,7 +39,7 @@ export class StorageRemoteStorage extends Storage {
     await this.ctx.$communicate.call('storage/remove', key);
   }
 
-  protected override async _clear(): Promise<void> {
+  override async _clear(): Promise<void> {
     await this.ctx.$communicate.call('storage/_internal/clear');
   }
 }

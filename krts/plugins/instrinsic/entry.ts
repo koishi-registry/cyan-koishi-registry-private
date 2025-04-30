@@ -23,7 +23,7 @@ export class Entry<T = any> {
       this.temporal = true;
       this.id = Math.random().toString(36).slice(2);
     }
-    ctx.webui.entries[this.id] = this;
+    ctx.krat.entries[this.id] = this;
     this.taskDefs['data'] = data;
   }
 
@@ -99,28 +99,29 @@ export class Entry<T = any> {
     const dispose = this.ctx.effect(() => {
       const ctx = this.ctx;
 
-      ctx.webui.broadcast(
+      ctx.krat.broadcast(
         'entry:init',
         async (client: Client) =>
           ({
-            serverId: ctx.webui.id,
+            serverId: ctx.krat.id,
             clientId: client.id,
             entries: {
-              [this.id]: await this.toJSON(client),
+              [this.id]: (await this.toJSON(client))!,
             },
           }) satisfies Entry.Init,
       );
 
       return () => {
-        delete this.ctx.webui.entries[this.id];
-        return ctx.webui.broadcast(
+        delete this.ctx.krat.entries[this.id];
+        return ctx.krat.broadcast(
           'entry:init',
           (client: Client) =>
             ({
-              serverId: ctx.webui.id,
+              serverId: ctx.krat.id,
               clientId: client.id,
               entries: {
-                [this.id]: null,
+                // biome-ignore lint/suspicious/noExplicitAny: for init
+                [this.id]: null as any,
               },
             }) satisfies Entry.Init,
         );
@@ -136,7 +137,7 @@ export class Entry<T = any> {
   }
 
   async refresh() {
-    return await this.ctx.webui.broadcast(
+    return await this.ctx.krat.broadcast(
       'entry:update',
       async (client: Client) => ({
         id: this.id,
@@ -146,7 +147,7 @@ export class Entry<T = any> {
   }
 
   patch<T>(data: T, key?: string) {
-    return this.ctx.webui.broadcast('entry:patch', {
+    return this.ctx.krat.broadcast('entry:patch', {
       id: this.id,
       data,
       key,
@@ -160,9 +161,9 @@ export class Entry<T = any> {
         omit(value as any, ['promise']),
       );
       return {
-        files: await this.ctx.webui.resolveEntry(this),
+        files: await this.ctx.krat.resolveEntry(this),
         entryId: this.ctx.get('loader')?.locate(),
-        data: structuredClone(await this.executeOnce('data', client)) ?? null,
+        data: structuredClone(await this.executeOnce('data', client)) as T || undefined,
         tasks,
       };
     } catch (e) {

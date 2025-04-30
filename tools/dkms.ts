@@ -25,7 +25,7 @@ async function buildTask(root: string, shell: string) {
   })
 }
 
-async function buildIfNeeded(meta_path: string) {
+export async function buildIfNeeded(meta_path: string) {
   const { default: meta } = await import(
     meta_path,
     { with: { type: 'json' } }
@@ -50,8 +50,8 @@ async function buildIfNeeded(meta_path: string) {
   for (const task of dkms) {
     const globs = task.watch.map(pattern => new Bun.Glob(pattern))
     const pathIters = await Promise.all(
-      globs.map(async (glob) => {
-        return await glob.scan({ cwd: dirname(meta_path) });
+      globs.map(glob => {
+        return glob.scan({ cwd: dirname(meta_path) });
       }),
     )
     const paths = (await Promise.all(pathIters.map(async (iter) => await Array.fromAsync(iter))))
@@ -106,5 +106,7 @@ export async function searchPackages(directory: string, metaFile = 'package.json
 if (import.meta.main) {
   searchPackages('packages/')
   searchPackages('plugins/')
+  searchPackages('krts/packages/')
+  searchPackages('krts/plugins/')
   // todo
 }

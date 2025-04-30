@@ -15,7 +15,7 @@ import {
   type Entry,
   type Events,
   type Manifest,
-  WebUI,
+  KratIntrinsic,
 } from '@krts/intrinsic';
 import { type Awaitable, type Dict, Time, makeArray } from 'cosmokit';
 import { parse } from 'es-module-lexer';
@@ -37,9 +37,10 @@ import {
   stripBase,
   unwrapId,
 } from './helper';
-import { UIPaths } from './paths';
+import { UIPaths as InstrinsicPaths } from './paths';
 import { cordisHmr } from './hmr';
 import { File } from '@kra/fs/file'
+import { etag } from 'hono/etag';
 
 declare module 'cordis' {
   interface EnvData {
@@ -109,12 +110,12 @@ function ensureTrailingSlash(url: URL) {
   return url
 }
 
-class BunWebUI extends WebUI {
+class BunKrat extends KratIntrinsic {
   static inject = ['server'];
 
   public infra!: Promise<void>;
   public terminalScript: Promise<File>;
-  public readonly paths: UIPaths;
+  public readonly paths: InstrinsicPaths;
 
   transpiler = new Bun.Transpiler({
     loader: 'ts',
@@ -126,7 +127,7 @@ class BunWebUI extends WebUI {
 
   constructor(
     public override ctx: Context,
-    public config: BunWebUI.Config,
+    public config: BunKrat.Config,
   ) {
     super(ctx);
 
@@ -134,7 +135,7 @@ class BunWebUI extends WebUI {
       return this.accept(c);
     });
 
-    this.paths = new UIPaths(
+    this.paths = new InstrinsicPaths(
       ctx,
       this.config.cacheDir || join(ctx.cacheDir, 'vite'),
     );
@@ -222,10 +223,14 @@ class BunWebUI extends WebUI {
   private serveAssets() {
     const { uiPath } = this.config;
 
-    this.ctx.server.get(`${uiPath}/terminal.js`, async (c) => {
-      return c.body((await this.terminalScript).readable, {
+    this.ctx.server.get(`${uiPath}/terminal.js`, etag(), async (c) => {
+      const script = await this.terminalScript
+      return c.body(script.readable, {
         headers: {
-          "Content-Type": "text/javascript"
+          "Content-Type": "text/javascript",
+          ...this.config.devMode ? {} : {
+            'Cache-Control': 'public, max-age=36000'
+          }
         }
       })
     })
@@ -240,10 +245,38 @@ class BunWebUI extends WebUI {
       }
 
       const name = c.req.path.slice(uiPath.length).replace(/^\/+/, '');
-      const sendFile = async (file: string) => {
-        return c.body(await Bun.file(file).arrayBuffer(), 200, {
-          'content-type':
+      const sendServerAssets = async (file: string, cacheControl?: string) => {
+        const content = await Bun.file(file).arrayBuffer()
+
+        const hash = Bun.hash.cityHash64(content);
+        const eTag = `"${this.id}@${hash}"`; // include the server id in the ETag
+
+        if (c.req.header('If-None-Match') === eTag)
+          return c.body('Not Modified', /* Not Modified */ 304, {
+            'ETag': eTag
+          })
+        return c.body(content, 200, {
+          'Content-Type':
             mime.lookup(extname(file)) || 'application/octet-stream',
+          'ETag': eTag,
+          ...cacheControl ? { 'Cache-Control': cacheControl } : {}
+        });
+      };
+      const sendFile = async (file: string, cacheControl?: string) => {
+        const content = await Bun.file(file).arrayBuffer()
+
+        const hash = Bun.hash.cityHash64(content);
+        const eTag = `"${hash}"`;
+
+        if (c.req.header('If-None-Match') === eTag)
+          return c.body('Not Modified', /* Not Modified */ 304, {
+            'ETag': eTag
+          })
+        return c.body(content, 200, {
+          'Content-Type':
+            mime.lookup(extname(file)) || 'application/octet-stream',
+          'ETag': eTag,
+          ...cacheControl ? { 'Cache-Control': cacheControl } : {}
         });
       };
 
@@ -253,7 +286,7 @@ class BunWebUI extends WebUI {
         const entry = this.entries[key];
         const paths = await this.resolveEntry(entry);
         const type = extname(tag || value);
-        const index = (tag || value).slice(0, -type.length);
+        const index = value;
         if (this.config.devMode) { // try to compile
           const manifest = await entry.executeOnce('compile')
           if (manifest)
@@ -280,8 +313,14 @@ class BunWebUI extends WebUI {
         }
 
         const source = await Bun.file(file).text();
+        const hash = Bun.hash.cityHash64(source)
+        const eTag = `"${hash}"`
+        if (c.req.header('If-None-Match') === eTag) return c.body('Not Modified', /* Not Modified */ 304, {
+          'ETag': eTag
+        })
         return c.body(await this.transformImport(source), 200, {
-          'content-type': 'text/javascript',
+          'Content-Type': 'text/javascript',
+          'ETag': eTag
         });
       }
 
@@ -295,11 +334,25 @@ class BunWebUI extends WebUI {
       }
 
       const exists = await Bun.file(filename).exists();
-      if (exists) return sendFile(filename);
+      const serve = (name.startsWith('assets') ? sendServerAssets : sendFile)
+
+      if (exists) return serve(
+        filename,
+        this.config.devMode ? 'max-age=60' : 'public, max-age=3600, stale-while-revalidate=600'
+      );
+
+      const eTag = `"${this.id}@${Bun.hash.crc32(Object.values(this.config).toString())}"`
+      if (c.req.header('If-None-Match') === eTag) return c.body('Not Modified', /* Not Modified */ 304, {
+        'ETag': eTag
+      })
       const template = await Bun.file(
         resolve(this.paths.infra, 'index.html'),
       ).text();
-      return c.html(this.transformHtml(template), 200);
+      return c.html(this.transformHtml(template), 200, {
+        'Content-Type': 'text/html',
+        'ETag': eTag,
+        ... this.config.devMode ? {} : { 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' }
+      });
     });
   }
 
@@ -472,7 +525,7 @@ class BunWebUI extends WebUI {
   }
 }
 
-namespace BunWebUI {
+namespace BunKrat {
   export interface Dev {}
 
   export const Dev: Schema<Dev> = Schema.object({});
@@ -559,4 +612,4 @@ namespace BunWebUI {
   ]);
 }
 
-export default BunWebUI;
+export default BunKrat;

@@ -96,7 +96,7 @@ export class CacheService<
 
   constructor(override ctx: Context) {
     super(ctx, 'cache');
-    this.baseDir = join(this.ctx.info.baseDir, 'cache');
+    this.baseDir = join(this.ctx.$info.baseDir, 'cache');
     ctx.mixin('cache', {
       cacheDir: 'baseDir',
     });

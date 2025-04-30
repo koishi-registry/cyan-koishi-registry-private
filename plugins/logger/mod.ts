@@ -1,7 +1,7 @@
 import { join, resolve } from 'node:path';
 import { Schema } from '@cordisjs/plugin-schema';
+import type { Context } from '@cordisjs/core';
 import { ensureDirSync, walkSync } from '@kra/fs';
-import type { Context } from '@p/core';
 import { TextDecoderStream } from 'node:stream/web'
 import { DelimiterStream, toTransformStream } from '@std/streams';
 import type { BunFile, FileSink } from 'bun';
@@ -124,7 +124,7 @@ export function toYMD(date: Date): string {
 }
 
 export async function apply(ctx: Context, config: Config) {
-  const root = resolve(ctx.info.baseDir, config.rootDir);
+  const root = resolve(ctx.$info.baseDir, config.rootDir);
   ensureDirSync(root);
 
   const files: Dict<number[]> = {};

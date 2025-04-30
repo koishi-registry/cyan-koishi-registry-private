@@ -99,27 +99,6 @@ export abstract class Analyzer extends Service {
     super(ctx, 'koishi.analyzer');
   }
 
-  addDefaults() {
-    return this.ctx.effect(() => {
-      const dispose1 = this.ctx.on('analyzer/is-verified', ({ name }) =>
-        name.startsWith('@koishijs/plugin-'),
-      );
-      const dispose2 = this.ctx.on(
-        'analyzer/is-insecure',
-        ({ meta }) => !!meta?.koishi?.insecure,
-      );
-
-      return () => {
-        dispose1();
-        dispose2();
-      };
-    });
-  }
-
-  override start() {
-    this.addDefaults();
-  }
-
   abstract getFeatures(): Features;
 
   // name = package name
@@ -214,11 +193,11 @@ export abstract class Analyzer extends Service {
   }
 }
 
-export function minmax(min: number, value: number, max: number): number {
+function minmax(min: number, value: number, max: number): number {
   return Math.max(Math.min(value, max), min);
 }
 
-export function sigmoid(x: number, k: number, L: number, x_0: number) {
+function sigmoid(x: number, k: number, L: number, x_0: number) {
   return L / (1 + Math.exp(-k * (x - x_0)));
 }
 

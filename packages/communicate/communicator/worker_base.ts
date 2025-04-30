@@ -1,3 +1,4 @@
+import type { Awaitable } from 'cosmokit';
 import type { Handler } from './base.ts';
 
 declare global {
@@ -5,7 +6,6 @@ declare global {
     // deno-lint-ignore ban-ts-comment
     // @ts-ignore
     onmessage?: (
-      this: WindowEventHandlers,
       ev: MessageEvent,
     ) => Awaitable<void>;
 

@@ -9,6 +9,7 @@
     "./noop": "./communicator/noop.ts",
     "./process": "./communicator/process.ts",
     "./worker": "./communicator/worker.ts",
-    "./worker_base": "./communicator/worker_base.ts"
+    "./worker_base": "./communicator/worker_base.ts",
+    "./port": "./communicator/port.ts"
   }
 }
