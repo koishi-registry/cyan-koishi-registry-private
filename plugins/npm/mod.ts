@@ -44,23 +44,7 @@ export interface ReplicateInfo {
   db_name: string
   engine: string
   doc_count: number
-  doc_del_count: number
   update_seq: number
-  purge_seq: number
-  compact_running: boolean
-  sizes: {
-    active: number
-    external: number
-    file: number
-  }
-  disk_size: number
-  data_size: number
-  other: { data_size: number }
-  instance_start_time: string
-  disk_format_version: number
-  committed_update_seq: number
-  compacted_seq: number
-  uuid: string
 }
 
 export function isKoishiPlugin(id: string): boolean {
@@ -198,10 +182,11 @@ export class NpmSynchronizer extends Service {
       let body: ReadableStream<Uint8Array>
       try {
         const response = await this.ctx.http(
-          `${this.options.endpoint}/_changes?since=${begin}&seq_interval=${
-            end - begin
-          }`,
+          `${this.options.endpoint}/_changes?since=${begin}`,
           {
+            headers: {
+              "npm-replication-opt-in": "true"
+            },
             responseType: (response) => response.body,
           },
         )
@@ -230,18 +215,20 @@ export class NpmSynchronizer extends Service {
       try {
         const response = await this.ctx.http(
           `${this.options.endpoint}/_changes?since=${this.seq}`,
-          {
+          { 
+            headers: {
+              "npm-replication-opt-in": "true"
+            },
             responseType: (response) => response.body,
           },
         )
-
+    
         body = response.data
       } catch {
         continue
       }
-
+    
       if (await this.handle(body, (seq) => this.seq = seq)) continue
-      this.ctx.logger.warn('unexpected: simpleFetch() handler returned')
       await delay(500)
     }
   }
@@ -251,6 +238,9 @@ export class NpmSynchronizer extends Service {
     const response = await this.ctx.http<ReplicateInfo>(
       `${this.options.endpoint}/`,
       {
+        headers: {
+          "npm-replication-opt-in": "true"
+        },
         validateStatus(status) {
           return status === 200 || status === 429
         },
