@@ -1,4 +1,4 @@
-import { isNullable } from "./cosmokit";
+import { isNullable } from "./cosmokit.ts";
 
 // biome-ignore lint/suspicious/noExplicitAny: module type
 export function unwrapExports(module: any) {

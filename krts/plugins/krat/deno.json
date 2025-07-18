@@ -1,0 +1,24 @@
+{
+  "name": "@krts/plug-krat",
+  "version": "0.5.0",
+  "devDependencies": {
+    "@types/mime-types": "^2.1.4"
+  },
+  "imports": {
+    "@hono/node-server": "npm:@hono/node-server@^1.13.8",
+    "@hono/node-ws": "npm:@hono/node-ws@^1.1.0",
+    "mime-types": "npm:mime-types@^3.0.1",
+    "es-module-lexer": "npm:es-module-lexer@^1.7.0",
+    "vite": "npm:rolldown-vite@latest",
+    "@std/crypto": "jsr:@std/crypto@^1",
+    "vue": "npm:vue@^3",
+    "vue-router": "npm:vue-router@^4",
+    "primevue": "npm:primevue@^4",
+    "@primeuix/themes": "npm:@primeuix/themes@^1",
+    "@vueuse/core": "npm:@vueuse/core@^13"
+  },
+  "exports": {
+    ".": "./mod.ts",
+    "./shared": "./shared/mod.ts"
+  }
+}

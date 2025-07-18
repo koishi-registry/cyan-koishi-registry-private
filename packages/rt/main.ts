@@ -14,8 +14,8 @@ import Logger from 'reggol';
 
 // TODO: use cordis loader
 
-const host = Bun.env.HOST ?? '127.0.0.1';
-const port = Number.parseInt(Bun.env.PORT ?? '5477');
+const host = Deno.env.get('HOST')?? '127.0.0.1';
+const port = Number.parseInt(Deno.env.get('PORT') ?? '5477');
 
 Error.stackTraceLimit = 60;
 

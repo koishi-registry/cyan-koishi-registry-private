@@ -8,7 +8,7 @@ export const name = 'manage';
 export const inject = ['server', 'http'];
 
 export const KEY =
-  Bun.env.PUBLIC_KEY ?? 'k4.public.ZHCAZC7yPzIS42O8SG1luDNVc61rhvbMvUXCkrpVFic';
+  Deno.env.get('PUBLIC_KEY') ?? 'k4.public.ZHCAZC7yPzIS42O8SG1luDNVc61rhvbMvUXCkrpVFic';
 
 export const TRUSTED_USER = ['cyan', 'itzdrli'];
 

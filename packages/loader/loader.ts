@@ -60,12 +60,12 @@ export abstract class Loader<
   C extends cordis.Context = Context,
 > extends ImportTree<C> {
   public envData =
-    'CORDIS_SHARED' in Bun.env
-      ? JSON.parse(Bun.env.CORDIS_SHARED!)
+    Deno.env.has('CORDIS_SHARED')
+      ? JSON.parse(Deno.env.get('CORDIS_SHARED')!)
       : { startTime: Date.now() };
 
   public params = {
-    env: { ...Bun.env },
+    env: Deno.env.toObject(),
   };
 
   public files: Dict<LoaderFile> = Object.create(null);

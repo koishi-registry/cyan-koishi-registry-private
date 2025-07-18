@@ -26,11 +26,11 @@
   },
   "dkms": [{
     "name": "file",
-    "watch": ["./file/**"],
+    "watch": ["./file/**", "./tsdown.config.mts"],
     "script": "build:file"
   }],
   "scripts": {
-    "build:file": "tsdown"
+    "build:file": "exec@tsdown"
   },
   "dependencies": {
     "quansync": "^0.2.10"

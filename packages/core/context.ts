@@ -12,7 +12,7 @@ import * as cordis from '@cordisjs/core';
 import type { Awaitable } from 'cosmokit';
 import Logger from 'reggol';
 import meta from './package.json' with { type: 'json' };
-import { KraInfo } from './info';
+import { KraInfo } from './info.ts';
 
 export interface Events<in C extends Context = Context> extends cordis.Events<C> {
   'core/updated'(previous: SemVer, current: SemVer): void;

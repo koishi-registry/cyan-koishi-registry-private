@@ -1,11 +1,11 @@
-import * as proc from 'node:process';
+import proc from 'node:process';
 import type { Context } from 'cordis';
 import Base, { type Handler } from './base.ts';
 
 export class ProcessCommunicator extends Base {
   constructor(
     protected ctx: Context,
-    protected p: NodeJS.Process = import.meta.require('node:process'),
+    protected p?: NodeJS.Process = proc,
   ) {
     super();
   }

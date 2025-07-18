@@ -1,6 +1,13 @@
 {
   "name": "hono",
-  "version": "4",
+  "version": "0.0.0",
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "deno.ns"
+    ]
+  },
   "exports": {
     ".": "./src/index.ts",
     "./request": "./src/request.ts",
@@ -36,6 +43,7 @@
     "./jsx/dom/css": "./src/jsx/dom/css.ts",
     "./jsx/dom/server": "./src/jsx/dom/server.ts",
     "./jwt": "./src/middleware/jwt/jwt.ts",
+    "./jwk": "./src/middleware/jwk/jwk.ts",
     "./timeout": "./src/middleware/timeout/index.ts",
     "./timing": "./src/middleware/timing/timing.ts",
     "./logger": "./src/middleware/logger/index.ts",
@@ -43,6 +51,7 @@
     "./powered-by": "./src/middleware/powered-by/index.ts",
     "./pretty-json": "./src/middleware/pretty-json/index.ts",
     "./request-id": "./src/middleware/request-id/request-id.ts",
+    "./language": "./src/middleware/language/language.ts",
     "./secure-headers": "./src/middleware/secure-headers/secure-headers.ts",
     "./combine": "./src/middleware/combine/index.ts",
     "./ssg": "./src/helper/ssg/index.ts",
@@ -71,6 +80,7 @@
     "./dev": "./src/helper/dev/index.ts",
     "./ws": "./src/helper/websocket/index.ts",
     "./conninfo": "./src/helper/conninfo/index.ts",
+    "./proxy": "./src/helper/proxy/index.ts",
     "./utils/body": "./src/utils/body.ts",
     "./utils/buffer": "./src/utils/buffer.ts",
     "./utils/color": "./src/utils/color.ts",
@@ -83,6 +93,7 @@
     "./utils/headers": "./src/utils/headers.ts",
     "./utils/html": "./src/utils/html.ts",
     "./utils/http-status": "./src/utils/http-status.ts",
+    "./utils/accept": "./src/utils/accept.ts",
     "./utils/jwt": "./src/utils/jwt/index.ts",
     "./utils/jwt/jwa": "./src/utils/jwt/jwa.ts",
     "./utils/jwt/jws": "./src/utils/jwt/jws.ts",
@@ -94,5 +105,17 @@
     "./utils/types": "./src/utils/types.ts",
     "./utils/url": "./src/utils/url.ts",
     "./utils/ipaddr": "./src/utils/ipaddr.ts"
+  },
+  "publish": {
+    "include": [
+      "jsr.json",
+      "LICENSE",
+      "README.md",
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "src/**/*.test.ts",
+      "src/**/*.test.tsx"
+    ]
   }
 }

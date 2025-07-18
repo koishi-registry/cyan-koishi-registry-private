@@ -1,8 +1,8 @@
 import type { Context, Plugin } from '@cordisjs/core'
 import type { Storage } from '@p/storage'
-import StorageLibSQL from "./libsql";
-import StorageLocalStorage from "./localstorage";
-import StorageRemoteStorage from "./remote";
+import StorageLibSQL from "./libsql.ts";
+import StorageLocalStorage from "./localstorage.ts";
+import StorageRemoteStorage from "./remote.ts";
 
 export const providers = {
   remote: StorageRemoteStorage,

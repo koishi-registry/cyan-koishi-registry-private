@@ -3,7 +3,9 @@ import { basename, dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Schema } from '@cordisjs/plugin-schema';
 import { serveStatic } from '@hono/node-server/serve-static';
-import { exists, existsSync, rmdir } from '@kra/fs';
+import * as fs from '@kra/fs';
+import { File } from '@kra/fs/file'
+import { crypto } from '@std/crypto';
 import { match } from '@kra/meta';
 import { asPath, asURL } from '@kra/path';
 import { noop } from '@kra/utils';
@@ -22,25 +24,12 @@ import { parse } from 'es-module-lexer';
 import type { CustomHeader, RequestHeader } from 'hono/utils/headers';
 import type { StatusCode } from 'hono/utils/http-status';
 import mime from 'mime-types';
-import open from 'open';
-import type { OutputAsset, RollupOutput } from 'rollup';
-import sirv from 'sirv';
-import {
-  DEP_VERSION_RE,
-  NULL_BYTE_PLACEHOLDER,
-  injectQuery,
-  isCSSRequest,
-  isDirectCSSRequest,
-  isDirectRequest,
-  removeImportQuery,
-  removeTimestampQuery,
-  stripBase,
-  unwrapId,
-} from './helper';
-import { UIPaths as InstrinsicPaths } from './paths';
-import { cordisHmr } from './hmr';
-import { File } from '@kra/fs/file'
+import open from 'npm:open';
+import type { OutputAsset } from 'rolldown';
+import { UIPaths as InstrinsicPaths } from './paths.ts';
+import { cordisHmr } from './hmr.ts';
 import { etag } from 'hono/etag';
+import { digest, secureDigest } from "./digest.ts";
 
 declare module 'cordis' {
   interface EnvData {
@@ -87,8 +76,6 @@ export interface State {
     vue: string;
     'vue-router': string;
     '@vueuse/core': string;
-    primevue: string;
-    '@primeuix/themes': string;
   };
 }
 
@@ -99,8 +86,6 @@ export const DEFAULT_STATE: State = {
     vue: '0.0.0',
     'vue-router': '0.0.0',
     '@vueuse/core': '0.0.0',
-    primevue: '0.0.0',
-    '@primeuix/themes': '0.0.0',
   },
 };
 
@@ -110,16 +95,12 @@ function ensureTrailingSlash(url: URL) {
   return url
 }
 
-class BunKrat extends KratIntrinsic {
+class DenoKrat extends KratIntrinsic {
   static inject = ['server'];
 
   public infra!: Promise<void>;
-  public terminalScript: Promise<File>;
+  public terminalScript!: Promise<File>;
   public readonly paths: InstrinsicPaths;
-
-  transpiler = new Bun.Transpiler({
-    loader: 'ts',
-  });
 
   get baseURL() {
     return new URL(this.config.uiPath, this.ctx.server.selfUrl);
@@ -127,7 +108,7 @@ class BunKrat extends KratIntrinsic {
 
   constructor(
     public override ctx: Context,
-    public config: BunKrat.Config,
+    public config: DenoKrat.Config,
   ) {
     super(ctx);
 
@@ -199,7 +180,7 @@ class BunKrat extends KratIntrinsic {
         entry.files.entry,
         entry.files.base && ensureTrailingSlash(asURL(entry.files.base))
       );
-      if (await exists(url))
+      if (await fs.exists(url))
         return [
           `${this.config.uiPath}/@vendor/${entry.id}/${entry.files.entry}`,
           `${this.config.uiPath}/@vendor/${entry.id}/style.css`,
@@ -246,9 +227,9 @@ class BunKrat extends KratIntrinsic {
 
       const name = c.req.path.slice(uiPath.length).replace(/^\/+/, '');
       const sendServerAssets = async (file: string, cacheControl?: string) => {
-        const content = await Bun.file(file).arrayBuffer()
+        const content = await Deno.readFile(file)
 
-        const hash = Bun.hash.cityHash64(content);
+        const hash = await secureDigest(content);
         const eTag = `"${this.id}@${hash}"`; // include the server id in the ETag
 
         if (c.req.header('If-None-Match') === eTag)
@@ -263,9 +244,9 @@ class BunKrat extends KratIntrinsic {
         });
       };
       const sendFile = async (file: string, cacheControl?: string) => {
-        const content = await Bun.file(file).arrayBuffer()
+        const content = await Deno.readFile(file)
 
-        const hash = Bun.hash.cityHash64(content);
+        const hash = await secureDigest(content);
         const eTag = `"${hash}"`;
 
         if (c.req.header('If-None-Match') === eTag)
@@ -312,8 +293,8 @@ class BunKrat extends KratIntrinsic {
           return await sendFile(file);
         }
 
-        const source = await Bun.file(file).text();
-        const hash = Bun.hash.cityHash64(source)
+        const source = await Deno.readTextFile(file);
+        const hash = digest(source)
         const eTag = `"${hash}"`
         if (c.req.header('If-None-Match') === eTag) return c.body('Not Modified', /* Not Modified */ 304, {
           'ETag': eTag
@@ -333,7 +314,7 @@ class BunKrat extends KratIntrinsic {
         return c.notFound();
       }
 
-      const exists = await Bun.file(filename).exists();
+      const exists = await fs.exists(filename);
       const serve = (name.startsWith('assets') ? sendServerAssets : sendFile)
 
       if (exists) return serve(
@@ -341,12 +322,12 @@ class BunKrat extends KratIntrinsic {
         this.config.devMode ? 'max-age=60' : 'public, max-age=3600, stale-while-revalidate=600'
       );
 
-      const eTag = `"${this.id}@${Bun.hash.crc32(Object.values(this.config).toString())}"`
+      const eTag = `"${this.id}@${await digest(Object.values(this.config).toString())}"`
       if (c.req.header('If-None-Match') === eTag) return c.body('Not Modified', /* Not Modified */ 304, {
         'ETag': eTag
       })
-      const template = await Bun.file(
-        resolve(this.paths.infra, 'index.html'),
+      const template = await File.path(
+        this.paths.infra, 'index.html',
       ).text();
       return c.html(this.transformHtml(template), 200, {
         'Content-Type': 'text/html',
@@ -424,7 +405,7 @@ class BunKrat extends KratIntrinsic {
 
     if (entry.temporal)
       this.ctx.effect(
-        () => async () => rmdir(this.paths.entryVendor(entry.id)),
+        () => () => fs.rmdir(this.paths.entryVendor(entry.id)),
       );
 
     if (!manifest) throw new TypeError('could not locate manifest.json');
@@ -449,21 +430,16 @@ class BunKrat extends KratIntrinsic {
 
     const versions = {
       '@krts/terminal':
-        (await import('@krts/terminal/package.json')).version +
+        (await import('@krts/terminal/deno.json', { with: { type: 'json' } })).version +
         (devMode ? '-dev' : ''),
-      vue: (await import('vue/package.json')).version,
-      'vue-router': (await import('vue-router/package.json')).version,
+      vue: (await import(import.meta.resolve('vue/package.json'), { with: { type: "json" } })).version,
+      'vue-router': (await import(import.meta.resolve('vue-router/package.json'), { with: { type: "json" } })).version,
       '@vueuse/core': (
-        await import(import.meta.resolve('@vueuse/core/package.json'))
-      ).version,
-      primevue: (await import(import.meta.resolve('primevue/package.json')))
-        .version,
-      '@primeuix/themes': (
-        await import(import.meta.resolve('@primeuix/themes/package.json'))
+        await import(import.meta.resolve('@vueuse/core/package.json'), { with: { type: "json" } })
       ).version,
     };
 
-    const stateFile = Bun.file(resolve(this.paths.infra, 'state.json'));
+    const stateFile = File.path(this.paths.infra, 'state.json');
     const state: State = await match({
       true: async () => <State>await stateFile.json(),
       false: async () => DEFAULT_STATE,
@@ -525,7 +501,7 @@ class BunKrat extends KratIntrinsic {
   }
 }
 
-namespace BunKrat {
+namespace DenoKrat {
   export interface Dev {}
 
   export const Dev: Schema<Dev> = Schema.object({});
@@ -604,7 +580,7 @@ namespace BunKrat {
         timeout: Schema.number().default(Time.minute),
       }),
       devMode: Schema.boolean()
-        .default(Bun.env.DENO_ENV === 'development')
+        .default(Deno.env.get('DENO_ENV') === 'development')
         .hidden(),
       cacheDir: Schema.string().default('cache/vite').hidden(),
       dev: Dev,
@@ -612,4 +588,4 @@ namespace BunKrat {
   ]);
 }
 
-export default BunKrat;
+export default DenoKrat;

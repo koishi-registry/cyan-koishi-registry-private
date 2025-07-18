@@ -1,12 +1,12 @@
 import { type Context, Schema, Service } from '@p/core';
-// import pg from 'pg';
-import { SQL } from 'bun';
-// import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
-import {
-  BunSQLSession,
-  type BunSQLDatabase as DrizzleDB,
-  drizzle,
-} from 'drizzle-orm/bun-sql';
+import pg from 'pg';
+// import { SQL } from 'bun';
+import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
+// import {
+//   BunSQLSession,
+//   type BunSQLDatabase as DrizzleDB,
+//   drizzle,
+// } from 'drizzle-orm/bun-sql';
 import type { PgTable } from 'drizzle-orm/pg-core';
 import { pushSchema } from '@hydrashodon/drizzle-kit/api'
 import { getTableName } from 'drizzle-orm';
@@ -20,13 +20,13 @@ declare module '@p/core' {
 export interface DrizzleService extends DrizzleDB {}
 
 export class DrizzleService extends Service {
-  client: SQL;
+  client: pg.Pool;
   drizzle: DrizzleDB;
 
   constructor(ctx: Context, connectionString: DrizzleService.Config) {
     super(ctx, 'database');
 
-    this.client = new SQL(connectionString);
+    this.client = new pg.Pool({ connectionString });
     this.drizzle = drizzle({ client: this.client });
 
     ctx.on('dispose', () => this.client.close());
@@ -66,7 +66,7 @@ export class DrizzleService extends Service {
 export namespace DrizzleService {
   export type Config = string;
   export const Config: Schema<Config> = Schema.string().description(
-    'Bun SQL Connection string',
+    'PostgreSql Connection string',
   );
 }
 

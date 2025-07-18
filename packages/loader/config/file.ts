@@ -55,11 +55,11 @@ export class LoaderFile {
   async read(): Promise<EntryOptions[]> {
     switch (this.type) {
       case 'application/yaml': // we assume the type matches
-        return yaml.load(await Bun.file(this.name).text(), {
+        return yaml.load(await Deno.readTextFile(this.name), {
           schema,
         }) as EntryOptions[];
       case 'application/json':
-        return JSON.parse(await Bun.file(this.name).text()) as EntryOptions[];
+        return JSON.parse(await Deno.readTextFile(this.name)) as EntryOptions[];
       default:
         return unwrapExports(await import(this.name));
     }
@@ -72,9 +72,9 @@ export class LoaderFile {
     const temp = `${this.name}.tmp`;
 
     if (this.type === 'application/yaml') {
-      await Bun.file(temp).write(yaml.dump(config, { schema }));
+      await Deno.writeTextFile(temp, yaml.dump(config, { schema }));
     } else if (this.type === 'application/json') {
-      await Bun.file(temp).write(JSON.stringify(config, null, 2));
+      await Deno.writeTextFile(temp, JSON.stringify(config, null, 2));
     }
 
     await rename(temp, this.name);

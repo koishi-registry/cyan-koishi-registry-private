@@ -1,4 +1,4 @@
-import { type Client, createClient } from '@libsql/client/node';
+import { type Client, createClient } from 'npm:@libsql/client/node';
 import { type Context, symbols } from '@cordisjs/core';
 import { Schema } from '@p/core'
 import { Storage } from '@p/storage';

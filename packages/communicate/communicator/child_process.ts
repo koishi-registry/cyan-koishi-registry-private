@@ -38,7 +38,7 @@ export class ChildProcessCommunicator extends Base {
     this.cp.off(type, handler);
   }
 
-  override getInner(): unknown {
+  override getInner(){
     return this.cp;
   }
 }

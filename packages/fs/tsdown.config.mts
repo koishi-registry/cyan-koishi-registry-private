@@ -5,7 +5,7 @@ import Quansync from 'unplugin-quansync/rolldown'
 export default defineConfig({
   entry: ['./file/file.ts'],
   target: "esnext",
-  external: ["bun:jsc"],
+  external: ["@std/streams", "@kra/path"],
   plugins: [Quansync(), ],
   outDir: 'dist/'
 })

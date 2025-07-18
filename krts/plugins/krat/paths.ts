@@ -13,7 +13,7 @@ export class UIPaths {
     cacheDir: string,
   ) {
     this.client = asPath(
-      new URL('./app', import.meta.resolve('@krts/terminal/package.json')),
+      new URL('./app', import.meta.resolve('@krts/terminal/deno.json')),
     );
     this.dist = join(cacheDir, 'krts');
     this.vendor = join(this.dist, 'vendors');

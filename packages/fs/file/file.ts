@@ -1,9 +1,8 @@
 import { quansync } from 'quansync/macro'
-import * as q from './qbits'
+import * as q from './qbits.ts'
 
-import { optimize } from './optimize'
+import { optimize } from './optimize.ts'
 import { toArrayBuffer, toBlob } from '@std/streams'
-import { exists } from 'node:fs/promises'
 import { join } from '@kra/path'
 
 export class File {
@@ -44,14 +43,14 @@ export class File {
     return new this(File.joinPath(...paths))
   }
 
-  private $q$readFileEncoded = quansync(async (encoding?: BufferEncoding) => {
+  private $q$readFileEncoded = quansync(async (encoding?: NodeJS.BufferEncoding) => {
     return await q.readFileEncoded(this.path, encoding || 'utf-8')
   })
   private $q$readFileBuffered = quansync(async () => {
     return await q.readFileBuffer(this.path)
   })
 
-  async readFile(encoding?: BufferEncoding) {
+  async readFile(encoding?: NodeJS.BufferEncoding) {
     if (encoding) return await this.$q$readFileEncoded.async(encoding)
     return await this.$q$readFileBuffered.async()
   }
@@ -61,19 +60,24 @@ export class File {
     return data.toString()
   }
 
+  async json() {
+    const text = await this.text()
+    return JSON.parse(text)
+  }
+
   async blob() {
-    return toBlob(this.readable)
+    return await toBlob(this.readable)
   }
 
   async arrayBuffer() {
-    return toArrayBuffer(this.readable)
+    return await toArrayBuffer(this.readable)
   }
 
   async buffer() {
     return this.$q$readFileBuffered.async()
   }
 
-  readFileSync(encoding?: BufferEncoding) {
+  readFileSync(encoding?: NodeJS.BufferEncoding) {
     if (encoding) return this.$q$readFileEncoded.sync(encoding)
     return this.$q$readFileBuffered.sync()
   }

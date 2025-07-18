@@ -3,8 +3,8 @@ import {Readable} from 'node:stream'
 import { quansync } from 'quansync/macro'
 
 export const readFileEncoded = quansync({
-  sync: (path: string, encoding: BufferEncoding) => fs.readFileSync(path, { encoding }),
-  async: (path: string, encoding: BufferEncoding) => fs.promises.readFile(path, { encoding }),
+  sync: (path: string, encoding: NodeJS.BufferEncoding) => fs.readFileSync(path, { encoding }),
+  async: (path: string, encoding: NodeJS.BufferEncoding) => fs.promises.readFile(path, { encoding }),
 })
 
 export const readFileBuffer = quansync({
@@ -19,7 +19,7 @@ export const createReadable = quansync({
 
 export const exists = quansync({
   sync: (path: string) => fs.existsSync(path),
-  async: async (path: string) => fs.promises.exists(path),
+  async: async (path: string) => fs.existsSync(path),
 })
 
 export function toReadableStream(readable: fs.ReadStream) {

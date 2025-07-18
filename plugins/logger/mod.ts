@@ -4,7 +4,7 @@ import type { Context } from '@cordisjs/core';
 import { ensureDirSync, walkSync } from '@kra/fs';
 import { TextDecoderStream } from 'node:stream/web'
 import { DelimiterStream, toTransformStream } from '@std/streams';
-import type { BunFile, FileSink } from 'bun';
+// import type { BunFile, FileSink } from 'bun';
 import { type Dict, Time, noop, remove } from 'cosmokit';
 import { createRegExp, digit, oneOrMore } from 'magic-regexp';
 import Logger from 'reggol';
@@ -30,7 +30,7 @@ export class LogWriter {
   public committed: Logger.Record[] = [];
   public pending: Logger.Record[] = [];
 
-  public task: Promise<FileSink>;
+  public task: Promise<Deno.FsFile>
   public handle: BunFile;
 
   public size = 0;
@@ -40,38 +40,22 @@ export class LogWriter {
     public path: string,
   ) {
     const self = this;
-    this.handle = Bun.file(path);
-    this.task = this.handle
-      .exists()
-      .then((exists) => (exists ? Promise.resolve(0) : this.handle.write('')))
-      .then(() =>
-        Array.fromAsync(
-          this.handle
-            .stream()
-            .pipeThrough(new DelimiterStream(new TextEncoder().encode('\n')))
-            .pipeThrough(
-              toTransformStream(async function* (src) {
-                for await (const chunk of src) {
-                  self.size += chunk.byteLength;
-                  yield chunk;
-                }
-              }),
-            )
-            .pipeThrough(new TextDecoderStream())
-            .pipeThrough(
-              toTransformStream(async function* (src) {
-                for await (const chunk of src) {
-                  if (chunk.trim().length === 0) continue;
-                  yield JSON.parse(chunk) as Logger.Record;
-                }
-              }),
-            ),
-        ),
-      )
-      .then((records) => {
-        this.committed = records;
-        return this.handle.writer();
-      });
+    this.task = Deno.open(path, {
+      append: true,
+      create: true,
+    }).then(async (handle) => {
+      this.committed = await Deno.readFile(path)
+        .then((bytes) => {
+          this.size += bytes.byteLength
+          return bytes
+        })
+        .then((bytes) => new TextDecoder().decode(bytes))
+        .then((content) => content.split('\n'))
+        .then((lines) => lines.filter((x) => x.trim().length))
+        .then((lines) => lines.map<Logger.Record>((line) => JSON.parse(line)))
+
+      return handle
+    })
 
     this.task.then(() => this.flush());
   }
@@ -86,7 +70,7 @@ export class LogWriter {
         this.committed.push(...this.pending);
         this.pending.length = 0;
         this.size += handle.write(content);
-        await handle.flush();
+        await handle.syncData();
         return handle;
       })
       .then();
@@ -100,9 +84,9 @@ export class LogWriter {
   async close() {
     const handle = await this.task;
     try {
-      await handle.end();
-    } catch {
-      noop();
+      await handle.syncData();
+    } catch { noop() } finally {
+      handle.close();
     }
   }
 }

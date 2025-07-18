@@ -1,0 +1,14 @@
+{
+  "name": "@plug/indexing",
+  "version": "1.0.0",
+  "imports": {
+    "@hydrashodon/drizzle-kit": "npm:@hydrashodon/drizzle-kit@0.32.1",
+    "drizzle-kit": "npm:@hydrashodon/drizzle-kit@^0.32.1",
+    "@libsql/client": "npm:@libsql/client@^0.15.4"
+  },
+  "exports": {
+    ".": "./mod.ts",
+    "./declare": "./declare.ts",
+    "./idx": "./idx.ts"
+  }
+}

@@ -255,6 +255,7 @@ export class CommunicationService<
   }
 
   spawn$Bun_spawn(modulePath: string | URL) {
+    if (typeof Bun === 'undefined') throw new TypeError("Not a buntime")
     const path = Bun.fileURLToPath(modulePath);
     const conn = new BunIPCCommunicator(this.ctx);
     const child = Bun.spawn(["bun", path], {

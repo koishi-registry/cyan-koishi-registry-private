@@ -13,4 +13,4 @@ export async function asyncMapValues<T, U>(
   return result;
 }
 
-export { mapValues } from './cosmokit';
+export { mapValues } from './cosmokit.ts';

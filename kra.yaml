@@ -16,6 +16,7 @@
   config: postgresql://127.0.0.1:5432/kra
 - id: bruh-npm
   name: '@plug/npm'
+  disabled: true
   config: null
 - id: bruh-koishi-base
   name: '@plug/koishi'
@@ -37,7 +38,7 @@
   config: null
 - id: bruh-krat
   name: '@krts/plug-krat'
-  disabled: true
+  disabled: false
   config:
     devMode: true
 - id: bruh-krts-demo-mod

@@ -1,13 +1,13 @@
 import { join } from '@kra/path';
-// import { type Client, createClient } from '@libsql/client';
-import { Database } from 'bun:sqlite'
+import { type Client, createClient } from '@libsql/client/node';
+// import { Database } from 'bun:sqlite'
 import { type Context, Service, z } from '@p/core';
-import { type BunSQLiteDatabase as DrizzleDB, drizzle } from 'drizzle-orm/bun-sqlite';
+import { type LibSQLDatabase as DrizzleDB, drizzle } from 'drizzle-orm/libsql';
 import type {
   SQLiteTableWithColumns,
   TableConfig,
 } from 'drizzle-orm/sqlite-core';
-import Idx from './idx';
+import Idx from './idx.ts';
 
 export const name = 'indexing';
 
@@ -36,9 +36,9 @@ export class IndexService extends Service {
     super(ctx, 'indexing');
 
     if (options?.file === ':memory:')
-      this.client = new Database(':memory:');
+      this.client = createClient({ url: ':memory:' });
     else
-      this.client = new Database(join(ctx.baseDir, options!.file));
+      this.client = createClient({ url: `file:${join(ctx.baseDir, options!.file)}` });
 
     ctx.on('dispose', () => this.client.close());
     this.drizzle = drizzle({ client: this.client });

@@ -1,4 +1,4 @@
-import { KraConfig } from "./config";
+import { KraConfig } from "./config.ts";
 import { type SemVer, compare, format, parse } from '@std/semver';
 import meta from './package.json' with { type: 'json' };
 import type { Context } from "./context";

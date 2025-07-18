@@ -1,0 +1,72 @@
+{
+  "private": true,
+  "version": "0.5.0-rc.4",
+  "tasks": {
+    "start": {
+      "command": "deno -A ./runner.ts",
+      "dependencies": ["tools:dkms"]
+    },
+    "setup": "deno -A ./tools/setup.ts",
+    "tools:replicate_sim": "deno serve --allow-net --unstable-sloppy-imports ./tools/sim.ts",
+    "tools:dkms": "deno -A ./tools/dkms.ts"
+  },
+  "unstable": [
+    "sloppy-imports"
+  ],
+  "workspace": [
+    "./hono-mod",
+    "./http-mod/http",
+    "./http-mod/socks",
+    "./krts/plugins/*",
+    "./krts/packages/*",
+    "./cordis/packages/*",
+    "./cordis/plugins/*",
+    "./packages/*",
+    "./plugins/*"
+  ],
+  "imports": {
+    "@hono/node-server": "npm:@hono/node-server@^1.13.8",
+    "@hono/node-ws": "npm:@hono/node-ws@^1.1.0",
+    "@hydrashodon/drizzle-kit": "npm:@hydrashodon/drizzle-kit@^0.32.1",
+    "@km-api/km-api": "jsr:@km-api/km-api",
+    "@koishijs/registry": "npm:@koishijs/registry@^7.0.3",
+    "@std/assert": "jsr:@std/assert@^1.0.9",
+    "@std/async": "jsr:@std/async",
+    "@std/fs": "jsr:@std/fs@^1.0.7",
+    "@std/path": "jsr:@std/path@^1.0.8",
+    "@std/semver": "jsr:@std/semver@^1.0.3",
+    "@std/streams": "jsr:@std/streams@^1.0.9",
+    "@unocss/inspector": "npm:@unocss/inspector@^66.1.0",
+    "@unocss/preset-uno": "npm:@unocss/preset-uno@^66.1.0",
+    "@unocss/vite": "npm:@unocss/vite@^66.1.0",
+    "better-sqlite3": "npm:better-sqlite3@^11.8.1",
+    "bson": "npm:bson@^6.10.3",
+    "cosmokit": "npm:cosmokit@^1.7.2",
+    "drizzle-kit": "npm:@hydrashodon/drizzle-kit@^0.32.1",
+    "drizzle-orm": "npm:drizzle-orm@^0.40.0",
+    "inaba": "npm:inaba@^1.1.1",
+    "js-yaml": "npm:js-yaml@^4.1.0",
+    "lodash.merge": "npm:lodash.merge@^4.6.2",
+    "lodash.trim": "npm:lodash.trim@^4.5.1",
+    "lodash.trimend": "npm:lodash.trimend@^4.5.1",
+    "magic-regexp": "npm:magic-regexp@^0.8.0",
+    "paseto-ts": "npm:paseto-ts@^1.5.7",
+    "pg": "npm:pg@^8.13.3",
+    "reggol": "npm:reggol@^1.7.1",
+    "rolldown": "npm:rolldown@^1.0.0-beta.7",
+    "rolldown-vite": "npm:rolldown-vite@^0.3.2",
+    "sass-embedded": "npm:sass-embedded@^1.89.0",
+    "schemastery": "npm:schemastery@^3.16.1",
+    "typescript": "npm:typescript@^5.8.2",
+    "yml-register": "npm:yml-register@^1.2.5",
+    "zod": "npm:zod@^3.24.2",
+    "zod-validation-error": "npm:zod-validation-error@^3.4.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/bun": "^1.2.8",
+    "bun-types": "^1.2.4",
+    "consola": "^3.4.2"
+  }
+}

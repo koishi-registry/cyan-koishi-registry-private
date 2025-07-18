@@ -6,24 +6,24 @@ import { Loader } from './loader.ts';
 
 export * from './loader.ts';
 
-const oldEnv = { ...Bun.env };
+const oldEnv = Deno.env.toObject();
 
-namespace BunLoader {
+namespace DoneLoader {
   export interface Config extends Loader.Config {}
 }
 
-class BunLoader extends Loader {
+class DoneLoader extends Loader {
   static readonly exitCode = 51;
 
   override async init(baseDir: string, options: Loader.Config) {
     await super.init(baseDir, options);
 
     // restore process.env
-    for (const key in Bun.env) {
+    for (const key in Deno.env.toObject()) {
       if (key in oldEnv && oldEnv[key]) {
-        Bun.env[key] = oldEnv[key as keyof typeof oldEnv]!;
+        Deno.env.set(key, oldEnv[key as keyof typeof oldEnv]!);
       } else {
-        delete Bun.env[key];
+        Deno.env.delete(key);
       }
     }
 
@@ -49,11 +49,11 @@ class BunLoader extends Loader {
 
   override async start() {
     await this.init(process.cwd(), this.config);
-    this.ctx.set('env', Bun.env);
+    this.ctx.set('env', process.env);
     await super.start();
   }
 
-  override async exit(code = BunLoader.exitCode) {
+  override async exit(code = DoneLoader.exitCode) {
     const body = JSON.stringify(this.envData);
     return this.ctx.$communicate
       .post('disposed', { body })
@@ -67,4 +67,4 @@ class BunLoader extends Loader {
   }
 }
 
-export default BunLoader;
+export default DoneLoader;

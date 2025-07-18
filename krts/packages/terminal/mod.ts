@@ -4,12 +4,12 @@ import { copyFile, exists } from '@kra/fs';
 import { asPath, dirname, join, resolve } from '@kra/path';
 import yaml from '@maikolib/vite-plugin-yaml';
 import vue from '@vitejs/plugin-vue';
-import type { RollupOutput } from 'rollup';
+import type { RolldownOutput } from 'rolldown';
 import uno from 'unocss/preset-uno';
 // import type { Context } from 'yakumo'
 import unocss from 'unocss/vite';
 import * as vite from 'vite';
-
+// import deno from "@deno/vite-plugin";
 // declare module 'yakumo' {
 //   interface PackageConfig {
 //     client?: string
@@ -81,7 +81,7 @@ export async function buildEntry(
       } as vite.InlineConfig,
       config,
     ),
-  )) as RollupOutput[];
+  )) as RolldownOutput[];
 
   return results;
 }
@@ -101,7 +101,7 @@ export async function buildComponent(
       ...config.build,
       rollupOptions: {
         ...rollupOptions,
-        makeAbsoluteExternalsRelative: true,
+        // makeAbsoluteExternalsRelative: true,
         external: [
           base + '/vue.js',
           base + '/vue-router.js',
@@ -150,8 +150,8 @@ export async function buildComponent(
   })) as RollupOutput;
 }
 
-function resolveModuleDist(id: string, dist: string) {
-  return fileURLToPath(import.meta.resolve(`${id}/dist/${dist}`));
+export function resolveModuleDist(id: string, dist: string) {
+  return asPath(import.meta.resolve(`${id}/dist/${dist}`));
 }
 
 export async function copyComponentVue(outDir: string) {
@@ -187,7 +187,7 @@ export async function buildComponents(
                   'vue-router.esm-browser.js',
                 ),
               },
-              preserveEntrySignatures: 'strict',
+              // preserveEntrySignatures: 'strict',
             },
           },
         },
@@ -201,7 +201,7 @@ export async function buildComponents(
             input: {
               vueuse: import.meta.resolve('@vueuse/core'),
             },
-            preserveEntrySignatures: 'strict',
+            // preserveEntrySignatures: 'strict',
           },
         },
       }),
@@ -210,7 +210,7 @@ export async function buildComponents(
 
 export async function buildEndTerminal(base: string, outDir: string) {
   await buildComponent(
-    asPath(new URL('../app', import.meta.resolve('@krts/terminal/package.json'))),
+    asPath(new URL('../app', import.meta.resolve('@krts/terminal/deno.json'))),
     base,
     {
       build: {
@@ -222,17 +222,17 @@ export async function buildEndTerminal(base: string, outDir: string) {
             terminal: asPath(import.meta.resolve('@krts/terminal')),
           },
           output: {
-            manualChunks: {
-              primevue: ['primevue', '@primevue/core', '@primevue/icons'],
-              primeuix: [
-                '@primeuix/themes',
-                '@primeuix/styled',
-                '@primeuix/styles',
-                '@primeuix/utils',
-              ],
-            },
+            // manualChunks: {
+            //   primevue: ['primevue', '@primevue/core', '@primevue/icons'],
+            //   primeuix: [
+            //     '@primeuix/themes',
+            //     '@primeuix/styled',
+            //     '@primeuix/styles',
+            //     '@primeuix/utils',
+            //   ],
+            // },
           },
-          preserveEntrySignatures: 'strict',
+          // preserveEntrySignatures: 'strict',
         },
       },
     },
@@ -316,7 +316,7 @@ export async function infraGen(
         build: {
           ...rollupOptions,
           rollupOptions: {
-            preserveEntrySignatures: 'strict',
+            // preserveEntrySignatures: 'strict',
             input: join(root, 'index.html'),
             external: [
               base + '/vue.js',

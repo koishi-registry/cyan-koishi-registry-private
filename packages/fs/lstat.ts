@@ -1,4 +1,4 @@
-import { toPathString } from "./to_path_string";
+import { toPathString } from "./to_path_string.ts";
 import * as impl from '@kra/fs/impl/lstat'
 
 export function lstat(path_: string | URL) {
